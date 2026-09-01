@@ -80,3 +80,4 @@ jobs:
           mvn -B -ntp clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
           -Dsonar.host.url=${{ vars.SONAR_HOST_URL }}
           -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+# trigger CI
