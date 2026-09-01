@@ -78,6 +78,6 @@ jobs:
         if: ${{ vars.SONAR_HOST_URL != '' }}
         run: >
           mvn -B -ntp clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
-          -Dsonar.host.url=${{ vars.SONAR_HOST_URL }}
-          -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+          "-Dsonar.host.url=${{ vars.SONAR_HOST_URL }}"
+          "-Dsonar.token=${{ secrets.SONAR_TOKEN }}"
 # trigger CI
