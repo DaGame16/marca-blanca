@@ -87,10 +87,10 @@ jobs:
 
       - name: SonarQube analysis
         if: ${{ vars.SONAR_HOST_URL != '' }}
-        uses: sonarsource/sonarqube-scan-action@v4
-        with:
-          projectBaseDir: frontend
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
-# trigger CI
+        # El action oficial sonarsource/sonarqube-scan-action requiere bash
+        # (falla en runners self-hosted de Windows sin WSL). @sonar/scan es
+        # el wrapper npm oficial de SonarSource: corre nativo sobre Node.
+        run: pnpm dlx @sonar/scan
