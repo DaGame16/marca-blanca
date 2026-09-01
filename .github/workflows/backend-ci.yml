@@ -56,6 +56,9 @@ jobs:
     needs: build-test
     # Corre en el runner self-hosted porque SonarQube vive en localhost,
     # solo alcanzable desde tu propia red/máquina.
+    # Nunca corre para PRs de forks externos: evita ejecutar código
+    # no confiable en el runner self-hosted (tu propia máquina).
+    if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: [self-hosted, Windows, X64]
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
