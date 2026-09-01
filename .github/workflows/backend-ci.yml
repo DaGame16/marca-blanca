@@ -1,0 +1,78 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-ci.yml"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-ci.yml"
+
+concurrency:
+  group: backend-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  build-test:
+    name: Build & test (Java 25)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+
+      - name: Build & test
+        run: mvn -B -ntp verify
+
+      - name: Publish test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-surefire-reports
+          path: backend/**/target/surefire-reports/**
+          if-no-files-found: ignore
+          retention-days: 7
+
+  sonar:
+    name: SonarQube analysis
+    needs: build-test
+    # Corre en el runner self-hosted porque SonarQube vive en localhost,
+    # solo alcanzable desde tu propia red/máquina.
+    runs-on: [self-hosted, Windows]
+    if: ${{ secrets.SONAR_HOST_URL != '' }}
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Sonar necesita historia completa para blame/nuevo código
+          fetch-depth: 0
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+
+      - name: Build, test & analyze
+        run: >
+          mvn -B -ntp verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
+          -Dsonar.token=${{ secrets.SONAR_TOKEN }}
