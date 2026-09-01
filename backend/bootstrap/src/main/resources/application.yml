@@ -1,7 +1,0 @@
-app:
-  jwt:
-    # En cualquier ambiente real esto viene de la variable de entorno JWT_SECRET.
-    # El valor de acá abajo es SOLO para que la app levante en una maquina local sin configurar nada -
-    # nunca usar este valor en DEV compartido, QA o PROD.
-    secret: ${JWT_SECRET:solo-para-desarrollo-local-cambiar-siempre}
-    expiracion-minutos: 60
