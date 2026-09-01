@@ -7,10 +7,14 @@ on:
       - "backend/**"
       - ".github/workflows/backend-ci.yml"
   pull_request:
+    types: [opened, synchronize, reopened]
     branches: [main, develop]
     paths:
       - "backend/**"
       - ".github/workflows/backend-ci.yml"
+
+permissions:
+  contents: read
 
 concurrency:
   group: backend-ci-${{ github.workflow }}-${{ github.ref }}
@@ -36,7 +40,7 @@ jobs:
           cache: maven
 
       - name: Build & test
-        run: mvn -B -ntp verify
+        run: mvn -B -ntp clean verify
 
       - name: Publish test report
         if: always()
@@ -52,7 +56,7 @@ jobs:
     needs: build-test
     # Corre en el runner self-hosted porque SonarQube vive en localhost,
     # solo alcanzable desde tu propia red/máquina.
-    runs-on: [self-hosted, Windows]
+    runs-on: [self-hosted, Windows, X64]
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
@@ -73,6 +77,6 @@ jobs:
       - name: Build, test & analyze
         if: ${{ vars.SONAR_HOST_URL != '' }}
         run: >
-          mvn -B -ntp verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+          mvn -B -ntp clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
           -Dsonar.host.url=${{ vars.SONAR_HOST_URL }}
           -Dsonar.token=${{ secrets.SONAR_TOKEN }}

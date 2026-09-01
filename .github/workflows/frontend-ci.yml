@@ -7,10 +7,14 @@ on:
       - "frontend/**"
       - ".github/workflows/frontend-ci.yml"
   pull_request:
+    types: [opened, synchronize, reopened]
     branches: [main, develop]
     paths:
       - "frontend/**"
       - ".github/workflows/frontend-ci.yml"
+
+permissions:
+  contents: read
 
 concurrency:
   group: frontend-ci-${{ github.workflow }}-${{ github.ref }}
@@ -58,7 +62,7 @@ jobs:
     needs: build
     # Corre en el runner self-hosted porque SonarQube vive en localhost,
     # solo alcanzable desde tu propia red/máquina.
-    runs-on: [self-hosted, Windows]
+    runs-on: [self-hosted, Windows, X64]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
