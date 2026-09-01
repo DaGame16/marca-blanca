@@ -59,7 +59,6 @@ jobs:
     # Corre en el runner self-hosted porque SonarQube vive en localhost,
     # solo alcanzable desde tu propia red/máquina.
     runs-on: [self-hosted, Windows]
-    if: ${{ secrets.SONAR_HOST_URL != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -83,6 +82,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: SonarQube analysis
+        if: ${{ secrets.SONAR_HOST_URL != '' }}
         uses: sonarsource/sonarqube-scan-action@v4
         with:
           projectBaseDir: frontend

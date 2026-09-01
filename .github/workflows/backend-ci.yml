@@ -53,7 +53,6 @@ jobs:
     # Corre en el runner self-hosted porque SonarQube vive en localhost,
     # solo alcanzable desde tu propia red/máquina.
     runs-on: [self-hosted, Windows]
-    if: ${{ secrets.SONAR_HOST_URL != '' }}
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
@@ -72,6 +71,7 @@ jobs:
           cache: maven
 
       - name: Build, test & analyze
+        if: ${{ secrets.SONAR_HOST_URL != '' }}
         run: >
           mvn -B -ntp verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
           -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
