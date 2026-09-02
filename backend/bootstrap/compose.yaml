@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: marca-blanca-postgres
+    environment:
+      POSTGRES_DB: db_portal_guajiranet_control
+      POSTGRES_USER: guajiranet_owner
+      POSTGRES_PASSWORD: guajiranet_owner
+    ports:
+      - "5432:5432"
+    volumes:
+      - marca-blanca-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marca_blanca -d marca_blanca"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  marca-blanca-postgres-data:

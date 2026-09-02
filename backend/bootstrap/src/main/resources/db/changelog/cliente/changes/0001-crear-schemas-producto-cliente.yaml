@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0001-crear-schemas-base
+      author: leidi
+      comment: Schemas de una base de cliente (seccion 4 del documento + seguridad e historico)
+      changes:
+        - sql:
+            sql: CREATE SCHEMA IF NOT EXISTS producto
+        - sql:
+            sql: CREATE SCHEMA IF NOT EXISTS cliente
+        - sql:
+            sql: CREATE SCHEMA IF NOT EXISTS plataforma
+        - sql:
+            sql: CREATE SCHEMA IF NOT EXISTS seguridad
+        - sql:
+            sql: CREATE SCHEMA IF NOT EXISTS historico
+      rollback:
+        - sql:
+            sql: DROP SCHEMA IF EXISTS historico
+        - sql:
+            sql: DROP SCHEMA IF EXISTS seguridad
+        - sql:
+            sql: DROP SCHEMA IF EXISTS plataforma
+        - sql:
+            sql: DROP SCHEMA IF EXISTS cliente
+        - sql:
+            sql: DROP SCHEMA IF EXISTS producto

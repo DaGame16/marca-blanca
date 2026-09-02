@@ -1,0 +1,57 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0002-seguridad-crear-tabla-roles
+      author: leidi
+      comment: Roles por base de cliente. Antes era unico por (empresaId, nombre); ahora unico por base.
+      changes:
+        - createTable:
+            schemaName: seguridad
+            tableName: TBL_roles
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: PK_roles
+              - column:
+                  name: uuid
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: UQ_roles_uuid
+              - column:
+                  name: nombre
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: UQ_roles_nombre
+              - column:
+                  name: descripcion
+                  type: VARCHAR(255)
+              - column:
+                  name: es_del_sistema
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: creado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: actualizado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropTable:
+            schemaName: seguridad
+            tableName: TBL_roles

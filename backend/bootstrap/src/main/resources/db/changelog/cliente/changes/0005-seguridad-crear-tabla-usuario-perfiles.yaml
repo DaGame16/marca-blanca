@@ -1,0 +1,102 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0005-seguridad-crear-tabla-usuario-perfiles
+      author: leidi
+      comment: Datos personales y laborales del usuario, 1:1 con TBL_usuarios. tipo_sangre y notas_medicas son datos de salud (Ley 1581) - cifrado por columna en changeset posterior.
+      changes:
+        - createTable:
+            schemaName: seguridad
+            tableName: TBL_usuario_perfiles
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: PK_usuario_perfiles
+              - column:
+                  name: uuid
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: UQ_usuario_perfiles_uuid
+              - column:
+                  name: usuario_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: UQ_usuario_perfiles_usuario
+                    foreignKeyName: FK_usuario_perfiles_usuario
+                    references: seguridad.TBL_usuarios(id)
+              - column:
+                  name: id_empleado
+                  type: VARCHAR(60)
+                  constraints:
+                    unique: true
+                    uniqueConstraintName: UQ_usuario_perfiles_id_empleado
+              - column:
+                  name: url_foto
+                  type: VARCHAR(500)
+              - column:
+                  name: cedula
+                  type: VARCHAR(30)
+              - column:
+                  name: tipo_documento
+                  type: VARCHAR(20)
+              - column:
+                  name: fecha_nacimiento
+                  type: DATE
+              - column:
+                  name: tipo_sangre
+                  type: VARCHAR(10)
+              - column:
+                  name: notas_medicas
+                  type: VARCHAR(500)
+              - column:
+                  name: telefono
+                  type: VARCHAR(30)
+              - column:
+                  name: direccion
+                  type: VARCHAR(255)
+              - column:
+                  name: contacto_emergencia
+                  type: VARCHAR(150)
+              - column:
+                  name: telefono_emergencia
+                  type: VARCHAR(30)
+              - column:
+                  name: zona
+                  type: VARCHAR(100)
+              - column:
+                  name: cuadrilla_id
+                  type: BIGINT
+              - column:
+                  name: estado_laboral
+                  type: VARCHAR(30)
+              - column:
+                  name: creado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: actualizado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - createIndex:
+            schemaName: seguridad
+            tableName: TBL_usuario_perfiles
+            indexName: IDX_usuario_perfiles_cuadrilla_id
+            columns:
+              - column:
+                  name: cuadrilla_id
+      rollback:
+        - dropTable:
+            schemaName: seguridad
+            tableName: TBL_usuario_perfiles

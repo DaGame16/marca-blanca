@@ -5,3 +5,25 @@ app:
     # nunca usar este valor en DEV compartido, QA o PROD.
     secret: ${JWT_SECRET:solo-para-desarrollo-local-cambiar-siempre}
     expiracion-minutos: 60
+spring:
+  application:
+    name: marca-blanca-backend
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/marca_blanca}
+    username: ${SPRING_DATASOURCE_USERNAME:marca_blanca}
+    password: ${SPRING_DATASOURCE_PASSWORD:marca_blanca}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+
+  docker:
+    compose:
+      lifecycle-management: start-and-stop
