@@ -88,6 +88,21 @@
             <artifactId>spring-boot-docker-compose</artifactId>
             <optional>true</optional>
         </dependency>
+
+        <!-- NUEVO: ArchUnit protege las fronteras de la arquitectura hexagonal
+             (domain/application/infrastructure y el aislamiento entre
+             usuarios y omnicanal) con tests automaticos en cada build. -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <version>1.3.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
