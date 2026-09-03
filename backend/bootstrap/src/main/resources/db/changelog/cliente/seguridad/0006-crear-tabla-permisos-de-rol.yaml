@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 0007-seguridad-crear-tabla-permisos-de-rol
+      id: seguridad-0006-crear-tabla-permisos-de-rol
       author: leidi
       comment: Pivote rol <-> permiso (M:N).
       changes:

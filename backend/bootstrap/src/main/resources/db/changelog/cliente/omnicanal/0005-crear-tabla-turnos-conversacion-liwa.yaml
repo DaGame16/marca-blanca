@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 0019-omnicanal-crear-tabla-turnos-conversacion-liwa
+      id: omnicanal-0005-crear-tabla-turnos-conversacion-liwa
       author: leidi
       comment: Turnos de cada conversacion Liwa. autor (enum del viejo) como VARCHAR + CHECK.
       changes:

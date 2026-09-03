@@ -1,0 +1,30 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-0005-crear-tabla-proveedores
+      author: leidi
+      comment: Proveedores. Sin empresaId; nit unico por base. estado como VARCHAR + CHECK.
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_proveedores
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_proveedores}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_proveedores_uuid}}
+              - column: {name: nit, type: VARCHAR(50), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_proveedores_nit}}
+              - column: {name: razon_social, type: VARCHAR(191), constraints: {nullable: false}}
+              - column: {name: contacto, type: VARCHAR(150)}
+              - column: {name: cargo, type: VARCHAR(120)}
+              - column: {name: telefono, type: VARCHAR(100)}
+              - column: {name: correo, type: VARCHAR(254)}
+              - column: {name: direccion, type: VARCHAR(255)}
+              - column: {name: ciudad, type: VARCHAR(120)}
+              - column: {name: estado, type: VARCHAR(20), defaultValue: ACTIVO, constraints: {nullable: false}}
+              - column: {name: requiere_documento_soporte, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+              - column: {name: actualizado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - sql:
+            sql: >
+              ALTER TABLE producto.tbl_proveedores ADD CONSTRAINT ck_proveedores_estado
+              CHECK (estado IN ('ACTIVO','INACTIVO'))
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_proveedores}

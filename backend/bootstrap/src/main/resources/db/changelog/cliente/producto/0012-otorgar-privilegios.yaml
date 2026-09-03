@@ -1,8 +1,8 @@
 databaseChangeLog:
   - changeSet:
-      id: seguridad-0011-otorgar-privilegios
+      id: producto-0012-otorgar-privilegios
       author: leidi
-      comment: Privilegios de guajiranet_app y guajiranet_lectura sobre los schemas de una base de cliente. Se hereda a los clones de la plantilla.
+      comment: Privilegios de guajiranet_app (DML) y guajiranet_lectura (SELECT) sobre el schema producto. Seccion 6.1. Idempotente sobre tablas ya creadas + default privileges para las que vengan.
       changes:
         - sql:
             splitStatements: false
@@ -10,7 +10,7 @@ databaseChangeLog:
               DO $$
               DECLARE s text;
               BEGIN
-                FOREACH s IN ARRAY ARRAY['producto','cliente','plataforma','seguridad','historico'] LOOP
+                FOREACH s IN ARRAY ARRAY['producto'] LOOP
                   EXECUTE format('GRANT USAGE ON SCHEMA %I TO guajiranet_app, guajiranet_lectura', s);
                   EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA %I TO guajiranet_app', s);
                   EXECUTE format('GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA %I TO guajiranet_app', s);
@@ -27,7 +27,7 @@ databaseChangeLog:
               DO $$
               DECLARE s text;
               BEGIN
-                FOREACH s IN ARRAY ARRAY['producto','cliente','plataforma','seguridad','historico'] LOOP
+                FOREACH s IN ARRAY ARRAY['producto'] LOOP
                   EXECUTE format('REVOKE ALL ON ALL TABLES IN SCHEMA %I FROM guajiranet_app, guajiranet_lectura', s);
                   EXECUTE format('REVOKE ALL ON SCHEMA %I FROM guajiranet_app, guajiranet_lectura', s);
                 END LOOP;

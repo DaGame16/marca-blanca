@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 0021-omnicanal-crear-tabla-conversaciones-analizadas
+      id: omnicanal-0007-crear-tabla-conversaciones-analizadas
       author: leidi
       comment: Analisis IA de un caso Liwa. temas y banderas_calidad como JSONB. 1:1 con caso. Sin empresaId.
       changes:

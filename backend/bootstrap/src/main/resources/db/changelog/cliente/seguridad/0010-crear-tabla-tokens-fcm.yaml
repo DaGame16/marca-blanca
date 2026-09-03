@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 0011-seguridad-crear-tabla-tokens-fcm
+      id: seguridad-0010-crear-tabla-tokens-fcm
       author: leidi
       comment: Tokens de notificaciones push (Firebase). token unico por base.
       changes:

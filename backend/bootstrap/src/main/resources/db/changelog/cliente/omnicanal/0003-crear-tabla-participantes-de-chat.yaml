@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 0017-omnicanal-crear-tabla-participantes-de-chat
+      id: omnicanal-0003-crear-tabla-participantes-de-chat
       author: leidi
       comment: Participantes de cada canal de chat. Unico por (canal, usuario).
       changes:

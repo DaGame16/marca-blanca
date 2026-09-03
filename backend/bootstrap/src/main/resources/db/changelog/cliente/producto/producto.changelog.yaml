@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - include: {file: 0001-crear-tabla-unidades-de-medida.yaml, relativeToChangelogFile: true}
+  - include: {file: 0002-crear-tabla-categorias-de-producto.yaml, relativeToChangelogFile: true}
+  - include: {file: 0003-crear-tabla-bodegas.yaml, relativeToChangelogFile: true}
+  - include: {file: 0004-crear-tabla-productos.yaml, relativeToChangelogFile: true}
+  - include: {file: 0005-crear-tabla-proveedores.yaml, relativeToChangelogFile: true}
+  - include: {file: 0006-crear-tabla-codigos-equivalentes-proveedor.yaml, relativeToChangelogFile: true}
+  - include: {file: 0007-crear-tabla-nodos.yaml, relativeToChangelogFile: true}
+  - include: {file: 0008-crear-tabla-festivos.yaml, relativeToChangelogFile: true}
+  - include: {file: 0009-crear-tabla-clientes.yaml, relativeToChangelogFile: true}
+  - include: {file: 0010-crear-tabla-sucursales-de-cliente.yaml, relativeToChangelogFile: true}
+  - include: {file: 0011-crear-tabla-cuadrillas.yaml, relativeToChangelogFile: true}
+  - include: {file: 0012-otorgar-privilegios.yaml, relativeToChangelogFile: true}

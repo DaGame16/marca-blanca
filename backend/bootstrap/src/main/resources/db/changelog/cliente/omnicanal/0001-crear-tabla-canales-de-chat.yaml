@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 0015-omnicanal-crear-tabla-canales-de-chat
+      id: omnicanal-0001-crear-tabla-canales-de-chat
       author: leidi
       comment: Canales de chat interno del equipo. Sin empresaId.
       changes:

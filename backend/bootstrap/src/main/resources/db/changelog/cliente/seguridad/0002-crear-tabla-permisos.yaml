@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 0003-seguridad-crear-tabla-permisos
+      id: seguridad-0002-crear-tabla-permisos
       author: leidi
       comment: Catalogo de permisos por base de cliente. Sin empresaId.
       changes:

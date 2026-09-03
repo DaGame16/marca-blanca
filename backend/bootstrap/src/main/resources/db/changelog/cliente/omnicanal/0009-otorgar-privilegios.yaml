@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 0023-omnicanal-otorgar-privilegios
+      id: omnicanal-0009-otorgar-privilegios
       author: leidi
       comment: Privilegios de guajiranet_app (DML) y guajiranet_lectura (SELECT) sobre el schema omnicanal. Seccion 6.1. Se hereda a los clones de la plantilla.
       changes:

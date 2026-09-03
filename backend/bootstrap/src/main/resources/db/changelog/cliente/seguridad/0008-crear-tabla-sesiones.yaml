@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 0009-seguridad-crear-tabla-sesiones
+      id: seguridad-0008-crear-tabla-sesiones
       author: leidi
       comment: Sesiones activas. tokenRefresco del viejo se guarda hasheado; direccion_ip como INET.
       changes:

@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 0006-seguridad-crear-tabla-usuarios-roles
+      id: seguridad-0005-crear-tabla-usuarios-roles
       author: leidi
       comment: Pivote usuario <-> rol (M:N). Reemplaza al usuarios.rolId del sistema viejo.
       changes:

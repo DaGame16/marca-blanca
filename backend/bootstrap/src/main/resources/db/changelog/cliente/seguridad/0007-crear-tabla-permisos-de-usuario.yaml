@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 0008-seguridad-crear-tabla-permisos-de-usuario
+      id: seguridad-0007-crear-tabla-permisos-de-usuario
       author: leidi
       comment: Ajuste individual de permisos por usuario. es_concedido = true concede, false revoca.
       changes:

@@ -1,0 +1,31 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-0017-crear-tabla-evidencias-de-tarea
+      author: leidi
+      comment: Evidencias de trabajo de una tarea. ubicacion (JSON) como JSONB.
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_evidencias_de_tarea
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_evidencias_de_tarea}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_evidencias_de_tarea_uuid}}
+              - column:
+                  name: tarea_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_evidencias_de_tarea_tarea, references: producto.tbl_tareas(id)}
+              - column:
+                  name: usuario_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_evidencias_de_tarea_usuario, references: seguridad.tbl_usuarios(id)}
+              - column: {name: notas, type: VARCHAR(191)}
+              - column: {name: ubicacion, type: JSONB}
+              - column: {name: firma, type: VARCHAR(191)}
+              - column: {name: duracion_segundos, type: INTEGER, constraints: {nullable: false}}
+              - column: {name: iniciada_en, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: finalizada_en, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - createIndex: {schemaName: producto, tableName: tbl_evidencias_de_tarea, indexName: idx_evidencias_de_tarea_tarea_id, columns: [{column: {name: tarea_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_evidencias_de_tarea, indexName: idx_evidencias_de_tarea_usuario_id, columns: [{column: {name: usuario_id}}]}
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_evidencias_de_tarea}

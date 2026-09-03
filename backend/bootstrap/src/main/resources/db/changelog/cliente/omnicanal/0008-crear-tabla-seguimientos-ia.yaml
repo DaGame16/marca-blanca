@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 0022-omnicanal-crear-tabla-seguimientos-ia
+      id: omnicanal-0008-crear-tabla-seguimientos-ia
       author: leidi
       comment: Seguimientos generados por IA sobre un contacto. cedula es texto libre (no FK). tarea_id sin FK hasta que exista el modulo producto.
       changes:

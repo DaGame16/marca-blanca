@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 0004-seguridad-crear-tabla-usuarios
+      id: seguridad-0003-crear-tabla-usuarios
       author: leidi
       comment: Identidad y acceso. Datos personales en tbl_usuario_perfiles. Sin empresaId, sin rolId, sin tokenRefresco.
       changes:

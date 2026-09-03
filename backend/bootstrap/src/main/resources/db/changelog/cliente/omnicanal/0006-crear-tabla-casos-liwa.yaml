@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 0020-omnicanal-crear-tabla-casos-liwa
+      id: omnicanal-0006-crear-tabla-casos-liwa
       author: leidi
       comment: Casos Liwa - segmento de una conversacion marcado para analisis.
       changes:

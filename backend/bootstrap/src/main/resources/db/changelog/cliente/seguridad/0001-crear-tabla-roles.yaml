@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 0002-seguridad-crear-tabla-roles
+      id: seguridad-0001-crear-tabla-roles
       author: leidi
       comment: Roles por base de cliente. Antes era unico por (empresaId, nombre); ahora unico por base.
       changes:

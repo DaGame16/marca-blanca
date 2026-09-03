@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - include: {file: 0001-crear-tabla-canales-de-chat.yaml, relativeToChangelogFile: true}
+  - include: {file: 0002-crear-tabla-mensajes-de-chat.yaml, relativeToChangelogFile: true}
+  - include: {file: 0003-crear-tabla-participantes-de-chat.yaml, relativeToChangelogFile: true}
+  - include: {file: 0004-crear-tabla-conversaciones-liwa.yaml, relativeToChangelogFile: true}
+  - include: {file: 0005-crear-tabla-turnos-conversacion-liwa.yaml, relativeToChangelogFile: true}
+  - include: {file: 0006-crear-tabla-casos-liwa.yaml, relativeToChangelogFile: true}
+  - include: {file: 0007-crear-tabla-conversaciones-analizadas.yaml, relativeToChangelogFile: true}
+  - include: {file: 0008-crear-tabla-seguimientos-ia.yaml, relativeToChangelogFile: true}
+  - include: {file: 0009-otorgar-privilegios.yaml, relativeToChangelogFile: true}

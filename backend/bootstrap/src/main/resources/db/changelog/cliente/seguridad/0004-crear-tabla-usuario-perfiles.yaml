@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 0005-seguridad-crear-tabla-usuario-perfiles
+      id: seguridad-0004-crear-tabla-usuario-perfiles
       author: leidi
       comment: Datos personales y laborales del usuario, 1:1 con tbl_usuarios. tipo_sangre y notas_medicas son datos de salud (Ley 1581) - cifrado por columna en changeset posterior.
       changes:

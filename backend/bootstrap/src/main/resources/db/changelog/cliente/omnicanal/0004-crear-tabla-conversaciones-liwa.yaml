@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 0018-omnicanal-crear-tabla-conversaciones-liwa
+      id: omnicanal-0004-crear-tabla-conversaciones-liwa
       author: leidi
       comment: Conversaciones Liwa con contactos externos. datos_crudos como JSONB. Sin empresaId.
       changes:

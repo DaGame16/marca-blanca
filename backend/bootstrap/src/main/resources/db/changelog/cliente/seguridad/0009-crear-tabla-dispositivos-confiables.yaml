@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 0010-seguridad-crear-tabla-dispositivos-confiables
+      id: seguridad-0009-crear-tabla-dispositivos-confiables
       author: leidi
       comment: Dispositivos recordados para el doble factor. Unico por (usuario, id_dispositivo).
       changes:

@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 0016-omnicanal-crear-tabla-mensajes-de-chat
+      id: omnicanal-0002-crear-tabla-mensajes-de-chat
       author: leidi
       comment: Mensajes en canales de chat interno. FK a canal y a seguridad.tbl_usuarios (remitente).
       changes:

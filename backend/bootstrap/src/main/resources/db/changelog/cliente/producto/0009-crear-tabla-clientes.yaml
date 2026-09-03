@@ -1,0 +1,49 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-0009-crear-tabla-clientes
+      author: leidi
+      comment: Clientes finales del tenant. Sin empresaId; numero_documento unico por base. idSucursal/idContratoSigma son ids de sistemas externos (Sigma), no FKs.
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_clientes
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_clientes}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_clientes_uuid}}
+              - column: {name: nombre_completo, type: VARCHAR(191), constraints: {nullable: false}}
+              - column: {name: tipo_documento, type: VARCHAR(20)}
+              - column: {name: numero_documento, type: VARCHAR(50), constraints: {unique: true, uniqueConstraintName: uq_clientes_numero_documento}}
+              - column: {name: telefono, type: VARCHAR(100)}
+              - column: {name: telefono_fijo, type: VARCHAR(100)}
+              - column: {name: correo, type: VARCHAR(254)}
+              - column: {name: direccion, type: VARCHAR(255)}
+              - column: {name: barrio, type: VARCHAR(120)}
+              - column: {name: municipio, type: VARCHAR(120)}
+              - column: {name: departamento, type: VARCHAR(120)}
+              - column: {name: plan, type: VARCHAR(120)}
+              - column: {name: tiene_tv, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: tiene_sim, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: tiene_marketing, type: BOOLEAN, defaultValueBoolean: false, constraints: {nullable: false}}
+              - column: {name: saldo_cartera, type: DOUBLE PRECISION, defaultValueNumeric: 0}
+              - column: {name: dias_cartera, type: INTEGER, defaultValueNumeric: 0}
+              - column: {name: clasificacion, type: VARCHAR(50)}
+              - column: {name: url_pago, type: VARCHAR(500)}
+              - column: {name: id_contrato_sigma, type: INTEGER}
+              - column: {name: estado_contrato, type: VARCHAR(50)}
+              - column: {name: id_sucursal_sigma, type: INTEGER}
+              - column: {name: serial_ont, type: VARCHAR(120)}
+              - column: {name: puerto_ont, type: VARCHAR(120)}
+              - column: {name: latitud, type: DOUBLE PRECISION}
+              - column: {name: longitud, type: DOUBLE PRECISION}
+              - column: {name: ubicacion_actualizada_en, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: sincronizado_en, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: sigma_actualizado_en, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+              - column: {name: actualizado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - createIndex:
+            schemaName: producto
+            tableName: tbl_clientes
+            indexName: idx_clientes_numero_documento
+            columns: [{column: {name: numero_documento}}]
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_clientes}

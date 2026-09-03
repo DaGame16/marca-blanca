@@ -1,70 +1,7 @@
 databaseChangeLog:
-  - include:
-      file: changes/0001-crear-schemas-producto-cliente.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: changes/0002-seguridad-crear-tabla-roles.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: changes/0003-seguridad-crear-tabla-permisos.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: changes/0004-seguridad-crear-tabla-usuarios.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: changes/0005-seguridad-crear-tabla-usuario-perfiles.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: changes/0006-seguridad-crear-tabla-usuarios-roles.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: changes/0007-seguridad-crear-tabla-permisos-de-rol.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: changes/0008-seguridad-crear-tabla-permisos-de-usuario.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: changes/0009-seguridad-crear-tabla-sesiones.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: changes/0010-seguridad-crear-tabla-dispositivos-confiables.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: changes/0011-seguridad-crear-tabla-tokens-fcm.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: changes/0012-otorgar-privilegios-roles.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: changes/0013-seguridad-ajustar-anchos-perfiles.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: changes/0014-crear-schema-omnicanal.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: changes/0015-omnicanal-crear-tabla-canales-de-chat.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: changes/0016-omnicanal-crear-tabla-mensajes-de-chat.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: changes/0017-omnicanal-crear-tabla-participantes-de-chat.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: changes/0018-omnicanal-crear-tabla-conversaciones-liwa.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: changes/0019-omnicanal-crear-tabla-turnos-conversacion-liwa.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: changes/0020-omnicanal-crear-tabla-casos-liwa.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: changes/0021-omnicanal-crear-tabla-conversaciones-analizadas.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: changes/0022-omnicanal-crear-tabla-seguimientos-ia.yaml
-      relativeToChangelogFile: true
-  - include:
-      file: changes/0023-omnicanal-otorgar-privilegios.yaml
-      relativeToChangelogFile: true
+  # Estructura de una base de cliente (db_plantilla_maestra -> db_cliente_<slug>).
+  # El orden importa: producto tiene FKs a seguridad.
+  - include: {file: base/base.changelog.yaml, relativeToChangelogFile: true}
+  - include: {file: seguridad/seguridad.changelog.yaml, relativeToChangelogFile: true}
+  - include: {file: omnicanal/omnicanal.changelog.yaml, relativeToChangelogFile: true}
+  - include: {file: producto/producto.changelog.yaml, relativeToChangelogFile: true}
