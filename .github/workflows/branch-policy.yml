@@ -29,8 +29,8 @@ jobs:
           fi
 
           if [ "$BASE_REF" = "develop" ]; then
-            if [[ "$HEAD_REF" != feature/* ]] && [[ "$HEAD_REF" != bugfix/* ]] && [[ "$HEAD_REF" != hotfix/* ]]; then
-              echo "::error::La rama '$HEAD_REF' no sigue la convención esperada para PRs a 'develop' (feature/*, bugfix/* o hotfix/*)."
+            if [[ "$HEAD_REF" != feature/* ]] && [[ "$HEAD_REF" != bugfix/* ]] && [[ "$HEAD_REF" != hotfix/* ]] && [[ "$HEAD_REF" != docs/* ]] && [[ "$HEAD_REF" != chore/* ]] && [[ "$HEAD_REF" != refactor/* ]]; then
+              echo "::error::La rama '$HEAD_REF' no sigue la convención esperada para PRs a 'develop' (feature/*, bugfix/*, hotfix/*, docs/*, chore/* o refactor/*)."
               exit 1
             fi
           fi
