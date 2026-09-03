@@ -17,16 +17,20 @@ public class SecurityConfig {
         this.jwtAuthFilter = jwtAuthFilter;
     }
 
-    @Bean
-    public SecurityFilterChain filterChain(org.springframework.security.config.annotation.web.builders.HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-        return http.build();
+        @Bean
+    public SecurityFilterChain filterChain(org.springframework.security.config.annotation.web.builders.HttpSecurity http) {
+        try {
+            http
+                    .csrf(csrf -> csrf.disable())
+                    .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .authorizeHttpRequests(auth -> auth
+                            .requestMatchers("/api/v1/auth/**").permitAll()
+                            .anyRequest().authenticated()
+                    )
+                    .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            return http.build();
+        } catch (Exception e) {
+            throw new IllegalStateException("Error al construir la cadena de filtros de seguridad", e);
+        }
     }
 }
