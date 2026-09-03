@@ -1,12 +1,12 @@
 databaseChangeLog:
   - changeSet:
-      id: 0002-seguridad-crear-tabla-roles
+      id: 0011-seguridad-crear-tabla-tokens-fcm
       author: leidi
-      comment: Roles por base de cliente. Antes era unico por (empresaId, nombre); ahora unico por base.
+      comment: Tokens de notificaciones push (Firebase). token unico por base.
       changes:
         - createTable:
             schemaName: seguridad
-            tableName: tbl_roles
+            tableName: tbl_tokens_fcm
             columns:
               - column:
                   name: id
@@ -14,7 +14,7 @@ databaseChangeLog:
                   autoIncrement: true
                   constraints:
                     primaryKey: true
-                    primaryKeyName: pk_roles
+                    primaryKeyName: pk_tokens_fcm
               - column:
                   name: uuid
                   type: UUID
@@ -22,36 +22,38 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     unique: true
-                    uniqueConstraintName: uq_roles_uuid
+                    uniqueConstraintName: uq_tokens_fcm_uuid
               - column:
-                  name: nombre
-                  type: VARCHAR(100)
+                  name: usuario_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_tokens_fcm_usuario
+                    references: seguridad.tbl_usuarios(id)
+              - column:
+                  name: token
+                  type: VARCHAR(512)
                   constraints:
                     nullable: false
                     unique: true
-                    uniqueConstraintName: uq_roles_nombre
+                    uniqueConstraintName: uq_tokens_fcm_token
               - column:
-                  name: descripcion
-                  type: VARCHAR(255)
-              - column:
-                  name: es_del_sistema
-                  type: BOOLEAN
-                  defaultValueBoolean: false
-                  constraints:
-                    nullable: false
+                  name: dispositivo
+                  type: VARCHAR(150)
               - column:
                   name: creado_en
                   type: TIMESTAMP WITH TIME ZONE
                   defaultValueComputed: now()
                   constraints:
                     nullable: false
+        - createIndex:
+            schemaName: seguridad
+            tableName: tbl_tokens_fcm
+            indexName: idx_tokens_fcm_usuario_id
+            columns:
               - column:
-                  name: actualizado_en
-                  type: TIMESTAMP WITH TIME ZONE
-                  defaultValueComputed: now()
-                  constraints:
-                    nullable: false
+                  name: usuario_id
       rollback:
         - dropTable:
             schemaName: seguridad
-            tableName: tbl_roles
+            tableName: tbl_tokens_fcm

@@ -1,12 +1,12 @@
 databaseChangeLog:
   - changeSet:
-      id: 0002-seguridad-crear-tabla-roles
+      id: 0006-crear-tabla-modulos
       author: leidi
-      comment: Roles por base de cliente. Antes era unico por (empresaId, nombre); ahora unico por base.
+      comment: Catalogo de modulos de la plataforma (tareas, bodega, ventas, chat...).
       changes:
         - createTable:
-            schemaName: seguridad
-            tableName: tbl_roles
+            schemaName: plataforma
+            tableName: tbl_modulos
             columns:
               - column:
                   name: id
@@ -14,7 +14,7 @@ databaseChangeLog:
                   autoIncrement: true
                   constraints:
                     primaryKey: true
-                    primaryKeyName: pk_roles
+                    primaryKeyName: pk_modulos
               - column:
                   name: uuid
                   type: UUID
@@ -22,23 +22,22 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     unique: true
-                    uniqueConstraintName: uq_roles_uuid
+                    uniqueConstraintName: uq_modulos_uuid
               - column:
-                  name: nombre
-                  type: VARCHAR(100)
+                  name: codigo
+                  type: VARCHAR(50)
                   constraints:
                     nullable: false
                     unique: true
-                    uniqueConstraintName: uq_roles_nombre
+                    uniqueConstraintName: uq_modulos_codigo
+              - column:
+                  name: nombre
+                  type: VARCHAR(120)
+                  constraints:
+                    nullable: false
               - column:
                   name: descripcion
                   type: VARCHAR(255)
-              - column:
-                  name: es_del_sistema
-                  type: BOOLEAN
-                  defaultValueBoolean: false
-                  constraints:
-                    nullable: false
               - column:
                   name: creado_en
                   type: TIMESTAMP WITH TIME ZONE
@@ -53,5 +52,5 @@ databaseChangeLog:
                     nullable: false
       rollback:
         - dropTable:
-            schemaName: seguridad
-            tableName: tbl_roles
+            schemaName: plataforma
+            tableName: tbl_modulos

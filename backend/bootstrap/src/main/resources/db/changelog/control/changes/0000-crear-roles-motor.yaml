@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0000-crear-roles-motor
+      author: leidi
+      comment: Roles del motor guajiranet_app (DML) y guajiranet_lectura (SELECT), seccion 6.1. Idempotente. En QA/PROD los provisiona infra y este changeset es no-op.
+      runInTransaction: false
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              DO $$
+              BEGIN
+                IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'guajiranet_app') THEN
+                  CREATE ROLE guajiranet_app LOGIN PASSWORD 'guajiranet_app';
+                END IF;
+                IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'guajiranet_lectura') THEN
+                  CREATE ROLE guajiranet_lectura LOGIN PASSWORD 'guajiranet_lectura';
+                END IF;
+              END $$;

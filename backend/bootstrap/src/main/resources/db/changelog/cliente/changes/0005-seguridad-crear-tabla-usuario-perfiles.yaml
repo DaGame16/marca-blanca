@@ -2,11 +2,11 @@ databaseChangeLog:
   - changeSet:
       id: 0005-seguridad-crear-tabla-usuario-perfiles
       author: leidi
-      comment: Datos personales y laborales del usuario, 1:1 con TBL_usuarios. tipo_sangre y notas_medicas son datos de salud (Ley 1581) - cifrado por columna en changeset posterior.
+      comment: Datos personales y laborales del usuario, 1:1 con tbl_usuarios. tipo_sangre y notas_medicas son datos de salud (Ley 1581) - cifrado por columna en changeset posterior.
       changes:
         - createTable:
             schemaName: seguridad
-            tableName: TBL_usuario_perfiles
+            tableName: tbl_usuario_perfiles
             columns:
               - column:
                   name: id
@@ -14,7 +14,7 @@ databaseChangeLog:
                   autoIncrement: true
                   constraints:
                     primaryKey: true
-                    primaryKeyName: PK_usuario_perfiles
+                    primaryKeyName: pk_usuario_perfiles
               - column:
                   name: uuid
                   type: UUID
@@ -22,22 +22,22 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     unique: true
-                    uniqueConstraintName: UQ_usuario_perfiles_uuid
+                    uniqueConstraintName: uq_usuario_perfiles_uuid
               - column:
                   name: usuario_id
                   type: BIGINT
                   constraints:
                     nullable: false
                     unique: true
-                    uniqueConstraintName: UQ_usuario_perfiles_usuario
-                    foreignKeyName: FK_usuario_perfiles_usuario
-                    references: seguridad.TBL_usuarios(id)
+                    uniqueConstraintName: uq_usuario_perfiles_usuario
+                    foreignKeyName: fk_usuario_perfiles_usuario
+                    references: seguridad.tbl_usuarios(id)
               - column:
                   name: id_empleado
                   type: VARCHAR(60)
                   constraints:
                     unique: true
-                    uniqueConstraintName: UQ_usuario_perfiles_id_empleado
+                    uniqueConstraintName: uq_usuario_perfiles_id_empleado
               - column:
                   name: url_foto
                   type: VARCHAR(500)
@@ -91,12 +91,12 @@ databaseChangeLog:
                     nullable: false
         - createIndex:
             schemaName: seguridad
-            tableName: TBL_usuario_perfiles
-            indexName: IDX_usuario_perfiles_cuadrilla_id
+            tableName: tbl_usuario_perfiles
+            indexName: idx_usuario_perfiles_cuadrilla_id
             columns:
               - column:
                   name: cuadrilla_id
       rollback:
         - dropTable:
             schemaName: seguridad
-            tableName: TBL_usuario_perfiles
+            tableName: tbl_usuario_perfiles

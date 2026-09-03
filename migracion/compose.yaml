@@ -1,0 +1,26 @@
+name: migracion
+
+# Entorno EFIMERO solo para la migracion. No es infraestructura de la app.
+services:
+  mariadb-origen:
+    image: mariadb:10.4
+    container_name: migracion-mariadb-origen
+    environment:
+      MYSQL_ROOT_PASSWORD: migracion
+      MYSQL_DATABASE: erp_saas_test
+    ports:
+      - "3307:3306"          # 3307 en el host para no chocar con otro MySQL local
+    volumes:
+      - ./dump:/docker-entrypoint-initdb.d:ro   # los .sql se cargan al primer arranque
+      - migracion-mariadb-data:/var/lib/mysql
+
+  pgloader:
+    image: dimitri/pgloader:latest
+    container_name: migracion-pgloader
+    depends_on:
+      - mariadb-origen
+    volumes:
+      - ./pgloader:/work:ro
+    entrypoint: ["tail", "-f", "/dev/null"]   # queda vivo; pgloader se lanza a demanda
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # para alcanzar el Postgres del host

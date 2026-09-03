@@ -1,0 +1,75 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0004-crear-tabla-empresa-conexiones
+      author: leidi
+      comment: Directorio de enrutamiento - a que base fisica va cada empresa. secreto_ref = clave en el vault, nunca contrasena en claro.
+      changes:
+        - createTable:
+            schemaName: plataforma
+            tableName: tbl_empresa_conexiones
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_empresa_conexiones
+              - column:
+                  name: uuid
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_empresa_conexiones_uuid
+              - column:
+                  name: empresa_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_empresa_conexiones_empresa
+                    foreignKeyName: fk_empresa_conexiones_empresa
+                    references: plataforma.tbl_empresas(id)
+              - column:
+                  name: host
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: puerto
+                  type: INTEGER
+                  defaultValueNumeric: 5432
+                  constraints:
+                    nullable: false
+              - column:
+                  name: nombre_bd
+                  type: VARCHAR(120)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: secreto_ref
+                  type: VARCHAR(400)
+              - column:
+                  name: es_activa
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: creado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: actualizado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropTable:
+            schemaName: plataforma
+            tableName: tbl_empresa_conexiones

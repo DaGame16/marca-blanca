@@ -1,12 +1,12 @@
 databaseChangeLog:
   - changeSet:
-      id: 0002-seguridad-crear-tabla-roles
+      id: 0005-crear-tabla-empresa-esquema-version
       author: leidi
-      comment: Roles por base de cliente. Antes era unico por (empresaId, nombre); ahora unico por base.
+      comment: Audita que ninguna base de cliente quede desincronizada del changelog (seccion 2.1).
       changes:
         - createTable:
-            schemaName: seguridad
-            tableName: tbl_roles
+            schemaName: plataforma
+            tableName: tbl_empresa_esquema_version
             columns:
               - column:
                   name: id
@@ -14,7 +14,7 @@ databaseChangeLog:
                   autoIncrement: true
                   constraints:
                     primaryKey: true
-                    primaryKeyName: pk_roles
+                    primaryKeyName: pk_empresa_esquema_version
               - column:
                   name: uuid
                   type: UUID
@@ -22,36 +22,28 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     unique: true
-                    uniqueConstraintName: uq_roles_uuid
+                    uniqueConstraintName: uq_empresa_esquema_version_uuid
               - column:
-                  name: nombre
-                  type: VARCHAR(100)
+                  name: empresa_id
+                  type: BIGINT
                   constraints:
                     nullable: false
                     unique: true
-                    uniqueConstraintName: uq_roles_nombre
+                    uniqueConstraintName: uq_empresa_esquema_version_empresa
+                    foreignKeyName: fk_empresa_esquema_version_empresa
+                    references: plataforma.tbl_empresas(id)
               - column:
-                  name: descripcion
+                  name: ultima_migracion_aplicada
                   type: VARCHAR(255)
-              - column:
-                  name: es_del_sistema
-                  type: BOOLEAN
-                  defaultValueBoolean: false
                   constraints:
                     nullable: false
               - column:
-                  name: creado_en
-                  type: TIMESTAMP WITH TIME ZONE
-                  defaultValueComputed: now()
-                  constraints:
-                    nullable: false
-              - column:
-                  name: actualizado_en
+                  name: aplicada_en
                   type: TIMESTAMP WITH TIME ZONE
                   defaultValueComputed: now()
                   constraints:
                     nullable: false
       rollback:
         - dropTable:
-            schemaName: seguridad
-            tableName: tbl_roles
+            schemaName: plataforma
+            tableName: tbl_empresa_esquema_version

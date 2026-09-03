@@ -6,7 +6,7 @@ databaseChangeLog:
       changes:
         - createTable:
             schemaName: seguridad
-            tableName: TBL_permisos_de_rol
+            tableName: tbl_permisos_de_rol
             columns:
               - column:
                   name: id
@@ -14,7 +14,7 @@ databaseChangeLog:
                   autoIncrement: true
                   constraints:
                     primaryKey: true
-                    primaryKeyName: PK_permisos_de_rol
+                    primaryKeyName: pk_permisos_de_rol
               - column:
                   name: uuid
                   type: UUID
@@ -22,21 +22,21 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     unique: true
-                    uniqueConstraintName: UQ_permisos_de_rol_uuid
+                    uniqueConstraintName: uq_permisos_de_rol_uuid
               - column:
                   name: rol_id
                   type: BIGINT
                   constraints:
                     nullable: false
-                    foreignKeyName: FK_permisos_de_rol_rol
-                    references: seguridad.TBL_roles(id)
+                    foreignKeyName: fk_permisos_de_rol_rol
+                    references: seguridad.tbl_roles(id)
               - column:
                   name: permiso_id
                   type: BIGINT
                   constraints:
                     nullable: false
-                    foreignKeyName: FK_permisos_de_rol_permiso
-                    references: seguridad.TBL_permisos(id)
+                    foreignKeyName: fk_permisos_de_rol_permiso
+                    references: seguridad.tbl_permisos(id)
               - column:
                   name: asignado_en
                   type: TIMESTAMP WITH TIME ZONE
@@ -45,17 +45,17 @@ databaseChangeLog:
                     nullable: false
         - addUniqueConstraint:
             schemaName: seguridad
-            tableName: TBL_permisos_de_rol
+            tableName: tbl_permisos_de_rol
             columnNames: rol_id, permiso_id
-            constraintName: UQ_permisos_de_rol_par
+            constraintName: uq_permisos_de_rol_par
         - createIndex:
             schemaName: seguridad
-            tableName: TBL_permisos_de_rol
-            indexName: IDX_permisos_de_rol_permiso_id
+            tableName: tbl_permisos_de_rol
+            indexName: idx_permisos_de_rol_permiso_id
             columns:
               - column:
                   name: permiso_id
       rollback:
         - dropTable:
             schemaName: seguridad
-            tableName: TBL_permisos_de_rol
+            tableName: tbl_permisos_de_rol

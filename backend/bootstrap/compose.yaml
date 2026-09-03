@@ -11,7 +11,7 @@ services:
     volumes:
       - marca-blanca-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U marca_blanca -d marca_blanca"]
+      test: ["CMD-SHELL", "pg_isready -U guajiranet_owner -d db_portal_guajiranet_control"]
       interval: 10s
       timeout: 5s
       retries: 5

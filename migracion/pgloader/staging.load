@@ -1,0 +1,20 @@
+LOAD DATABASE
+     FROM     mysql://root:migracion@mariadb-origen/erp_saas_test
+     INTO postgresql://marca_blanca:marca_blanca@host.docker.internal:5432/db_cliente_demo
+
+ WITH include no drop,
+      create tables,
+      create indexes,
+      reset sequences,
+      workers = 4,
+      concurrency = 1
+
+ SET work_mem to '128MB',
+     maintenance_work_mem to '512MB'
+
+ CAST type datetime to timestamptz drop default drop not null using zero-dates-to-null,
+      type date               drop not null using zero-dates-to-null,
+      type tinyint when (= 1 precision) to boolean drop typemod using tinyint-to-boolean
+
+ ALTER SCHEMA 'erp_saas_test' RENAME TO 'staging'
+;

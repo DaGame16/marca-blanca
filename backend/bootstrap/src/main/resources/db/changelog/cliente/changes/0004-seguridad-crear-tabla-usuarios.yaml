@@ -2,11 +2,11 @@ databaseChangeLog:
   - changeSet:
       id: 0004-seguridad-crear-tabla-usuarios
       author: leidi
-      comment: Identidad y acceso. Datos personales en TBL_usuario_perfiles. Sin empresaId, sin rolId, sin tokenRefresco.
+      comment: Identidad y acceso. Datos personales en tbl_usuario_perfiles. Sin empresaId, sin rolId, sin tokenRefresco.
       changes:
         - createTable:
             schemaName: seguridad
-            tableName: TBL_usuarios
+            tableName: tbl_usuarios
             columns:
               - column:
                   name: id
@@ -14,7 +14,7 @@ databaseChangeLog:
                   autoIncrement: true
                   constraints:
                     primaryKey: true
-                    primaryKeyName: PK_usuarios
+                    primaryKeyName: pk_usuarios
               - column:
                   name: uuid
                   type: UUID
@@ -22,14 +22,14 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     unique: true
-                    uniqueConstraintName: UQ_usuarios_uuid
+                    uniqueConstraintName: uq_usuarios_uuid
               - column:
                   name: correo
                   type: VARCHAR(254)
                   constraints:
                     nullable: false
                     unique: true
-                    uniqueConstraintName: UQ_usuarios_correo
+                    uniqueConstraintName: uq_usuarios_correo
               - column:
                   name: hash_contrasena
                   type: VARCHAR(255)
@@ -100,4 +100,4 @@ databaseChangeLog:
       rollback:
         - dropTable:
             schemaName: seguridad
-            tableName: TBL_usuarios
+            tableName: tbl_usuarios

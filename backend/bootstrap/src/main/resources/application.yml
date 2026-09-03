@@ -10,10 +10,9 @@ spring:
     name: marca-blanca-backend
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/marca_blanca}
-    username: ${SPRING_DATASOURCE_USERNAME:marca_blanca}
-    password: ${SPRING_DATASOURCE_PASSWORD:marca_blanca}
-
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/db_portal_guajiranet_control}
+    username: ${SPRING_DATASOURCE_USERNAME:guajiranet_owner}
+    password: ${SPRING_DATASOURCE_PASSWORD:guajiranet_owner}
   jpa:
     open-in-view: false
     hibernate:
@@ -22,7 +21,7 @@ spring:
       hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
 
   liquibase:
-    change-log: classpath:db/changelog/db.changelog-master.yaml
+    change-log: classpath:db/changelog/control/db.changelog-master.yaml
 
   docker:
     compose:

@@ -6,7 +6,7 @@ databaseChangeLog:
       changes:
         - createTable:
             schemaName: seguridad
-            tableName: TBL_permisos
+            tableName: tbl_permisos
             columns:
               - column:
                   name: id
@@ -14,7 +14,7 @@ databaseChangeLog:
                   autoIncrement: true
                   constraints:
                     primaryKey: true
-                    primaryKeyName: PK_permisos
+                    primaryKeyName: pk_permisos
               - column:
                   name: uuid
                   type: UUID
@@ -22,14 +22,14 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     unique: true
-                    uniqueConstraintName: UQ_permisos_uuid
+                    uniqueConstraintName: uq_permisos_uuid
               - column:
                   name: nombre
                   type: VARCHAR(120)
                   constraints:
                     nullable: false
                     unique: true
-                    uniqueConstraintName: UQ_permisos_nombre
+                    uniqueConstraintName: uq_permisos_nombre
               - column:
                   name: descripcion
                   type: VARCHAR(255)
@@ -42,4 +42,4 @@ databaseChangeLog:
       rollback:
         - dropTable:
             schemaName: seguridad
-            tableName: TBL_permisos
+            tableName: tbl_permisos
