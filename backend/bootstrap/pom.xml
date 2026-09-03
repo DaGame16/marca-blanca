@@ -33,6 +33,21 @@
         </dependency>
         <dependency>
             <groupId>com.marcablanca.platform</groupId>
+            <artifactId>empresas-domain</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.marcablanca.platform</groupId>
+            <artifactId>empresas-application</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.marcablanca.platform</groupId>
+            <artifactId>empresas-infrastructure</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.marcablanca.platform</groupId>
             <artifactId>usuarios-domain</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -44,6 +59,16 @@
         <dependency>
             <groupId>com.marcablanca.platform</groupId>
             <artifactId>usuarios-infrastructure</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.marcablanca.platform</groupId>
+            <artifactId>autenticacion-application</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.marcablanca.platform</groupId>
+            <artifactId>autenticacion-infrastructure</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
