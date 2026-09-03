@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: cliente-0001-crear-tabla-avisos-globales
+      author: leidi
+      comment: Avisos globales del tenant (banner en la app). Sin empresaId. activo -> es_activo.
+      changes:
+        - createTable:
+            schemaName: cliente
+            tableName: tbl_avisos_globales
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_avisos_globales}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_avisos_globales_uuid}}
+              - column:
+                  name: creado_por_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_avisos_globales_creado_por, references: seguridad.tbl_usuarios(id)}
+              - column: {name: titulo, type: VARCHAR(191), constraints: {nullable: false}}
+              - column: {name: mensaje, type: TEXT, constraints: {nullable: false}}
+              - column: {name: es_activo, type: BOOLEAN, defaultValueBoolean: true, constraints: {nullable: false}}
+              - column: {name: plataforma, type: VARCHAR(20), defaultValue: both, constraints: {nullable: false}}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+              - column: {name: actualizado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - createIndex: {schemaName: cliente, tableName: tbl_avisos_globales, indexName: idx_avisos_globales_creado_por_id, columns: [{column: {name: creado_por_id}}]}
+      rollback:
+        - dropTable: {schemaName: cliente, tableName: tbl_avisos_globales}

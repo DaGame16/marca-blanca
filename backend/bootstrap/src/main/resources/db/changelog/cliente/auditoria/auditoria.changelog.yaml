@@ -1,0 +1,6 @@
+databaseChangeLog:
+  - include: {file: 0001-crear-tabla-auditoria.yaml, relativeToChangelogFile: true}
+  - include: {file: 0002-crear-funcion-auditar.yaml, relativeToChangelogFile: true}
+  - include: {file: 0003-crear-funcion-activar-auditoria.yaml, relativeToChangelogFile: true}
+  - include: {file: 0004-proteger-tabla-auditoria.yaml, relativeToChangelogFile: true}
+  - include: {file: 0005-activar-auditoria-tablas-criticas.yaml, relativeToChangelogFile: true}

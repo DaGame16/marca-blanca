@@ -82,6 +82,39 @@ mientras no los borres (🗑️):
   y `docker run` (o borrar y recrear) — Docker no actualiza solo el
   contenido de una imagen ya construida.
 
+## 4bis. Base de datos de la app (PostgreSQL) con Docker Compose
+
+El backend usa Liquibase para crear su propio esquema automáticamente al
+arrancar. El Postgres de la aplicación (distinto del Postgres interno de
+SonarQube) se levanta con Docker Compose desde:
+
+```powershell
+cd C:\xampp\htdocs\mi-proyecto-monorepo\marca-blanca\backend\bootstrap
+docker compose up -d
+```
+
+Esto levanta el contenedor `marca-blanca-postgres` (`postgres:17`), con la
+base `db_portal_guajiranet_control` en el puerto **5432**, usando el
+`compose.yaml` de esa carpeta (`backend/bootstrap/compose.yaml`).
+
+Al conectar el backend contra este contenedor por primera vez, Liquibase
+corre todo el changelog (`backend/bootstrap/src/main/resources/db/changelog`)
+y crea los schemas `control` y `cliente` con todas las tablas (usuarios,
+seguridad, omnicanal, producto, ventas, inventario, auditoría, etc.).
+
+> **Importante**: esta base de datos es independiente del Postgres interno
+> de SonarQube (sección 6) — no se reemplazan entre sí, cada una tiene su
+> propio volumen y su propio propósito. La única precaución es el puerto
+> **5432**: este Postgres de la app sí lo expone al host, así que si algún
+> día el de SonarQube también lo expusiera, chocarían.
+
+Verificar que quedó sano:
+
+```powershell
+docker ps
+docker logs marca-blanca-postgres
+```
+
 ## 5. Runner self-hosted de GitHub Actions
 
 El CI (`backend-ci.yml`, `frontend-ci.yml`) corre los jobs de build+test en
@@ -124,7 +157,7 @@ Stop-Service actions.runner.desarrolloneider-marca-blanca.DESKTOP-3GBTCUV
 
 ## 6. SonarQube local
 
-Ver [`infra/docker/sonarqube/README.md`](../infra/docker/sonarqube/README.md)
+Ver [`infra/docker/sonarqube/README.md`](../../infra/docker/sonarqube/README.md)
 para cómo levantarlo, crear los proyectos y generar el token.
 
 ## 7. Resumen de puertos usados en esta máquina
@@ -135,3 +168,4 @@ para cómo levantarlo, crear los proyectos y generar el token.
 | Frontend (Angular/Nginx)  | 4200         | Contenedor Docker `marca-blanca-frontend` |
 | SonarQube                 | 9000         | `docker compose` en `infra/docker/sonarqube` |
 | PostgreSQL (de SonarQube) | 5432 (interno, no expuesto al host) | Contenedor `mi-proyecto-sonarqube-db` |
+| PostgreSQL (de la app)    | 5432         | `docker compose` en `backend/bootstrap` (contenedor `marca-blanca-postgres`) |

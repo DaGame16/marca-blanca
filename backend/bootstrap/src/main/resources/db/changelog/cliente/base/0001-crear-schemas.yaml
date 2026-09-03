@@ -1,0 +1,31 @@
+databaseChangeLog:
+  - changeSet:
+      id: base-0001-crear-schemas
+      author: leidi
+      comment: Schemas de una base de cliente. Seccion 4 del documento (producto/cliente/plataforma) + seguridad, omnicanal e historico.
+      changes:
+        - sql:
+            sql: CREATE SCHEMA IF NOT EXISTS producto
+        - sql:
+            sql: CREATE SCHEMA IF NOT EXISTS cliente
+        - sql:
+            sql: CREATE SCHEMA IF NOT EXISTS plataforma
+        - sql:
+            sql: CREATE SCHEMA IF NOT EXISTS seguridad
+        - sql:
+            sql: CREATE SCHEMA IF NOT EXISTS omnicanal
+        - sql:
+            sql: CREATE SCHEMA IF NOT EXISTS historico
+      rollback:
+        - sql:
+            sql: DROP SCHEMA IF EXISTS historico
+        - sql:
+            sql: DROP SCHEMA IF EXISTS omnicanal
+        - sql:
+            sql: DROP SCHEMA IF EXISTS seguridad
+        - sql:
+            sql: DROP SCHEMA IF EXISTS plataforma
+        - sql:
+            sql: DROP SCHEMA IF EXISTS cliente
+        - sql:
+            sql: DROP SCHEMA IF EXISTS producto

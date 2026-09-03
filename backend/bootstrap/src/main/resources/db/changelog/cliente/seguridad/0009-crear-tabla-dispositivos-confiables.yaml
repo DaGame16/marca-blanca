@@ -1,0 +1,70 @@
+databaseChangeLog:
+  - changeSet:
+      id: seguridad-0009-crear-tabla-dispositivos-confiables
+      author: leidi
+      comment: Dispositivos recordados para el doble factor. Unico por (usuario, id_dispositivo).
+      changes:
+        - createTable:
+            schemaName: seguridad
+            tableName: tbl_dispositivos_confiables
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_dispositivos_confiables
+              - column:
+                  name: uuid
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_dispositivos_confiables_uuid
+              - column:
+                  name: usuario_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_dispositivos_confiables_usuario
+                    references: seguridad.tbl_usuarios(id)
+              - column:
+                  name: id_dispositivo
+                  type: VARCHAR(191)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: nombre_dispositivo
+                  type: VARCHAR(150)
+              - column:
+                  name: plataforma
+                  type: VARCHAR(20)
+                  defaultValue: web
+                  constraints:
+                    nullable: false
+              - column:
+                  name: ultimo_uso_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expira_en
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: creado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            schemaName: seguridad
+            tableName: tbl_dispositivos_confiables
+            columnNames: usuario_id, id_dispositivo
+            constraintName: uq_dispositivos_confiables_par
+      rollback:
+        - dropTable:
+            schemaName: seguridad
+            tableName: tbl_dispositivos_confiables

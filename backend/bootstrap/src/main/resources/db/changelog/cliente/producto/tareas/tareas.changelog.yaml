@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - include: {file: 0001-crear-tabla-tareas.yaml, relativeToChangelogFile: true}
+  - include: {file: 0002-crear-tabla-historial-de-tareas.yaml, relativeToChangelogFile: true}
+  - include: {file: 0003-crear-tabla-actas-de-tarea.yaml, relativeToChangelogFile: true}
+  - include: {file: 0004-crear-tabla-fotos-de-acta.yaml, relativeToChangelogFile: true}
+  - include: {file: 0005-crear-tabla-evidencias-de-tarea.yaml, relativeToChangelogFile: true}
+  - include: {file: 0006-crear-tabla-fotos-de-evidencia.yaml, relativeToChangelogFile: true}
+  - include: {file: 0007-crear-tabla-puntos-de-seguimiento.yaml, relativeToChangelogFile: true}
+  - include: {file: 0008-crear-tabla-ordenes-instalacion.yaml, relativeToChangelogFile: true}
+  - include: {file: 0009-crear-tabla-mensajes-de-tarea.yaml, relativeToChangelogFile: true}
+  - include: {file: 0010-crear-tabla-notificaciones.yaml, relativeToChangelogFile: true}

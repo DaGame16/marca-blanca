@@ -1,0 +1,2 @@
+databaseChangeLog:
+  - include: {file: 0001-otorgar-privilegios.yaml, relativeToChangelogFile: true}

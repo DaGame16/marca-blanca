@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-tareas-0006-crear-tabla-fotos-de-evidencia
+      author: leidi
+      comment: Fotos adjuntas a una evidencia de tarea.
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_fotos_de_evidencia
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_fotos_de_evidencia}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_fotos_de_evidencia_uuid}}
+              - column:
+                  name: evidencia_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_fotos_de_evidencia_evidencia, references: producto.tbl_evidencias_de_tarea(id)}
+              - column: {name: url, type: VARCHAR(500), constraints: {nullable: false}}
+              - column: {name: nombre_archivo, type: VARCHAR(255), constraints: {nullable: false}}
+              - column: {name: tamano_bytes, type: INTEGER}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - createIndex: {schemaName: producto, tableName: tbl_fotos_de_evidencia, indexName: idx_fotos_de_evidencia_evidencia_id, columns: [{column: {name: evidencia_id}}]}
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_fotos_de_evidencia}

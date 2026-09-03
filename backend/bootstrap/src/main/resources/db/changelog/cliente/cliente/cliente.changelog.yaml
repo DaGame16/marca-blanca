@@ -1,0 +1,2 @@
+databaseChangeLog:
+  - include: {file: 0001-crear-tabla-avisos-globales.yaml, relativeToChangelogFile: true}

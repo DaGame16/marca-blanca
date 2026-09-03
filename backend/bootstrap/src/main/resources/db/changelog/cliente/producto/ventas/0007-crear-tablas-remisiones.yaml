@@ -1,0 +1,60 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-ventas-0007-crear-tablas-remisiones
+      author: leidi
+      comment: Remisiones y sus items (diferido de la ola 5, FK a pedidos). Sin empresaId; consecutivo unico por base.
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_remisiones
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_remisiones}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_remisiones_uuid}}
+              - column: {name: consecutivo, type: INTEGER, constraints: {nullable: false, unique: true, uniqueConstraintName: uq_remisiones_consecutivo}}
+              - column:
+                  name: pedido_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_remisiones_pedido, references: producto.tbl_pedidos(id)}
+              - column:
+                  name: bodega_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_remisiones_bodega, references: producto.tbl_bodegas(id)}
+              - column:
+                  name: responsable_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_remisiones_responsable, references: seguridad.tbl_usuarios(id)}
+              - column:
+                  name: creado_por_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_remisiones_creado_por, references: seguridad.tbl_usuarios(id)}
+              - column: {name: remisionada_en, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - createIndex: {schemaName: producto, tableName: tbl_remisiones, indexName: idx_remisiones_pedido_id, columns: [{column: {name: pedido_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_remisiones, indexName: idx_remisiones_bodega_id, columns: [{column: {name: bodega_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_remisiones, indexName: idx_remisiones_responsable_id, columns: [{column: {name: responsable_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_remisiones, indexName: idx_remisiones_creado_por_id, columns: [{column: {name: creado_por_id}}]}
+        - createTable:
+            schemaName: producto
+            tableName: tbl_items_de_remision
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_items_de_remision}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_items_de_remision_uuid}}
+              - column:
+                  name: remision_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_items_de_remision_remision, references: producto.tbl_remisiones(id)}
+              - column:
+                  name: item_pedido_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_items_de_remision_item_pedido, references: producto.tbl_items_de_pedido(id)}
+              - column:
+                  name: producto_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_items_de_remision_producto, references: producto.tbl_productos(id)}
+              - column: {name: cantidad_remisionada, type: "NUMERIC(18,4)", constraints: {nullable: false}}
+        - createIndex: {schemaName: producto, tableName: tbl_items_de_remision, indexName: idx_items_de_remision_remision_id, columns: [{column: {name: remision_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_items_de_remision, indexName: idx_items_de_remision_item_pedido_id, columns: [{column: {name: item_pedido_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_items_de_remision, indexName: idx_items_de_remision_producto_id, columns: [{column: {name: producto_id}}]}
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_items_de_remision}
+        - dropTable: {schemaName: producto, tableName: tbl_remisiones}

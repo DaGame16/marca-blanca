@@ -1,0 +1,11 @@
+databaseChangeLog:
+  # Estructura de una base de cliente (db_plantilla_maestra -> db_cliente_<slug>).
+  # El orden importa: producto tiene FKs a seguridad.
+  - include: {file: base/base.changelog.yaml, relativeToChangelogFile: true}
+  - include: {file: seguridad/seguridad.changelog.yaml, relativeToChangelogFile: true}
+  - include: {file: omnicanal/omnicanal.changelog.yaml, relativeToChangelogFile: true}
+  - include: {file: producto/producto.changelog.yaml, relativeToChangelogFile: true}
+  - include: {file: cliente/cliente.changelog.yaml, relativeToChangelogFile: true}
+  - include: {file: historico/historico.changelog.yaml, relativeToChangelogFile: true}
+  # auditoria de ultimo: cuelga triggers en tablas de seguridad y producto
+  - include: {file: auditoria/auditoria.changelog.yaml, relativeToChangelogFile: true}

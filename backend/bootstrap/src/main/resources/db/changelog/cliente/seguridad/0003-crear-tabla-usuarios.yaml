@@ -1,0 +1,103 @@
+databaseChangeLog:
+  - changeSet:
+      id: seguridad-0003-crear-tabla-usuarios
+      author: leidi
+      comment: Identidad y acceso. Datos personales en tbl_usuario_perfiles. Sin empresaId, sin rolId, sin tokenRefresco.
+      changes:
+        - createTable:
+            schemaName: seguridad
+            tableName: tbl_usuarios
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_usuarios
+              - column:
+                  name: uuid
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_usuarios_uuid
+              - column:
+                  name: correo
+                  type: VARCHAR(254)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_usuarios_correo
+              - column:
+                  name: hash_contrasena
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: nombre_completo
+                  type: VARCHAR(150)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: es_activo
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: ultimo_inicio_en
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: intentos_fallidos
+                  type: INTEGER
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: bloqueado_hasta
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: secreto_totp
+                  type: VARCHAR(64)
+              - column:
+                  name: es_totp_habilitado
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: es_doble_factor_omitido
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: id_dispositivo_vinculado
+                  type: VARCHAR(191)
+              - column:
+                  name: es_powerbi_habilitado
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: hash_secreto_powerbi
+                  type: VARCHAR(255)
+              - column:
+                  name: creado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: actualizado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropTable:
+            schemaName: seguridad
+            tableName: tbl_usuarios

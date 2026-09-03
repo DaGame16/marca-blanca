@@ -1,0 +1,33 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-ventas-0010-crear-tabla-notas-credito
+      author: leidi
+      comment: Notas credito sobre facturas. Sin empresaId; consecutivo unico por base. devolucion_id unico (1:1 opcional).
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_notas_credito
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_notas_credito}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_notas_credito_uuid}}
+              - column: {name: consecutivo, type: INTEGER, constraints: {nullable: false, unique: true, uniqueConstraintName: uq_notas_credito_consecutivo}}
+              - column:
+                  name: factura_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_notas_credito_factura, references: producto.tbl_facturas(id)}
+              - column:
+                  name: devolucion_id
+                  type: BIGINT
+                  constraints: {unique: true, uniqueConstraintName: uq_notas_credito_devolucion, foreignKeyName: fk_notas_credito_devolucion, references: producto.tbl_devoluciones(id)}
+              - column:
+                  name: creado_por_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_notas_credito_creado_por, references: seguridad.tbl_usuarios(id)}
+              - column: {name: valor, type: "NUMERIC(18,2)", constraints: {nullable: false}}
+              - column: {name: motivo, type: TEXT, constraints: {nullable: false}}
+              - column: {name: emitida_en, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - createIndex: {schemaName: producto, tableName: tbl_notas_credito, indexName: idx_notas_credito_factura_id, columns: [{column: {name: factura_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_notas_credito, indexName: idx_notas_credito_creado_por_id, columns: [{column: {name: creado_por_id}}]}
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_notas_credito}

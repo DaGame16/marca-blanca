@@ -1,0 +1,34 @@
+databaseChangeLog:
+  - changeSet:
+      id: omnicanal-0009-otorgar-privilegios
+      author: leidi
+      comment: Privilegios de guajiranet_app (DML) y guajiranet_lectura (SELECT) sobre el schema omnicanal. Seccion 6.1. Se hereda a los clones de la plantilla.
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              DO $$
+              DECLARE s text;
+              BEGIN
+                FOREACH s IN ARRAY ARRAY['omnicanal'] LOOP
+                  EXECUTE format('GRANT USAGE ON SCHEMA %I TO guajiranet_app, guajiranet_lectura', s);
+                  EXECUTE format('GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA %I TO guajiranet_app', s);
+                  EXECUTE format('GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA %I TO guajiranet_app', s);
+                  EXECUTE format('GRANT SELECT ON ALL TABLES IN SCHEMA %I TO guajiranet_lectura', s);
+                  EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA %I GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO guajiranet_app', s);
+                  EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA %I GRANT USAGE, SELECT ON SEQUENCES TO guajiranet_app', s);
+                  EXECUTE format('ALTER DEFAULT PRIVILEGES IN SCHEMA %I GRANT SELECT ON TABLES TO guajiranet_lectura', s);
+                END LOOP;
+              END $$;
+      rollback:
+        - sql:
+            splitStatements: false
+            sql: |
+              DO $$
+              DECLARE s text;
+              BEGIN
+                FOREACH s IN ARRAY ARRAY['omnicanal'] LOOP
+                  EXECUTE format('REVOKE ALL ON ALL TABLES IN SCHEMA %I FROM guajiranet_app, guajiranet_lectura', s);
+                  EXECUTE format('REVOKE ALL ON SCHEMA %I FROM guajiranet_app, guajiranet_lectura', s);
+                END LOOP;
+              END $$;
