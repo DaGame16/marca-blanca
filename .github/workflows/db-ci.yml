@@ -1,0 +1,87 @@
+name: Database CI (Liquibase)
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "backend/bootstrap/src/main/resources/db/changelog/**"
+      - "backend/bootstrap/pom.xml"
+      - ".github/workflows/db-ci.yml"
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main, develop]
+    paths:
+      - "backend/bootstrap/src/main/resources/db/changelog/**"
+      - "backend/bootstrap/pom.xml"
+      - ".github/workflows/db-ci.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validar-changelogs:
+    name: Validar changelogs de Liquibase (control + cliente)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: guajiranet_owner
+          POSTGRES_PASSWORD: guajiranet_owner
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U guajiranet_owner"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+
+      # El postgres del servicio arranca con una sola base ("postgres");
+      # el changelog de "control" y el de "cliente" apuntan cada uno a su
+      # propia base, así que las creamos antes de aplicar los changelogs.
+      - name: Crear bases de datos temporales
+        run: |
+          sudo apt-get update -y -qq
+          sudo apt-get install -y -qq postgresql-client
+          PGPASSWORD=guajiranet_owner psql -h localhost -U guajiranet_owner -d postgres -c "CREATE DATABASE db_portal_guajiranet_control;"
+          PGPASSWORD=guajiranet_owner psql -h localhost -U guajiranet_owner -d postgres -c "CREATE DATABASE db_plantilla_maestra;"
+
+      - name: Validar changelog "control"
+        working-directory: backend
+        run: >
+          mvn -B -ntp -pl bootstrap -am liquibase:update
+          -Dliquibase.changelogFile=src/main/resources/db/changelog/control/db.changelog-master.yaml
+          -Dliquibase.url=jdbc:postgresql://localhost:5432/db_portal_guajiranet_control
+          -Dliquibase.username=guajiranet_owner
+          -Dliquibase.password=guajiranet_owner
+          -Dliquibase.driver=org.postgresql.Driver
+
+      - name: Validar changelog "cliente"
+        working-directory: backend
+        run: >
+          mvn -B -ntp -pl bootstrap -am liquibase:update
+          -Dliquibase.changelogFile=src/main/resources/db/changelog/cliente/db.changelog-master.yaml
+          -Dliquibase.url=jdbc:postgresql://localhost:5432/db_plantilla_maestra
+          -Dliquibase.username=guajiranet_owner
+          -Dliquibase.password=guajiranet_owner
+          -Dliquibase.driver=org.postgresql.Driver
+
+      - name: Resumen
+        run: echo "Los changelogs de control y cliente aplicaron limpio contra Postgres 17."
