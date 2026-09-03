@@ -24,3 +24,6 @@ services:
     entrypoint: ["tail", "-f", "/dev/null"]   # queda vivo; pgloader se lanza a demanda
     extra_hosts:
       - "host.docker.internal:host-gateway"   # para alcanzar el Postgres del host
+
+volumes:
+  migracion-mariadb-data:

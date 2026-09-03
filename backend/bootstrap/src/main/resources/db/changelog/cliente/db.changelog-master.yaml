@@ -34,4 +34,7 @@ databaseChangeLog:
       relativeToChangelogFile: true
   - include:
       file: changes/0012-otorgar-privilegios-roles.yaml
-      relativeToChangelogFile: true      
+      relativeToChangelogFile: true
+  - include:
+      file: changes/0013-seguridad-ajustar-anchos-perfiles.yaml
+      relativeToChangelogFile: true

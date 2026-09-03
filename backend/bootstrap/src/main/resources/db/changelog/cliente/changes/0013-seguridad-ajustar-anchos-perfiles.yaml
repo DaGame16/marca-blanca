@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0013-seguridad-ajustar-anchos-perfiles
+      author: leidi
+      comment: Ensanchar cedula/telefono/telefono_emergencia. El sistema viejo los tenia en varchar(191) y hay datos de hasta 82 caracteres; el modelo nuevo los habia acotado a 30.
+      changes:
+        - modifyDataType:
+            schemaName: seguridad
+            tableName: tbl_usuario_perfiles
+            columnName: cedula
+            newDataType: VARCHAR(100)
+        - modifyDataType:
+            schemaName: seguridad
+            tableName: tbl_usuario_perfiles
+            columnName: telefono
+            newDataType: VARCHAR(100)
+        - modifyDataType:
+            schemaName: seguridad
+            tableName: tbl_usuario_perfiles
+            columnName: telefono_emergencia
+            newDataType: VARCHAR(100)
+      rollback:
+        - modifyDataType:
+            schemaName: seguridad
+            tableName: tbl_usuario_perfiles
+            columnName: cedula
+            newDataType: VARCHAR(30)
+        - modifyDataType:
+            schemaName: seguridad
+            tableName: tbl_usuario_perfiles
+            columnName: telefono
+            newDataType: VARCHAR(30)
+        - modifyDataType:
+            schemaName: seguridad
+            tableName: tbl_usuario_perfiles
+            columnName: telefono_emergencia
+            newDataType: VARCHAR(30)

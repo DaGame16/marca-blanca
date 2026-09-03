@@ -1,6 +1,6 @@
 LOAD DATABASE
      FROM     mysql://root:migracion@mariadb-origen/erp_saas_test
-     INTO postgresql://marca_blanca:marca_blanca@host.docker.internal:5432/db_cliente_demo
+     INTO postgresql://guajiranet_owner:guajiranet_owner@host.docker.internal:5432/db_cliente_guajiranet
 
  WITH include no drop,
       create tables,
