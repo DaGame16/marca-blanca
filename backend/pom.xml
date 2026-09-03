@@ -26,6 +26,7 @@
 
     <modules>
         <module>shared-kernel</module>
+        <module>empresas</module>
         <module>usuarios/usuarios-domain</module>
         <module>usuarios/usuarios-application</module>
         <module>usuarios/usuarios-infrastructure</module>
