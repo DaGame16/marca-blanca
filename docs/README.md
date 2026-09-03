@@ -1,16 +1,25 @@
-# Documentación
+# Documentación — Plataforma Marca Blanca
 
-Índice y guía de navegación de la documentación del proyecto.
+Documentación técnica del proyecto, organizada por área. Vive en el repo y se actualiza con cada cambio real — no documenta nada que no esté ya implementado y confirmado.
 
-## Cómo navegar
+## Proceso de trabajo
+- [`PROCESO-DE-TRABAJO.md`](PROCESO-DE-TRABAJO.md) — reglas de Git del equipo.
 
-- [`00-arquitectura-hexagonal.md`](./00-arquitectura-hexagonal.md) — punto de partida. Explica la estructura del proyecto (arquitectura hexagonal), transversal a todos los módulos.
-- [`03-docker-y-runner-local.md`](./03-docker-y-runner-local.md) — cómo levantar el proyecto con Docker y cómo está configurado el runner self-hosted de CI/CD.
-- [`decisiones/`](./decisiones/) — registro de decisiones de arquitectura (ADR), una por cada decisión real tomada durante el desarrollo.
-- [`modulos/`](./modulos/) — documentación específica de cada módulo del sistema.
-- [`openapi/`](./openapi/) — especificación de la API.
+## Backend
+- [`backend/00-arquitectura-hexagonal.md`](backend/00-arquitectura-hexagonal.md) — punto de partida: estructura, regla de dependencia, convenciones.
+- [`backend/modulos/usuarios/`](backend/modulos/usuarios/) — módulo de usuarios (login completo).
+- [`backend/modulos/omnicanal/`](backend/modulos/omnicanal/) — módulo de omnicanal (en progreso).
 
-## Convenciones
+Cada carpeta de módulo tiene su propio `README.md` (qué hay y cómo funciona) y su carpeta `decisiones/` (por qué se decidió así, un archivo por decisión, fechado y sin editar después de creado).
 
-- Las decisiones se numeran secuencialmente: `0001-`, `0002-`, etc., con un nombre corto que describe la decisión.
-- Cada módulo tiene su propio archivo en `modulos/` con el nombre del módulo.
+## Frontend
+- [`frontend/`](frontend/) — a cargo de Carlos.
+
+## Base de datos
+- [`base-de-datos/`](base-de-datos/) — a cargo de Leidi.
+
+## Infraestructura
+- [`infraestructura/`](infraestructura/) — Docker, CI/CD, runners — a cargo de Neider.
+
+## Postmortems
+- [`postmortems/`](postmortems/) — análisis de incidentes grandes, para no repetirlos.
