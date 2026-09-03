@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0001-crear-schema-plataforma
+      author: leidi
+      comment: Base de control - schema plataforma (config transversal + auditoria, seccion 4).
+      changes:
+        - sql:
+            sql: CREATE SCHEMA IF NOT EXISTS plataforma
+      rollback:
+        - sql:
+            sql: DROP SCHEMA IF EXISTS plataforma

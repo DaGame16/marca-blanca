@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - include: {file: 0001-crear-tabla-compras.yaml, relativeToChangelogFile: true}
+  - include: {file: 0002-crear-tabla-items-de-compra.yaml, relativeToChangelogFile: true}
+  - include: {file: 0003-crear-tabla-recepciones-de-mercancia.yaml, relativeToChangelogFile: true}
+  - include: {file: 0004-crear-tabla-items-de-recepcion.yaml, relativeToChangelogFile: true}
+  - include: {file: 0005-crear-tabla-legalizaciones.yaml, relativeToChangelogFile: true}
+  - include: {file: 0006-fk-movimientos-inventario-recepcion.yaml, relativeToChangelogFile: true}

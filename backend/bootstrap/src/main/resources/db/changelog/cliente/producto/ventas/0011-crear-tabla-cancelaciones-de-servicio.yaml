@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-ventas-0011-crear-tabla-cancelaciones-de-servicio
+      author: leidi
+      comment: Registro de cancelaciones de servicio de un cliente. Sin empresaId.
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_cancelaciones_de_servicio
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_cancelaciones_de_servicio}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_cancelaciones_de_servicio_uuid}}
+              - column:
+                  name: registrado_por_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_cancelaciones_de_servicio_registrado_por, references: seguridad.tbl_usuarios(id)}
+              - column: {name: nombre_cliente, type: VARCHAR(191), constraints: {nullable: false}}
+              - column: {name: documento_cliente, type: VARCHAR(100)}
+              - column: {name: direccion, type: VARCHAR(255)}
+              - column: {name: municipio, type: VARCHAR(120)}
+              - column: {name: motivo, type: VARCHAR(255)}
+              - column: {name: cancelado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - createIndex: {schemaName: producto, tableName: tbl_cancelaciones_de_servicio, indexName: idx_cancelaciones_de_servicio_registrado_por_id, columns: [{column: {name: registrado_por_id}}]}
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_cancelaciones_de_servicio}

@@ -1,0 +1,3 @@
+databaseChangeLog:
+  - include: {file: 0001-crear-tabla-clientes.yaml, relativeToChangelogFile: true}
+  - include: {file: 0002-crear-tabla-sucursales-de-cliente.yaml, relativeToChangelogFile: true}

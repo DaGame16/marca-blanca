@@ -1,0 +1,75 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0002-crear-tabla-empresas
+      author: leidi
+      comment: Catalogo maestro de clientes. identificador = slug para nombrar db_cliente_<slug>.
+      changes:
+        - createTable:
+            schemaName: plataforma
+            tableName: tbl_empresas
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_empresas
+              - column:
+                  name: uuid
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_empresas_uuid
+              - column:
+                  name: identificador
+                  type: VARCHAR(60)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_empresas_identificador
+              - column:
+                  name: nombre_legal
+                  type: VARCHAR(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: nombre_comercial
+                  type: VARCHAR(200)
+              - column:
+                  name: dominio
+                  type: VARCHAR(191)
+                  constraints:
+                    unique: true
+                    uniqueConstraintName: uq_empresas_dominio
+              - column:
+                  name: hash_contrasena_maestra
+                  type: VARCHAR(255)
+              - column:
+                  name: estado
+                  type: VARCHAR(30)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: creado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: actualizado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: >
+              ALTER TABLE plataforma.tbl_empresas
+              ADD CONSTRAINT ck_empresas_estado
+              CHECK (estado IN ('pendiente_aprovisionamiento', 'activa', 'suspendida', 'inactiva'))
+      rollback:
+        - dropTable:
+            schemaName: plataforma
+            tableName: tbl_empresas

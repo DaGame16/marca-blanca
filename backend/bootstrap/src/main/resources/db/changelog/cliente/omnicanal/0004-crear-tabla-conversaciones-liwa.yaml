@@ -1,0 +1,69 @@
+databaseChangeLog:
+  - changeSet:
+      id: omnicanal-0004-crear-tabla-conversaciones-liwa
+      author: leidi
+      comment: Conversaciones Liwa con contactos externos. datos_crudos como JSONB. Sin empresaId.
+      changes:
+        - createTable:
+            schemaName: omnicanal
+            tableName: tbl_conversaciones_liwa
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_conversaciones_liwa
+              - column:
+                  name: uuid
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_conversaciones_liwa_uuid
+              - column:
+                  name: id_contacto
+                  type: VARCHAR(191)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: nombre_contacto
+                  type: VARCHAR(191)
+              - column:
+                  name: historial_chat_completo
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: datos_crudos
+                  type: JSONB
+                  constraints:
+                    nullable: false
+              - column:
+                  name: es_de_ads
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: creado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: archivada_en
+                  type: TIMESTAMP WITH TIME ZONE
+        - createIndex:
+            schemaName: omnicanal
+            tableName: tbl_conversaciones_liwa
+            indexName: idx_conversaciones_liwa_id_contacto
+            columns:
+              - column:
+                  name: id_contacto
+      rollback:
+        - dropTable:
+            schemaName: omnicanal
+            tableName: tbl_conversaciones_liwa

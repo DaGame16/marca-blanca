@@ -1,0 +1,52 @@
+databaseChangeLog:
+  - changeSet:
+      id: auditoria-0004-proteger-tabla-auditoria
+      author: leidi
+      comment: Inmutabilidad de plataforma.tbl_auditoria (seccion 7 - el rastro no lo altera ni el owner). Solo la funcion de purga por retencion puede borrar.
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              CREATE OR REPLACE FUNCTION plataforma.fn_auditoria_inmutable() RETURNS trigger
+              LANGUAGE plpgsql AS $$
+              BEGIN
+                IF current_setting('plataforma.purga_auditoria', true) = 'on' THEN
+                  RETURN COALESCE(OLD, NEW);
+                END IF;
+                RAISE EXCEPTION 'plataforma.tbl_auditoria es inmutable: operacion % no permitida', TG_OP;
+              END;
+              $$;
+        - sql: {sql: "CREATE TRIGGER trg_auditoria_inmutable BEFORE UPDATE OR DELETE ON plataforma.tbl_auditoria FOR EACH ROW EXECUTE FUNCTION plataforma.fn_auditoria_inmutable()"}
+        - sql:
+            splitStatements: false
+            sql: |
+              CREATE OR REPLACE FUNCTION plataforma.fn_auditoria_no_truncate() RETURNS trigger
+              LANGUAGE plpgsql AS $$
+              BEGIN
+                RAISE EXCEPTION 'plataforma.tbl_auditoria no se puede truncar';
+              END;
+              $$;
+        - sql: {sql: "CREATE TRIGGER trg_auditoria_no_truncate BEFORE TRUNCATE ON plataforma.tbl_auditoria FOR EACH STATEMENT EXECUTE FUNCTION plataforma.fn_auditoria_no_truncate()"}
+        - sql: {sql: "REVOKE UPDATE, DELETE, TRUNCATE ON plataforma.tbl_auditoria FROM PUBLIC"}
+        - sql: {sql: "REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON plataforma.tbl_auditoria FROM guajiranet_app, guajiranet_lectura"}
+        - sql: {sql: "GRANT SELECT ON plataforma.tbl_auditoria TO guajiranet_app, guajiranet_lectura"}
+        - sql:
+            splitStatements: false
+            sql: |
+              CREATE OR REPLACE FUNCTION plataforma.fn_purgar_auditoria(p_retener interval DEFAULT interval '2 years') RETURNS bigint
+              LANGUAGE plpgsql AS $$
+              DECLARE v_borradas bigint;
+              BEGIN
+                PERFORM set_config('plataforma.purga_auditoria', 'on', true);
+                DELETE FROM plataforma.tbl_auditoria WHERE ejecutado_en < now() - p_retener;
+                GET DIAGNOSTICS v_borradas = ROW_COUNT;
+                PERFORM set_config('plataforma.purga_auditoria', 'off', true);
+                RETURN v_borradas;
+              END;
+              $$;
+      rollback:
+        - sql: {sql: "DROP TRIGGER IF EXISTS trg_auditoria_no_truncate ON plataforma.tbl_auditoria"}
+        - sql: {sql: "DROP TRIGGER IF EXISTS trg_auditoria_inmutable ON plataforma.tbl_auditoria"}
+        - sql: {sql: "DROP FUNCTION IF EXISTS plataforma.fn_purgar_auditoria(interval)"}
+        - sql: {sql: "DROP FUNCTION IF EXISTS plataforma.fn_auditoria_no_truncate()"}
+        - sql: {sql: "DROP FUNCTION IF EXISTS plataforma.fn_auditoria_inmutable()"}

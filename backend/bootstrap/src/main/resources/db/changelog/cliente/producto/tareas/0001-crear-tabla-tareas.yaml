@@ -1,0 +1,85 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-tareas-0001-crear-tabla-tareas
+      author: leidi
+      comment: Tareas (hub operativo). Sin empresaId. estado/prioridad (enums) como VARCHAR + CHECK. ubicacion (JSON) como JSONB. proceso_venta_id sin FK hasta la ola de ventas. idsucursal/idcontrato son ids de Sigma.
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_tareas
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_tareas}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_tareas_uuid}}
+              - column: {name: id_visible, type: INTEGER, constraints: {unique: true, uniqueConstraintName: uq_tareas_id_visible}}
+              - column: {name: titulo, type: VARCHAR(191), constraints: {nullable: false}}
+              - column: {name: descripcion, type: VARCHAR(191)}
+              - column: {name: estado, type: VARCHAR(20), defaultValue: PENDIENTE, constraints: {nullable: false}}
+              - column: {name: prioridad, type: VARCHAR(20), defaultValue: MEDIA, constraints: {nullable: false}}
+              - column:
+                  name: creado_por_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_tareas_creado_por, references: seguridad.tbl_usuarios(id)}
+              - column:
+                  name: asignado_a_id
+                  type: BIGINT
+                  constraints: {foreignKeyName: fk_tareas_asignado_a, references: seguridad.tbl_usuarios(id)}
+              - column:
+                  name: cliente_id
+                  type: BIGINT
+                  constraints: {foreignKeyName: fk_tareas_cliente, references: producto.tbl_clientes(id)}
+              - column:
+                  name: cuadrilla_id
+                  type: BIGINT
+                  constraints: {foreignKeyName: fk_tareas_cuadrilla, references: producto.tbl_cuadrillas(id)}
+              - column:
+                  name: nodo_id
+                  type: BIGINT
+                  constraints: {foreignKeyName: fk_tareas_nodo, references: producto.tbl_nodos(id)}
+              - column: {name: proceso_venta_id, type: BIGINT}
+              - column: {name: etapa_asignacion, type: VARCHAR(50), defaultValue: PENDING}
+              - column: {name: rol_asignado, type: VARCHAR(100)}
+              - column: {name: reasignado_a, type: VARCHAR(191)}
+              - column: {name: tipo_reasignacion, type: VARCHAR(100)}
+              - column: {name: tipo_tarea, type: VARCHAR(100)}
+              - column: {name: tipo_problema, type: VARCHAR(191)}
+              - column: {name: incumplimiento_motivo, type: VARCHAR(191)}
+              - column: {name: nombre_cliente, type: VARCHAR(191)}
+              - column: {name: telefono_cliente, type: VARCHAR(100)}
+              - column: {name: cedula_cliente, type: VARCHAR(100)}
+              - column: {name: id_sucursal_sigma, type: INTEGER}
+              - column: {name: id_contrato_sigma, type: INTEGER}
+              - column: {name: barrio, type: VARCHAR(120)}
+              - column: {name: municipio, type: VARCHAR(120)}
+              - column: {name: departamento, type: VARCHAR(120)}
+              - column: {name: plan, type: VARCHAR(120)}
+              - column: {name: sucursal_texto, type: VARCHAR(255)}
+              - column: {name: minutos_tiempo_reaccion, type: INTEGER}
+              - column: {name: total_ms_pausado, type: BIGINT, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: ubicacion, type: JSONB}
+              - column: {name: lat_inicio, type: DOUBLE PRECISION}
+              - column: {name: lng_inicio, type: DOUBLE PRECISION}
+              - column: {name: asignado_en, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: pausado_en, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: iniciado_en, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: finalizado_en, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: programado_en, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: archivado_en, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+              - column: {name: actualizado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - sql:
+            sql: >
+              ALTER TABLE producto.tbl_tareas ADD CONSTRAINT ck_tareas_estado
+              CHECK (estado IN ('PENDIENTE','VALIDACION','EN_PROGRESO','COMPLETADA','CANCELADA','PAUSADA'))
+        - sql:
+            sql: >
+              ALTER TABLE producto.tbl_tareas ADD CONSTRAINT ck_tareas_prioridad
+              CHECK (prioridad IN ('BAJA','MEDIA','ALTA','CRITICA'))
+        - createIndex: {schemaName: producto, tableName: tbl_tareas, indexName: idx_tareas_creado_por_id, columns: [{column: {name: creado_por_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_tareas, indexName: idx_tareas_asignado_a_id, columns: [{column: {name: asignado_a_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_tareas, indexName: idx_tareas_cliente_id, columns: [{column: {name: cliente_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_tareas, indexName: idx_tareas_cuadrilla_id, columns: [{column: {name: cuadrilla_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_tareas, indexName: idx_tareas_nodo_id, columns: [{column: {name: nodo_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_tareas, indexName: idx_tareas_proceso_venta_id, columns: [{column: {name: proceso_venta_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_tareas, indexName: idx_tareas_estado, columns: [{column: {name: estado}}]}
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_tareas}

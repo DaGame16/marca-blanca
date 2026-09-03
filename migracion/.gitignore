@@ -1,0 +1,3 @@
+# El dump del sistema viejo puede tener datos personales reales (Ley 1581). Nunca al repo.
+dump/*
+!dump/.gitkeep

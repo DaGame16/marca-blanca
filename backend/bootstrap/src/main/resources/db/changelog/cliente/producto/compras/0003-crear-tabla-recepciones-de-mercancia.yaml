@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-compras-0003-crear-tabla-recepciones-de-mercancia
+      author: leidi
+      comment: Recepcion de mercancia contra una compra. Sin empresaId; consecutivo unico por base.
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_recepciones_de_mercancia
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_recepciones_de_mercancia}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_recepciones_de_mercancia_uuid}}
+              - column: {name: consecutivo, type: INTEGER, constraints: {nullable: false, unique: true, uniqueConstraintName: uq_recepciones_de_mercancia_consecutivo}}
+              - column:
+                  name: compra_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_recepciones_de_mercancia_compra, references: producto.tbl_compras(id)}
+              - column:
+                  name: bodega_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_recepciones_de_mercancia_bodega, references: producto.tbl_bodegas(id)}
+              - column:
+                  name: registrado_por_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_recepciones_de_mercancia_registrado_por, references: seguridad.tbl_usuarios(id)}
+              - column: {name: recibida_en, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - createIndex: {schemaName: producto, tableName: tbl_recepciones_de_mercancia, indexName: idx_recepciones_de_mercancia_compra_id, columns: [{column: {name: compra_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_recepciones_de_mercancia, indexName: idx_recepciones_de_mercancia_bodega_id, columns: [{column: {name: bodega_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_recepciones_de_mercancia, indexName: idx_recepciones_de_mercancia_registrado_por_id, columns: [{column: {name: registrado_por_id}}]}
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_recepciones_de_mercancia}

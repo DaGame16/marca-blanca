@@ -1,0 +1,31 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-ventas-0001-crear-tabla-clientes-comerciales
+      author: leidi
+      comment: Clientes comerciales (B2B). Sin empresaId; nit unico por base. estado (enum) como VARCHAR + CHECK.
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_clientes_comerciales
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_clientes_comerciales}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_clientes_comerciales_uuid}}
+              - column:
+                  name: cliente_id
+                  type: BIGINT
+                  constraints: {foreignKeyName: fk_clientes_comerciales_cliente, references: producto.tbl_clientes(id)}
+              - column: {name: nit, type: VARCHAR(50), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_clientes_comerciales_nit}}
+              - column: {name: razon_social, type: VARCHAR(191), constraints: {nullable: false}}
+              - column: {name: contacto, type: VARCHAR(150)}
+              - column: {name: telefono, type: VARCHAR(100)}
+              - column: {name: direccion, type: VARCHAR(255)}
+              - column: {name: estado, type: VARCHAR(20), defaultValue: ACTIVO, constraints: {nullable: false}}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+              - column: {name: actualizado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - sql:
+            sql: >
+              ALTER TABLE producto.tbl_clientes_comerciales ADD CONSTRAINT ck_clientes_comerciales_estado
+              CHECK (estado IN ('ACTIVO','INACTIVO'))
+        - createIndex: {schemaName: producto, tableName: tbl_clientes_comerciales, indexName: idx_clientes_comerciales_cliente_id, columns: [{column: {name: cliente_id}}]}
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_clientes_comerciales}

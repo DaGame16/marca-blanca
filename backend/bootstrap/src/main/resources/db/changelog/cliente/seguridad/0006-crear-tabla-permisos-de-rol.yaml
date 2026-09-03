@@ -1,0 +1,61 @@
+databaseChangeLog:
+  - changeSet:
+      id: seguridad-0006-crear-tabla-permisos-de-rol
+      author: leidi
+      comment: Pivote rol <-> permiso (M:N).
+      changes:
+        - createTable:
+            schemaName: seguridad
+            tableName: tbl_permisos_de_rol
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_permisos_de_rol
+              - column:
+                  name: uuid
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_permisos_de_rol_uuid
+              - column:
+                  name: rol_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_permisos_de_rol_rol
+                    references: seguridad.tbl_roles(id)
+              - column:
+                  name: permiso_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_permisos_de_rol_permiso
+                    references: seguridad.tbl_permisos(id)
+              - column:
+                  name: asignado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            schemaName: seguridad
+            tableName: tbl_permisos_de_rol
+            columnNames: rol_id, permiso_id
+            constraintName: uq_permisos_de_rol_par
+        - createIndex:
+            schemaName: seguridad
+            tableName: tbl_permisos_de_rol
+            indexName: idx_permisos_de_rol_permiso_id
+            columns:
+              - column:
+                  name: permiso_id
+      rollback:
+        - dropTable:
+            schemaName: seguridad
+            tableName: tbl_permisos_de_rol

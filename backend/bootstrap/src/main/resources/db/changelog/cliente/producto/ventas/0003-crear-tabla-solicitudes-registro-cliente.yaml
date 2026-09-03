@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-ventas-0003-crear-tabla-solicitudes-registro-cliente
+      author: leidi
+      comment: Solicitudes de alta de cliente nuevo. Sin empresaId.
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_solicitudes_registro_cliente
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_solicitudes_registro_cliente}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_solicitudes_registro_cliente_uuid}}
+              - column: {name: titular, type: VARCHAR(191), constraints: {nullable: false}}
+              - column: {name: cedula, type: VARCHAR(100), constraints: {nullable: false}}
+              - column: {name: tipo_documento_codigo, type: INTEGER}
+              - column: {name: lugar_expedicion, type: VARCHAR(120)}
+              - column: {name: direccion, type: VARCHAR(255), constraints: {nullable: false}}
+              - column: {name: estrato, type: INTEGER, constraints: {nullable: false}}
+              - column: {name: telefono_contacto, type: VARCHAR(100), constraints: {nullable: false}}
+              - column: {name: email, type: VARCHAR(254)}
+              - column: {name: plan, type: VARCHAR(120)}
+              - column: {name: barrio, type: VARCHAR(120)}
+              - column: {name: mun_codigo, type: VARCHAR(10)}
+              - column: {name: dpto_codigo, type: VARCHAR(10)}
+              - column: {name: id_clasificacion, type: INTEGER}
+              - column: {name: url_imagen_frontal, type: VARCHAR(500), constraints: {nullable: false}}
+              - column: {name: url_imagen_posterior, type: VARCHAR(500), constraints: {nullable: false}}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+              - column: {name: actualizado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - createIndex: {schemaName: producto, tableName: tbl_solicitudes_registro_cliente, indexName: idx_solicitudes_registro_cliente_cedula, columns: [{column: {name: cedula}}]}
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_solicitudes_registro_cliente}

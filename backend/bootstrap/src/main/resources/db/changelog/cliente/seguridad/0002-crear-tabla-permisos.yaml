@@ -1,0 +1,45 @@
+databaseChangeLog:
+  - changeSet:
+      id: seguridad-0002-crear-tabla-permisos
+      author: leidi
+      comment: Catalogo de permisos por base de cliente. Sin empresaId.
+      changes:
+        - createTable:
+            schemaName: seguridad
+            tableName: tbl_permisos
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_permisos
+              - column:
+                  name: uuid
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_permisos_uuid
+              - column:
+                  name: nombre
+                  type: VARCHAR(120)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_permisos_nombre
+              - column:
+                  name: descripcion
+                  type: VARCHAR(255)
+              - column:
+                  name: creado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropTable:
+            schemaName: seguridad
+            tableName: tbl_permisos

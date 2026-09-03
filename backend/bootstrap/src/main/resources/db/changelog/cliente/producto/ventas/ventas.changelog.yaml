@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - include: {file: 0001-crear-tabla-clientes-comerciales.yaml, relativeToChangelogFile: true}
+  - include: {file: 0002-crear-tabla-procesos-de-venta.yaml, relativeToChangelogFile: true}
+  - include: {file: 0003-crear-tabla-solicitudes-registro-cliente.yaml, relativeToChangelogFile: true}
+  - include: {file: 0004-crear-tablas-cotizaciones.yaml, relativeToChangelogFile: true}
+  - include: {file: 0005-crear-tablas-precotizaciones.yaml, relativeToChangelogFile: true}
+  - include: {file: 0006-crear-tablas-pedidos.yaml, relativeToChangelogFile: true}
+  - include: {file: 0007-crear-tablas-remisiones.yaml, relativeToChangelogFile: true}
+  - include: {file: 0008-crear-tablas-facturas.yaml, relativeToChangelogFile: true}
+  - include: {file: 0009-crear-tablas-devoluciones.yaml, relativeToChangelogFile: true}
+  - include: {file: 0010-crear-tabla-notas-credito.yaml, relativeToChangelogFile: true}
+  - include: {file: 0011-crear-tabla-cancelaciones-de-servicio.yaml, relativeToChangelogFile: true}
+  - include: {file: 0012-crear-tabla-solicitudes-cobertura.yaml, relativeToChangelogFile: true}
+  - include: {file: 0013-fk-movimientos-inventario-ventas.yaml, relativeToChangelogFile: true}

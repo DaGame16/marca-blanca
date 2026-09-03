@@ -1,0 +1,9 @@
+databaseChangeLog:
+  # Modulo ERP (schema producto). Sub-areas en orden de dependencia.
+  - include: {file: grants/grants.changelog.yaml, relativeToChangelogFile: true}
+  - include: {file: catalogos/catalogos.changelog.yaml, relativeToChangelogFile: true}
+  - include: {file: clientes/clientes.changelog.yaml, relativeToChangelogFile: true}
+  - include: {file: tareas/tareas.changelog.yaml, relativeToChangelogFile: true}
+  - include: {file: inventario/inventario.changelog.yaml, relativeToChangelogFile: true}
+  - include: {file: compras/compras.changelog.yaml, relativeToChangelogFile: true}
+  - include: {file: ventas/ventas.changelog.yaml, relativeToChangelogFile: true}

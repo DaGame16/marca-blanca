@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-compras-0006-fk-movimientos-inventario-recepcion
+      author: leidi
+      comment: Agrega la FK recepcion_id de tbl_movimientos_de_inventario, pendiente desde la ola 3 (necesitaba tbl_recepciones_de_mercancia). remision_id y devolucion_id se agregan en la ola 6.
+      changes:
+        - addForeignKeyConstraint:
+            baseTableSchemaName: producto
+            baseTableName: tbl_movimientos_de_inventario
+            baseColumnNames: recepcion_id
+            constraintName: fk_movimientos_de_inventario_recepcion
+            referencedTableSchemaName: producto
+            referencedTableName: tbl_recepciones_de_mercancia
+            referencedColumnNames: id
+      rollback:
+        - dropForeignKeyConstraint:
+            baseTableSchemaName: producto
+            baseTableName: tbl_movimientos_de_inventario
+            constraintName: fk_movimientos_de_inventario_recepcion

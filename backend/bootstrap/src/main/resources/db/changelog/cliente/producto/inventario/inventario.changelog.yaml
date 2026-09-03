@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - include: {file: 0001-crear-tabla-materiales-de-bodega.yaml, relativeToChangelogFile: true}
+  - include: {file: 0002-crear-tabla-movimientos-de-bodega.yaml, relativeToChangelogFile: true}
+  - include: {file: 0003-crear-tabla-stock-de-producto.yaml, relativeToChangelogFile: true}
+  - include: {file: 0004-crear-tabla-items-de-inventario.yaml, relativeToChangelogFile: true}
+  - include: {file: 0005-crear-tabla-movimientos-de-inventario.yaml, relativeToChangelogFile: true}
+  - include: {file: 0006-crear-tabla-materiales-de-cuadrilla.yaml, relativeToChangelogFile: true}
+  - include: {file: 0007-crear-tabla-material-asignado-a-tecnico.yaml, relativeToChangelogFile: true}
+  - include: {file: 0008-crear-tabla-inventario-de-cuadrilla.yaml, relativeToChangelogFile: true}
+  - include: {file: 0009-crear-tabla-consumos-de-material.yaml, relativeToChangelogFile: true}

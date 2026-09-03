@@ -1,0 +1,56 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0006-crear-tabla-modulos
+      author: leidi
+      comment: Catalogo de modulos de la plataforma (tareas, bodega, ventas, chat...).
+      changes:
+        - createTable:
+            schemaName: plataforma
+            tableName: tbl_modulos
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_modulos
+              - column:
+                  name: uuid
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_modulos_uuid
+              - column:
+                  name: codigo
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_modulos_codigo
+              - column:
+                  name: nombre
+                  type: VARCHAR(120)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: descripcion
+                  type: VARCHAR(255)
+              - column:
+                  name: creado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: actualizado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropTable:
+            schemaName: plataforma
+            tableName: tbl_modulos

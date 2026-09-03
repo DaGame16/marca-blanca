@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - include: {file: 0001-crear-tabla-roles.yaml, relativeToChangelogFile: true}
+  - include: {file: 0002-crear-tabla-permisos.yaml, relativeToChangelogFile: true}
+  - include: {file: 0003-crear-tabla-usuarios.yaml, relativeToChangelogFile: true}
+  - include: {file: 0004-crear-tabla-usuario-perfiles.yaml, relativeToChangelogFile: true}
+  - include: {file: 0005-crear-tabla-usuarios-roles.yaml, relativeToChangelogFile: true}
+  - include: {file: 0006-crear-tabla-permisos-de-rol.yaml, relativeToChangelogFile: true}
+  - include: {file: 0007-crear-tabla-permisos-de-usuario.yaml, relativeToChangelogFile: true}
+  - include: {file: 0008-crear-tabla-sesiones.yaml, relativeToChangelogFile: true}
+  - include: {file: 0009-crear-tabla-dispositivos-confiables.yaml, relativeToChangelogFile: true}
+  - include: {file: 0010-crear-tabla-tokens-fcm.yaml, relativeToChangelogFile: true}
+  - include: {file: 0011-otorgar-privilegios.yaml, relativeToChangelogFile: true}
+  - include: {file: 0012-ajustar-anchos-perfiles.yaml, relativeToChangelogFile: true}
+  - include: {file: 0013-crear-tabla-consentimientos-de-datos.yaml, relativeToChangelogFile: true}

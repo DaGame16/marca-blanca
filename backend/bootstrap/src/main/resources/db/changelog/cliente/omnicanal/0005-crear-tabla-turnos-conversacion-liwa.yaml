@@ -1,0 +1,71 @@
+databaseChangeLog:
+  - changeSet:
+      id: omnicanal-0005-crear-tabla-turnos-conversacion-liwa
+      author: leidi
+      comment: Turnos de cada conversacion Liwa. autor (enum del viejo) como VARCHAR + CHECK.
+      changes:
+        - createTable:
+            schemaName: omnicanal
+            tableName: tbl_turnos_conversacion_liwa
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_turnos_conversacion_liwa
+              - column:
+                  name: uuid
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_turnos_conversacion_liwa_uuid
+              - column:
+                  name: conversacion_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_turnos_conversacion_liwa_conversacion
+                    references: omnicanal.tbl_conversaciones_liwa(id)
+              - column:
+                  name: orden
+                  type: INTEGER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: autor
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: nombre_autor
+                  type: VARCHAR(191)
+              - column:
+                  name: mensaje
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: ocurrido_en
+                  type: TIMESTAMP WITH TIME ZONE
+        - sql:
+            sql: >
+              ALTER TABLE omnicanal.tbl_turnos_conversacion_liwa
+              ADD CONSTRAINT ck_turnos_conversacion_liwa_autor
+              CHECK (autor IN ('cliente', 'bot', 'asesor'))
+        - createIndex:
+            schemaName: omnicanal
+            tableName: tbl_turnos_conversacion_liwa
+            indexName: idx_turnos_conversacion_liwa_conversacion_orden
+            columns:
+              - column:
+                  name: conversacion_id
+              - column:
+                  name: orden
+      rollback:
+        - dropTable:
+            schemaName: omnicanal
+            tableName: tbl_turnos_conversacion_liwa

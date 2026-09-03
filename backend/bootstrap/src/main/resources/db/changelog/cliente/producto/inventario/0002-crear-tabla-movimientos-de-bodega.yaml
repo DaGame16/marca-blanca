@@ -1,0 +1,45 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-inventario-0002-crear-tabla-movimientos-de-bodega
+      author: leidi
+      comment: Movimientos de material entre bodegas / hacia tecnicos. Sin empresaId.
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_movimientos_de_bodega
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_movimientos_de_bodega}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_movimientos_de_bodega_uuid}}
+              - column: {name: tipo, type: VARCHAR(50), constraints: {nullable: false}}
+              - column: {name: material, type: VARCHAR(191), constraints: {nullable: false}}
+              - column: {name: cantidad, type: DOUBLE PRECISION, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: metros, type: DOUBLE PRECISION, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column:
+                  name: bodega_origen_id
+                  type: BIGINT
+                  constraints: {foreignKeyName: fk_movimientos_de_bodega_bodega_origen, references: producto.tbl_bodegas(id)}
+              - column:
+                  name: bodega_destino_id
+                  type: BIGINT
+                  constraints: {foreignKeyName: fk_movimientos_de_bodega_bodega_destino, references: producto.tbl_bodegas(id)}
+              - column:
+                  name: producto_id
+                  type: BIGINT
+                  constraints: {foreignKeyName: fk_movimientos_de_bodega_producto, references: producto.tbl_productos(id)}
+              - column:
+                  name: tecnico_id
+                  type: BIGINT
+                  constraints: {foreignKeyName: fk_movimientos_de_bodega_tecnico, references: seguridad.tbl_usuarios(id)}
+              - column:
+                  name: registrado_por_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_movimientos_de_bodega_registrado_por, references: seguridad.tbl_usuarios(id)}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - createIndex: {schemaName: producto, tableName: tbl_movimientos_de_bodega, indexName: idx_movimientos_de_bodega_bodega_origen_id, columns: [{column: {name: bodega_origen_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_movimientos_de_bodega, indexName: idx_movimientos_de_bodega_bodega_destino_id, columns: [{column: {name: bodega_destino_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_movimientos_de_bodega, indexName: idx_movimientos_de_bodega_producto_id, columns: [{column: {name: producto_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_movimientos_de_bodega, indexName: idx_movimientos_de_bodega_tecnico_id, columns: [{column: {name: tecnico_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_movimientos_de_bodega, indexName: idx_movimientos_de_bodega_registrado_por_id, columns: [{column: {name: registrado_por_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_movimientos_de_bodega, indexName: idx_movimientos_de_bodega_creado_en, columns: [{column: {name: creado_en}}]}
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_movimientos_de_bodega}

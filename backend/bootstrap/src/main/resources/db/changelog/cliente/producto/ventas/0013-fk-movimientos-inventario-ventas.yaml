@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-ventas-0013-fk-movimientos-inventario-ventas
+      author: leidi
+      comment: Agrega las FKs remision_id y devolucion_id de tbl_movimientos_de_inventario, pendientes desde la ola 3.
+      changes:
+        - addForeignKeyConstraint:
+            baseTableSchemaName: producto
+            baseTableName: tbl_movimientos_de_inventario
+            baseColumnNames: remision_id
+            constraintName: fk_movimientos_de_inventario_remision
+            referencedTableSchemaName: producto
+            referencedTableName: tbl_remisiones
+            referencedColumnNames: id
+        - addForeignKeyConstraint:
+            baseTableSchemaName: producto
+            baseTableName: tbl_movimientos_de_inventario
+            baseColumnNames: devolucion_id
+            constraintName: fk_movimientos_de_inventario_devolucion
+            referencedTableSchemaName: producto
+            referencedTableName: tbl_devoluciones
+            referencedColumnNames: id
+      rollback:
+        - dropForeignKeyConstraint: {baseTableSchemaName: producto, baseTableName: tbl_movimientos_de_inventario, constraintName: fk_movimientos_de_inventario_remision}
+        - dropForeignKeyConstraint: {baseTableSchemaName: producto, baseTableName: tbl_movimientos_de_inventario, constraintName: fk_movimientos_de_inventario_devolucion}

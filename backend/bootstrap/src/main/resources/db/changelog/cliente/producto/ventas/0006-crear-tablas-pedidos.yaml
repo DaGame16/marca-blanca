@@ -1,0 +1,58 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-ventas-0006-crear-tablas-pedidos
+      author: leidi
+      comment: Pedidos y sus items. Sin empresaId; consecutivo unico por base. estado (enum) como VARCHAR + CHECK.
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_pedidos
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_pedidos}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_pedidos_uuid}}
+              - column: {name: consecutivo, type: INTEGER, constraints: {nullable: false, unique: true, uniqueConstraintName: uq_pedidos_consecutivo}}
+              - column:
+                  name: cliente_comercial_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_pedidos_cliente_comercial, references: producto.tbl_clientes_comerciales(id)}
+              - column:
+                  name: cotizacion_id
+                  type: BIGINT
+                  constraints: {foreignKeyName: fk_pedidos_cotizacion, references: producto.tbl_cotizaciones(id)}
+              - column:
+                  name: creado_por_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_pedidos_creado_por, references: seguridad.tbl_usuarios(id)}
+              - column: {name: estado, type: VARCHAR(25), defaultValue: PENDIENTE, constraints: {nullable: false}}
+              - column: {name: emitido_en, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+              - column: {name: actualizado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - sql:
+            sql: >
+              ALTER TABLE producto.tbl_pedidos ADD CONSTRAINT ck_pedidos_estado
+              CHECK (estado IN ('PENDIENTE','REMISIONADO_PARCIAL','REMISIONADO_TOTAL','FACTURADO','ANULADO'))
+        - createIndex: {schemaName: producto, tableName: tbl_pedidos, indexName: idx_pedidos_cliente_comercial_id, columns: [{column: {name: cliente_comercial_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_pedidos, indexName: idx_pedidos_cotizacion_id, columns: [{column: {name: cotizacion_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_pedidos, indexName: idx_pedidos_creado_por_id, columns: [{column: {name: creado_por_id}}]}
+        - createTable:
+            schemaName: producto
+            tableName: tbl_items_de_pedido
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_items_de_pedido}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_items_de_pedido_uuid}}
+              - column:
+                  name: pedido_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_items_de_pedido_pedido, references: producto.tbl_pedidos(id)}
+              - column:
+                  name: producto_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_items_de_pedido_producto, references: producto.tbl_productos(id)}
+              - column: {name: cantidad_pedida, type: "NUMERIC(18,4)", constraints: {nullable: false}}
+              - column: {name: cantidad_remisionada, type: "NUMERIC(18,4)", defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: precio_unitario, type: "NUMERIC(18,2)", constraints: {nullable: false}}
+        - createIndex: {schemaName: producto, tableName: tbl_items_de_pedido, indexName: idx_items_de_pedido_pedido_id, columns: [{column: {name: pedido_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_items_de_pedido, indexName: idx_items_de_pedido_producto_id, columns: [{column: {name: producto_id}}]}
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_items_de_pedido}
+        - dropTable: {schemaName: producto, tableName: tbl_pedidos}
