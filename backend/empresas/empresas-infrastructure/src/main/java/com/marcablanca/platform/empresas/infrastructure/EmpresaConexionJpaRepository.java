@@ -1,4 +1,4 @@
-package com.marcablanca.platform.empresas;
+package com.marcablanca.platform.empresas.infrastructure;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -7,11 +7,11 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 
 /**
- * Resuelve, a partir del identificador de empresa que llega en el login
- * (ver ADR 0001 del modulo usuarios), la conexion activa a la base de
- * datos de esa empresa.
+ * Detalle de implementacion, package-private a proposito -- solo lo usa
+ * RepositorioEmpresaConexionesJpa, que es quien expone el puerto real
+ * hacia el resto de la aplicacion.
  */
-public interface EmpresaConexionRepository extends JpaRepository<EmpresaConexionEntity, Long> {
+interface EmpresaConexionJpaRepository extends JpaRepository<EmpresaConexionEntity, Long> {
 
     @Query("""
         select c from EmpresaConexionEntity c

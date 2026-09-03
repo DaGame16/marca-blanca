@@ -26,10 +26,13 @@
 
     <modules>
         <module>shared-kernel</module>
-        <module>empresas</module>
+        <module>empresas/empresas-domain</module>
+        <module>empresas/empresas-application</module>
+        <module>empresas/empresas-infrastructure</module>
         <module>usuarios/usuarios-domain</module>
         <module>usuarios/usuarios-application</module>
         <module>usuarios/usuarios-infrastructure</module>
+        <module>autenticacion/autenticacion-domain</module>
         <module>autenticacion/autenticacion-application</module>
         <module>autenticacion/autenticacion-infrastructure</module>
         <module>omnicanal/omnicanal-domain</module>

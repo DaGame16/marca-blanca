@@ -1,4 +1,4 @@
-package com.marcablanca.platform.empresas;
+package com.marcablanca.platform.empresas.infrastructure;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,7 +16,7 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "tbl_empresa_conexiones", schema = "plataforma")
-public class EmpresaConexionEntity {
+class EmpresaConexionEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,35 +47,35 @@ public class EmpresaConexionEntity {
         // Requerido por JPA
     }
 
-    public Long getId() {
+    Long getId() {
         return id;
     }
 
-    public UUID getUuid() {
+    UUID getUuid() {
         return uuid;
     }
 
-    public Long getEmpresaId() {
+    Long getEmpresaId() {
         return empresaId;
     }
 
-    public String getHost() {
+    String getHost() {
         return host;
     }
 
-    public Integer getPuerto() {
+    Integer getPuerto() {
         return puerto;
     }
 
-    public String getNombreBd() {
+    String getNombreBd() {
         return nombreBd;
     }
 
-    public String getSecretoRef() {
+    String getSecretoRef() {
         return secretoRef;
     }
 
-    public Boolean getEsActiva() {
+    Boolean getEsActiva() {
         return esActiva;
     }
 }
