@@ -21,3 +21,9 @@ databaseChangeLog:
   - include: {file: 0019-crear-tabla-puntos-de-seguimiento.yaml, relativeToChangelogFile: true}
   - include: {file: 0020-crear-tabla-ordenes-instalacion.yaml, relativeToChangelogFile: true}
   - include: {file: 0021-crear-tabla-mensajes-de-tarea.yaml, relativeToChangelogFile: true}
+  # ola 3 - bodega / inventario
+  - include: {file: 0022-crear-tabla-materiales-de-bodega.yaml, relativeToChangelogFile: true}
+  - include: {file: 0023-crear-tabla-movimientos-de-bodega.yaml, relativeToChangelogFile: true}
+  - include: {file: 0024-crear-tabla-stock-de-producto.yaml, relativeToChangelogFile: true}
+  - include: {file: 0025-crear-tabla-items-de-inventario.yaml, relativeToChangelogFile: true}
+  - include: {file: 0026-crear-tabla-movimientos-de-inventario.yaml, relativeToChangelogFile: true}
