@@ -72,9 +72,14 @@ class ArquitecturaHexagonalTest {
 
     @Test
     void omnicanal_no_depende_de_usuarios() {
+        // allowEmptyShould: hoy "omnicanal" todavia no tiene clases (modulos
+        // vacios, en construccion). La regla queda lista para cuando se
+        // empiece a escribir codigo ahi, sin fallar mientras tanto por
+        // "0 clases evaluadas".
         ArchRule regla = noClasses()
                 .that().resideInAPackage("..omnicanal..")
-                .should().dependOnClassesThat().resideInAPackage("..usuarios..");
+                .should().dependOnClassesThat().resideInAPackage("..usuarios..")
+                .allowEmptyShould(true);
 
         regla.check(clases);
     }
