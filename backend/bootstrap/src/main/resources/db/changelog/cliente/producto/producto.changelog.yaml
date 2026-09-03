@@ -27,3 +27,8 @@ databaseChangeLog:
   - include: {file: 0024-crear-tabla-stock-de-producto.yaml, relativeToChangelogFile: true}
   - include: {file: 0025-crear-tabla-items-de-inventario.yaml, relativeToChangelogFile: true}
   - include: {file: 0026-crear-tabla-movimientos-de-inventario.yaml, relativeToChangelogFile: true}
+  # ola 4 - cuadrillas / inventario de cuadrilla
+  - include: {file: 0027-crear-tabla-materiales-de-cuadrilla.yaml, relativeToChangelogFile: true}
+  - include: {file: 0028-crear-tabla-material-asignado-a-tecnico.yaml, relativeToChangelogFile: true}
+  - include: {file: 0029-crear-tabla-inventario-de-cuadrilla.yaml, relativeToChangelogFile: true}
+  - include: {file: 0030-crear-tabla-consumos-de-material.yaml, relativeToChangelogFile: true}

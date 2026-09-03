@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-0027-crear-tabla-materiales-de-cuadrilla
+      author: leidi
+      comment: Material asignado a una cuadrilla (con lo consumido). Sin empresaId.
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_materiales_de_cuadrilla
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_materiales_de_cuadrilla}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_materiales_de_cuadrilla_uuid}}
+              - column:
+                  name: cuadrilla_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_materiales_de_cuadrilla_cuadrilla, references: producto.tbl_cuadrillas(id)}
+              - column:
+                  name: asignado_por_id
+                  type: BIGINT
+                  constraints: {foreignKeyName: fk_materiales_de_cuadrilla_asignado_por, references: seguridad.tbl_usuarios(id)}
+              - column: {name: material, type: VARCHAR(191)}
+              - column: {name: cantidad, type: DOUBLE PRECISION, defaultValueNumeric: 0}
+              - column: {name: metros, type: DOUBLE PRECISION, defaultValueNumeric: 0}
+              - column: {name: cantidad_consumida, type: DOUBLE PRECISION, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: metros_consumidos, type: DOUBLE PRECISION, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: observacion, type: TEXT}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+              - column: {name: actualizado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - createIndex: {schemaName: producto, tableName: tbl_materiales_de_cuadrilla, indexName: idx_materiales_de_cuadrilla_cuadrilla_id, columns: [{column: {name: cuadrilla_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_materiales_de_cuadrilla, indexName: idx_materiales_de_cuadrilla_asignado_por_id, columns: [{column: {name: asignado_por_id}}]}
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_materiales_de_cuadrilla}

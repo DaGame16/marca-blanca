@@ -1,0 +1,33 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-0030-crear-tabla-consumos-de-material
+      author: leidi
+      comment: Consumo de material de cuadrilla en una tarea (diferido de la ola 2 por FK a materiales_de_cuadrilla). Sin empresaId.
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_consumos_de_material
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_consumos_de_material}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_consumos_de_material_uuid}}
+              - column:
+                  name: material_cuadrilla_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_consumos_de_material_material_cuadrilla, references: producto.tbl_materiales_de_cuadrilla(id)}
+              - column:
+                  name: tarea_id
+                  type: BIGINT
+                  constraints: {foreignKeyName: fk_consumos_de_material_tarea, references: producto.tbl_tareas(id)}
+              - column:
+                  name: usuario_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_consumos_de_material_usuario, references: seguridad.tbl_usuarios(id)}
+              - column: {name: material_nombre, type: VARCHAR(191)}
+              - column: {name: cantidad, type: DOUBLE PRECISION, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: metros, type: DOUBLE PRECISION, defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - createIndex: {schemaName: producto, tableName: tbl_consumos_de_material, indexName: idx_consumos_de_material_material_cuadrilla_id, columns: [{column: {name: material_cuadrilla_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_consumos_de_material, indexName: idx_consumos_de_material_tarea_id, columns: [{column: {name: tarea_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_consumos_de_material, indexName: idx_consumos_de_material_usuario_id, columns: [{column: {name: usuario_id}}]}
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_consumos_de_material}
