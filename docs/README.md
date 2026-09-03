@@ -2,6 +2,9 @@
 
 Documentación técnica del proyecto, organizada por área. Vive en el repo y se actualiza con cada cambio real — no documenta nada que no esté ya implementado y confirmado.
 
+## Estructura
+- [`00-estructura-del-monorepo.md`](00-estructura-del-monorepo.md) — donde vive cada cosa: carpetas raíz, módulos del backend, estructura del frontend.
+
 ## Proceso de trabajo
 - [`PROCESO-DE-TRABAJO.md`](PROCESO-DE-TRABAJO.md) — reglas de Git del equipo.
 
