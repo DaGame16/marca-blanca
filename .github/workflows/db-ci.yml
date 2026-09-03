@@ -53,6 +53,13 @@ jobs:
           java-version: "25"
           cache: maven
 
+      # Liquibase necesita resolver los jars de los modulos hermanos
+      # (shared-kernel, usuarios-*, omnicanal-*) aunque no compile nada,
+      # asi que instalamos el reactor completo una vez en el repo local.
+      - name: Instalar modulos del backend
+        working-directory: backend
+        run: mvn -B -ntp -pl bootstrap -am install -DskipTests
+
       # El postgres del servicio arranca con una sola base ("postgres");
       # el changelog de "control" y el de "cliente" apuntan cada uno a su
       # propia base, así que las creamos antes de aplicar los changelogs.
