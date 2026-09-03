@@ -64,9 +64,9 @@ jobs:
           PGPASSWORD=guajiranet_owner psql -h localhost -U guajiranet_owner -d postgres -c "CREATE DATABASE db_plantilla_maestra;"
 
       - name: Validar changelog "control"
-        working-directory: backend
+        working-directory: backend/bootstrap
         run: >
-          mvn -B -ntp -pl bootstrap -am liquibase:update
+          mvn -B -ntp liquibase:update
           -Dliquibase.changelogFile=src/main/resources/db/changelog/control/db.changelog-master.yaml
           -Dliquibase.url=jdbc:postgresql://localhost:5432/db_portal_guajiranet_control
           -Dliquibase.username=guajiranet_owner
@@ -74,9 +74,9 @@ jobs:
           -Dliquibase.driver=org.postgresql.Driver
 
       - name: Validar changelog "cliente"
-        working-directory: backend
+        working-directory: backend/bootstrap
         run: >
-          mvn -B -ntp -pl bootstrap -am liquibase:update
+          mvn -B -ntp liquibase:update
           -Dliquibase.changelogFile=src/main/resources/db/changelog/cliente/db.changelog-master.yaml
           -Dliquibase.url=jdbc:postgresql://localhost:5432/db_plantilla_maestra
           -Dliquibase.username=guajiranet_owner
