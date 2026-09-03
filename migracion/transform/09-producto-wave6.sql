@@ -6,6 +6,7 @@
 -- ============================================================
 
 BEGIN;
+SET LOCAL plataforma.auditoria_activa = 'off';
 
 -- ---------- procesos_de_venta ----------
 INSERT INTO producto.tbl_procesos_de_venta (

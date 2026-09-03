@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: auditoria-0001-crear-tabla-auditoria
+      author: leidi
+      comment: Tabla de auditoria de cada base de cliente (seccion 7). Registra escritura/borrado en tablas criticas. Vive en el schema plataforma.
+      changes:
+        - createTable:
+            schemaName: plataforma
+            tableName: tbl_auditoria
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_auditoria}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_auditoria_uuid}}
+              - column: {name: esquema, type: VARCHAR(63), constraints: {nullable: false}}
+              - column: {name: tabla, type: VARCHAR(63), constraints: {nullable: false}}
+              - column: {name: operacion, type: VARCHAR(10), constraints: {nullable: false}}
+              - column: {name: registro_id, type: BIGINT}
+              - column: {name: registro_uuid, type: UUID}
+              - column: {name: datos_anteriores, type: JSONB}
+              - column: {name: datos_nuevos, type: JSONB}
+              - column: {name: usuario_bd, type: VARCHAR(63), constraints: {nullable: false}}
+              - column: {name: usuario_app_id, type: BIGINT}
+              - column: {name: txid, type: BIGINT}
+              - column: {name: ejecutado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - sql:
+            sql: >
+              ALTER TABLE plataforma.tbl_auditoria ADD CONSTRAINT ck_auditoria_operacion
+              CHECK (operacion IN ('INSERT','UPDATE','DELETE','TRUNCATE'))
+        - createIndex:
+            schemaName: plataforma
+            tableName: tbl_auditoria
+            indexName: idx_auditoria_tabla_ejecutado
+            columns: [{column: {name: esquema}}, {column: {name: tabla}}, {column: {name: ejecutado_en}}]
+        - createIndex: {schemaName: plataforma, tableName: tbl_auditoria, indexName: idx_auditoria_registro_uuid, columns: [{column: {name: registro_uuid}}]}
+        - createIndex: {schemaName: plataforma, tableName: tbl_auditoria, indexName: idx_auditoria_ejecutado_en, columns: [{column: {name: ejecutado_en}}]}
+      rollback:
+        - dropTable: {schemaName: plataforma, tableName: tbl_auditoria}

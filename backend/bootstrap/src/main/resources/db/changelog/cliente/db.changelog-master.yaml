@@ -7,3 +7,5 @@ databaseChangeLog:
   - include: {file: producto/producto.changelog.yaml, relativeToChangelogFile: true}
   - include: {file: cliente/cliente.changelog.yaml, relativeToChangelogFile: true}
   - include: {file: historico/historico.changelog.yaml, relativeToChangelogFile: true}
+  # auditoria de ultimo: cuelga triggers en tablas de seguridad y producto
+  - include: {file: auditoria/auditoria.changelog.yaml, relativeToChangelogFile: true}

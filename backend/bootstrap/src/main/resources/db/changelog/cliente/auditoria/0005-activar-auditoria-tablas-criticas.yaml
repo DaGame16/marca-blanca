@@ -1,0 +1,47 @@
+databaseChangeLog:
+  - changeSet:
+      id: auditoria-0005-activar-auditoria-tablas-criticas
+      author: leidi
+      comment: Cuelga el trigger de auditoria en las tablas criticas. Lista de partida - la definitiva la fija negocio/legal (seccion 7); sumar tablas = otro changeset que llama a fn_activar_auditoria.
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              DO $$
+              DECLARE r record;
+              BEGIN
+                FOR r IN
+                  SELECT esq, tab FROM (VALUES
+                    ('seguridad','tbl_usuarios'), ('seguridad','tbl_usuario_perfiles'),
+                    ('seguridad','tbl_roles'), ('seguridad','tbl_permisos'),
+                    ('seguridad','tbl_usuarios_roles'), ('seguridad','tbl_permisos_de_rol'),
+                    ('seguridad','tbl_permisos_de_usuario'),
+                    ('producto','tbl_clientes'), ('producto','tbl_tareas'), ('producto','tbl_cuadrillas'),
+                    ('producto','tbl_productos'), ('producto','tbl_stock_de_producto'),
+                    ('producto','tbl_movimientos_de_inventario'),
+                    ('producto','tbl_compras'), ('producto','tbl_legalizaciones'),
+                    ('producto','tbl_pedidos'), ('producto','tbl_remisiones'),
+                    ('producto','tbl_facturas'), ('producto','tbl_notas_credito'),
+                    ('producto','tbl_devoluciones')
+                  ) AS t(esq, tab)
+                LOOP
+                  PERFORM plataforma.fn_activar_auditoria(r.esq, r.tab);
+                END LOOP;
+              END $$;
+      rollback:
+        - sql:
+            splitStatements: false
+            sql: |
+              DO $$
+              DECLARE r record;
+              BEGIN
+                FOR r IN
+                  SELECT n.nspname AS esq, c.relname AS tab
+                  FROM pg_trigger t
+                  JOIN pg_class c ON c.oid = t.tgrelid
+                  JOIN pg_namespace n ON n.oid = c.relnamespace
+                  WHERE t.tgname = 'trg_auditoria' AND NOT t.tgisinternal
+                LOOP
+                  EXECUTE format('DROP TRIGGER trg_auditoria ON %I.%I', r.esq, r.tab);
+                END LOOP;
+              END $$;

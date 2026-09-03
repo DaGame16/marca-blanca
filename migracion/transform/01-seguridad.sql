@@ -8,6 +8,7 @@
 -- ============================================================
 
 BEGIN;
+SET LOCAL plataforma.auditoria_activa = 'off';
 
 -- Columnas temporales para mapear id viejo (cuid texto) -> id nuevo (bigint).
 -- Se eliminan en 02-seguridad-limpieza.sql tras validar (no id_legado en tablas vivas).

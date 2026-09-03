@@ -6,6 +6,7 @@
 -- ============================================================
 
 BEGIN;
+SET LOCAL plataforma.auditoria_activa = 'off';
 
 ALTER TABLE seguridad.tbl_usuarios ADD COLUMN id_origen text;
 UPDATE seguridad.tbl_usuarios u SET id_origen = s.id FROM staging.usuarios s WHERE lower(s.correo) = lower(u.correo);

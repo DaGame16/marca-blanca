@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: auditoria-0003-crear-funcion-activar-auditoria
+      author: leidi
+      comment: Helper para colgar el trigger de auditoria en una tabla. Para sumar tablas criticas basta un changeset nuevo que llame a esta funcion.
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              CREATE OR REPLACE FUNCTION plataforma.fn_activar_auditoria(p_esquema text, p_tabla text) RETURNS void
+              LANGUAGE plpgsql AS $$
+              BEGIN
+                EXECUTE format('DROP TRIGGER IF EXISTS trg_auditoria ON %I.%I', p_esquema, p_tabla);
+                EXECUTE format(
+                  'CREATE TRIGGER trg_auditoria AFTER INSERT OR UPDATE OR DELETE ON %I.%I '
+                  'FOR EACH ROW EXECUTE FUNCTION plataforma.fn_auditar()', p_esquema, p_tabla);
+              END;
+              $$;
+      rollback:
+        - sql: {sql: "DROP FUNCTION IF EXISTS plataforma.fn_activar_auditoria(text, text)"}

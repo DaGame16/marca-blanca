@@ -4,6 +4,7 @@
 -- ============================================================
 
 BEGIN;
+SET LOCAL plataforma.auditoria_activa = 'off';
 
 -- Columnas temporales id viejo -> id nuevo (se eliminan en 04-omnicanal-limpieza.sql).
 ALTER TABLE omnicanal.tbl_canales_de_chat      ADD COLUMN id_origen text;

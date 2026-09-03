@@ -6,6 +6,7 @@
 -- ============================================================
 
 BEGIN;
+SET LOCAL plataforma.auditoria_activa = 'off';
 
 ALTER TABLE producto.tbl_clientes  ADD COLUMN id_origen text;
 ALTER TABLE seguridad.tbl_usuarios ADD COLUMN id_origen text;
