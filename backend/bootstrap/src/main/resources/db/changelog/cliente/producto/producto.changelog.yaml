@@ -11,3 +11,13 @@ databaseChangeLog:
   - include: {file: 0010-crear-tabla-sucursales-de-cliente.yaml, relativeToChangelogFile: true}
   - include: {file: 0011-crear-tabla-cuadrillas.yaml, relativeToChangelogFile: true}
   - include: {file: 0012-otorgar-privilegios.yaml, relativeToChangelogFile: true}
+  # ola 2 - modulo tareas
+  - include: {file: 0013-crear-tabla-tareas.yaml, relativeToChangelogFile: true}
+  - include: {file: 0014-crear-tabla-historial-de-tareas.yaml, relativeToChangelogFile: true}
+  - include: {file: 0015-crear-tabla-actas-de-tarea.yaml, relativeToChangelogFile: true}
+  - include: {file: 0016-crear-tabla-fotos-de-acta.yaml, relativeToChangelogFile: true}
+  - include: {file: 0017-crear-tabla-evidencias-de-tarea.yaml, relativeToChangelogFile: true}
+  - include: {file: 0018-crear-tabla-fotos-de-evidencia.yaml, relativeToChangelogFile: true}
+  - include: {file: 0019-crear-tabla-puntos-de-seguimiento.yaml, relativeToChangelogFile: true}
+  - include: {file: 0020-crear-tabla-ordenes-instalacion.yaml, relativeToChangelogFile: true}
+  - include: {file: 0021-crear-tabla-mensajes-de-tarea.yaml, relativeToChangelogFile: true}
