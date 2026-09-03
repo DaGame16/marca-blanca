@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0014-crear-schema-omnicanal
+      author: leidi
+      comment: Schema del modulo omnicanal (chat interno del equipo + conversaciones Liwa y analisis IA).
+      changes:
+        - sql:
+            sql: CREATE SCHEMA IF NOT EXISTS omnicanal
+      rollback:
+        - sql:
+            sql: DROP SCHEMA IF EXISTS omnicanal

@@ -1,0 +1,144 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0021-omnicanal-crear-tabla-conversaciones-analizadas
+      author: leidi
+      comment: Analisis IA de un caso Liwa. temas y banderas_calidad como JSONB. 1:1 con caso. Sin empresaId.
+      changes:
+        - createTable:
+            schemaName: omnicanal
+            tableName: tbl_conversaciones_analizadas
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_conversaciones_analizadas
+              - column:
+                  name: uuid
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_conversaciones_analizadas_uuid
+              - column:
+                  name: caso_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_conversaciones_analizadas_caso
+                    foreignKeyName: fk_conversaciones_analizadas_caso
+                    references: omnicanal.tbl_casos_liwa(id)
+              - column:
+                  name: id_contacto
+                  type: VARCHAR(191)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: area_destino
+                  type: VARCHAR(191)
+              - column:
+                  name: municipio
+                  type: VARCHAR(191)
+              - column:
+                  name: barrio
+                  type: VARCHAR(191)
+              - column:
+                  name: categoria_oficina
+                  type: VARCHAR(191)
+              - column:
+                  name: motivo_contacto
+                  type: VARCHAR(191)
+              - column:
+                  name: submotivo
+                  type: VARCHAR(191)
+              - column:
+                  name: resumen_motivo
+                  type: TEXT
+              - column:
+                  name: resumen_desenlace
+                  type: TEXT
+              - column:
+                  name: sentimiento_inicial
+                  type: VARCHAR(191)
+              - column:
+                  name: sentimiento_final
+                  type: VARCHAR(191)
+              - column:
+                  name: resultado
+                  type: VARCHAR(191)
+              - column:
+                  name: fcr
+                  type: BOOLEAN
+              - column:
+                  name: esfuerzo_cliente
+                  type: VARCHAR(191)
+              - column:
+                  name: temas
+                  type: JSONB
+              - column:
+                  name: banderas_calidad
+                  type: JSONB
+              - column:
+                  name: oportunidad_venta
+                  type: BOOLEAN
+              - column:
+                  name: venta_confirmada_en_texto
+                  type: BOOLEAN
+              - column:
+                  name: revisar_limite
+                  type: BOOLEAN
+              - column:
+                  name: abandono
+                  type: BOOLEAN
+              - column:
+                  name: abandonado_por
+                  type: VARCHAR(191)
+              - column:
+                  name: es_de_ads
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: modelo_ia_usado
+                  type: VARCHAR(191)
+              - column:
+                  name: razonamiento
+                  type: TEXT
+              - column:
+                  name: cerrado_en
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: primer_mensaje_en
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: primera_respuesta_en
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: procesado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - createIndex:
+            schemaName: omnicanal
+            tableName: tbl_conversaciones_analizadas
+            indexName: idx_conversaciones_analizadas_id_contacto
+            columns:
+              - column:
+                  name: id_contacto
+        - createIndex:
+            schemaName: omnicanal
+            tableName: tbl_conversaciones_analizadas
+            indexName: idx_conversaciones_analizadas_motivo_contacto
+            columns:
+              - column:
+                  name: motivo_contacto
+      rollback:
+        - dropTable:
+            schemaName: omnicanal
+            tableName: tbl_conversaciones_analizadas
