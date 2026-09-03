@@ -32,3 +32,10 @@ databaseChangeLog:
   - include: {file: 0028-crear-tabla-material-asignado-a-tecnico.yaml, relativeToChangelogFile: true}
   - include: {file: 0029-crear-tabla-inventario-de-cuadrilla.yaml, relativeToChangelogFile: true}
   - include: {file: 0030-crear-tabla-consumos-de-material.yaml, relativeToChangelogFile: true}
+  # ola 5 - compras
+  - include: {file: 0031-crear-tabla-compras.yaml, relativeToChangelogFile: true}
+  - include: {file: 0032-crear-tabla-items-de-compra.yaml, relativeToChangelogFile: true}
+  - include: {file: 0033-crear-tabla-recepciones-de-mercancia.yaml, relativeToChangelogFile: true}
+  - include: {file: 0034-crear-tabla-items-de-recepcion.yaml, relativeToChangelogFile: true}
+  - include: {file: 0035-crear-tabla-legalizaciones.yaml, relativeToChangelogFile: true}
+  - include: {file: 0036-fk-movimientos-inventario-recepcion.yaml, relativeToChangelogFile: true}

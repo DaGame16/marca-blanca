@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-0034-crear-tabla-items-de-recepcion
+      author: leidi
+      comment: Lineas de una recepcion de mercancia, contra items de la compra.
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_items_de_recepcion
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_items_de_recepcion}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_items_de_recepcion_uuid}}
+              - column:
+                  name: recepcion_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_items_de_recepcion_recepcion, references: producto.tbl_recepciones_de_mercancia(id)}
+              - column:
+                  name: item_compra_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_items_de_recepcion_item_compra, references: producto.tbl_items_de_compra(id)}
+              - column: {name: cantidad_recibida, type: "NUMERIC(18,4)", constraints: {nullable: false}}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - createIndex: {schemaName: producto, tableName: tbl_items_de_recepcion, indexName: idx_items_de_recepcion_recepcion_id, columns: [{column: {name: recepcion_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_items_de_recepcion, indexName: idx_items_de_recepcion_item_compra_id, columns: [{column: {name: item_compra_id}}]}
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_items_de_recepcion}
