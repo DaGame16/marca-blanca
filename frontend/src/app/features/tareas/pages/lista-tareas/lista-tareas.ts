@@ -10,7 +10,7 @@ import { Tarea } from '../../models/tarea.model';
   templateUrl: './lista-tareas.html',
 })
 export class ListaTareas {
-  private tareaService = inject(TareaService);
+  private readonly tareaService = inject(TareaService);
 
   tareas = signal<Tarea[]>([]);
   cargando = signal(true);
