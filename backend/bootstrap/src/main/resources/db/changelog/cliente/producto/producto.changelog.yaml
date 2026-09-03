@@ -1,41 +1,9 @@
 databaseChangeLog:
-  - include: {file: 0001-crear-tabla-unidades-de-medida.yaml, relativeToChangelogFile: true}
-  - include: {file: 0002-crear-tabla-categorias-de-producto.yaml, relativeToChangelogFile: true}
-  - include: {file: 0003-crear-tabla-bodegas.yaml, relativeToChangelogFile: true}
-  - include: {file: 0004-crear-tabla-productos.yaml, relativeToChangelogFile: true}
-  - include: {file: 0005-crear-tabla-proveedores.yaml, relativeToChangelogFile: true}
-  - include: {file: 0006-crear-tabla-codigos-equivalentes-proveedor.yaml, relativeToChangelogFile: true}
-  - include: {file: 0007-crear-tabla-nodos.yaml, relativeToChangelogFile: true}
-  - include: {file: 0008-crear-tabla-festivos.yaml, relativeToChangelogFile: true}
-  - include: {file: 0009-crear-tabla-clientes.yaml, relativeToChangelogFile: true}
-  - include: {file: 0010-crear-tabla-sucursales-de-cliente.yaml, relativeToChangelogFile: true}
-  - include: {file: 0011-crear-tabla-cuadrillas.yaml, relativeToChangelogFile: true}
-  - include: {file: 0012-otorgar-privilegios.yaml, relativeToChangelogFile: true}
-  # ola 2 - modulo tareas
-  - include: {file: 0013-crear-tabla-tareas.yaml, relativeToChangelogFile: true}
-  - include: {file: 0014-crear-tabla-historial-de-tareas.yaml, relativeToChangelogFile: true}
-  - include: {file: 0015-crear-tabla-actas-de-tarea.yaml, relativeToChangelogFile: true}
-  - include: {file: 0016-crear-tabla-fotos-de-acta.yaml, relativeToChangelogFile: true}
-  - include: {file: 0017-crear-tabla-evidencias-de-tarea.yaml, relativeToChangelogFile: true}
-  - include: {file: 0018-crear-tabla-fotos-de-evidencia.yaml, relativeToChangelogFile: true}
-  - include: {file: 0019-crear-tabla-puntos-de-seguimiento.yaml, relativeToChangelogFile: true}
-  - include: {file: 0020-crear-tabla-ordenes-instalacion.yaml, relativeToChangelogFile: true}
-  - include: {file: 0021-crear-tabla-mensajes-de-tarea.yaml, relativeToChangelogFile: true}
-  # ola 3 - bodega / inventario
-  - include: {file: 0022-crear-tabla-materiales-de-bodega.yaml, relativeToChangelogFile: true}
-  - include: {file: 0023-crear-tabla-movimientos-de-bodega.yaml, relativeToChangelogFile: true}
-  - include: {file: 0024-crear-tabla-stock-de-producto.yaml, relativeToChangelogFile: true}
-  - include: {file: 0025-crear-tabla-items-de-inventario.yaml, relativeToChangelogFile: true}
-  - include: {file: 0026-crear-tabla-movimientos-de-inventario.yaml, relativeToChangelogFile: true}
-  # ola 4 - cuadrillas / inventario de cuadrilla
-  - include: {file: 0027-crear-tabla-materiales-de-cuadrilla.yaml, relativeToChangelogFile: true}
-  - include: {file: 0028-crear-tabla-material-asignado-a-tecnico.yaml, relativeToChangelogFile: true}
-  - include: {file: 0029-crear-tabla-inventario-de-cuadrilla.yaml, relativeToChangelogFile: true}
-  - include: {file: 0030-crear-tabla-consumos-de-material.yaml, relativeToChangelogFile: true}
-  # ola 5 - compras
-  - include: {file: 0031-crear-tabla-compras.yaml, relativeToChangelogFile: true}
-  - include: {file: 0032-crear-tabla-items-de-compra.yaml, relativeToChangelogFile: true}
-  - include: {file: 0033-crear-tabla-recepciones-de-mercancia.yaml, relativeToChangelogFile: true}
-  - include: {file: 0034-crear-tabla-items-de-recepcion.yaml, relativeToChangelogFile: true}
-  - include: {file: 0035-crear-tabla-legalizaciones.yaml, relativeToChangelogFile: true}
-  - include: {file: 0036-fk-movimientos-inventario-recepcion.yaml, relativeToChangelogFile: true}
+  # Modulo ERP (schema producto). Sub-areas en orden de dependencia.
+  - include: {file: grants/grants.changelog.yaml, relativeToChangelogFile: true}
+  - include: {file: catalogos/catalogos.changelog.yaml, relativeToChangelogFile: true}
+  - include: {file: clientes/clientes.changelog.yaml, relativeToChangelogFile: true}
+  - include: {file: tareas/tareas.changelog.yaml, relativeToChangelogFile: true}
+  - include: {file: inventario/inventario.changelog.yaml, relativeToChangelogFile: true}
+  - include: {file: compras/compras.changelog.yaml, relativeToChangelogFile: true}
+  - include: {file: ventas/ventas.changelog.yaml, relativeToChangelogFile: true}

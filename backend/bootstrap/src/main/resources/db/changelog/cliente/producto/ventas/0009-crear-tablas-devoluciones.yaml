@@ -1,0 +1,56 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-ventas-0009-crear-tablas-devoluciones
+      author: leidi
+      comment: Devoluciones de cliente y sus items (diferido de la ola 5, FK a facturas). Sin empresaId; consecutivo unico por base. estado (enum) como VARCHAR + CHECK.
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_devoluciones
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_devoluciones}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_devoluciones_uuid}}
+              - column: {name: consecutivo, type: INTEGER, constraints: {nullable: false, unique: true, uniqueConstraintName: uq_devoluciones_consecutivo}}
+              - column:
+                  name: factura_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_devoluciones_factura, references: producto.tbl_facturas(id)}
+              - column:
+                  name: bodega_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_devoluciones_bodega, references: producto.tbl_bodegas(id)}
+              - column:
+                  name: creado_por_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_devoluciones_creado_por, references: seguridad.tbl_usuarios(id)}
+              - column: {name: motivo, type: TEXT, constraints: {nullable: false}}
+              - column: {name: estado, type: VARCHAR(20), defaultValue: PENDIENTE, constraints: {nullable: false}}
+              - column: {name: devuelta_en, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - sql:
+            sql: >
+              ALTER TABLE producto.tbl_devoluciones ADD CONSTRAINT ck_devoluciones_estado
+              CHECK (estado IN ('PENDIENTE','APROBADA','RECHAZADA','ANULADA'))
+        - createIndex: {schemaName: producto, tableName: tbl_devoluciones, indexName: idx_devoluciones_factura_id, columns: [{column: {name: factura_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_devoluciones, indexName: idx_devoluciones_bodega_id, columns: [{column: {name: bodega_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_devoluciones, indexName: idx_devoluciones_creado_por_id, columns: [{column: {name: creado_por_id}}]}
+        - createTable:
+            schemaName: producto
+            tableName: tbl_items_de_devolucion
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_items_de_devolucion}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_items_de_devolucion_uuid}}
+              - column:
+                  name: devolucion_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_items_de_devolucion_devolucion, references: producto.tbl_devoluciones(id)}
+              - column:
+                  name: producto_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_items_de_devolucion_producto, references: producto.tbl_productos(id)}
+              - column: {name: cantidad, type: "NUMERIC(18,4)", constraints: {nullable: false}}
+        - createIndex: {schemaName: producto, tableName: tbl_items_de_devolucion, indexName: idx_items_de_devolucion_devolucion_id, columns: [{column: {name: devolucion_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_items_de_devolucion, indexName: idx_items_de_devolucion_producto_id, columns: [{column: {name: producto_id}}]}
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_items_de_devolucion}
+        - dropTable: {schemaName: producto, tableName: tbl_devoluciones}

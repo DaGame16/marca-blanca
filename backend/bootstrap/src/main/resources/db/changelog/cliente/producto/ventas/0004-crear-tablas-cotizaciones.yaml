@@ -1,0 +1,54 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-ventas-0004-crear-tablas-cotizaciones
+      author: leidi
+      comment: Cotizaciones y sus items. Sin empresaId; consecutivo unico por base. estado (enum) como VARCHAR + CHECK.
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_cotizaciones
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_cotizaciones}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_cotizaciones_uuid}}
+              - column: {name: consecutivo, type: INTEGER, constraints: {nullable: false, unique: true, uniqueConstraintName: uq_cotizaciones_consecutivo}}
+              - column:
+                  name: cliente_comercial_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_cotizaciones_cliente_comercial, references: producto.tbl_clientes_comerciales(id)}
+              - column:
+                  name: creado_por_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_cotizaciones_creado_por, references: seguridad.tbl_usuarios(id)}
+              - column: {name: estado, type: VARCHAR(20), defaultValue: BORRADOR, constraints: {nullable: false}}
+              - column: {name: condiciones, type: TEXT}
+              - column: {name: emitida_en, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: vigencia_hasta, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+              - column: {name: actualizado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - sql:
+            sql: >
+              ALTER TABLE producto.tbl_cotizaciones ADD CONSTRAINT ck_cotizaciones_estado
+              CHECK (estado IN ('BORRADOR','ENVIADA','ACEPTADA','RECHAZADA','VENCIDA','ANULADA'))
+        - createIndex: {schemaName: producto, tableName: tbl_cotizaciones, indexName: idx_cotizaciones_cliente_comercial_id, columns: [{column: {name: cliente_comercial_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_cotizaciones, indexName: idx_cotizaciones_creado_por_id, columns: [{column: {name: creado_por_id}}]}
+        - createTable:
+            schemaName: producto
+            tableName: tbl_items_de_cotizacion
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_items_de_cotizacion}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_items_de_cotizacion_uuid}}
+              - column:
+                  name: cotizacion_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_items_de_cotizacion_cotizacion, references: producto.tbl_cotizaciones(id)}
+              - column:
+                  name: producto_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_items_de_cotizacion_producto, references: producto.tbl_productos(id)}
+              - column: {name: cantidad, type: "NUMERIC(18,4)", constraints: {nullable: false}}
+              - column: {name: precio_unitario, type: "NUMERIC(18,2)", constraints: {nullable: false}}
+        - createIndex: {schemaName: producto, tableName: tbl_items_de_cotizacion, indexName: idx_items_de_cotizacion_cotizacion_id, columns: [{column: {name: cotizacion_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_items_de_cotizacion, indexName: idx_items_de_cotizacion_producto_id, columns: [{column: {name: producto_id}}]}
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_items_de_cotizacion}
+        - dropTable: {schemaName: producto, tableName: tbl_cotizaciones}

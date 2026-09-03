@@ -1,0 +1,31 @@
+databaseChangeLog:
+  - changeSet:
+      id: historico-0002-crear-tabla-logs-de-auditoria-de-solicitudes
+      author: leidi
+      comment: Log de peticiones HTTP heredado del sistema viejo. Solo lectura. Sin empresaId. correo_usuario/rol_usuario son datos denormalizados del momento.
+      changes:
+        - createTable:
+            schemaName: historico
+            tableName: tbl_logs_de_auditoria_de_solicitudes
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_logs_de_auditoria_de_solicitudes}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_logs_de_auditoria_de_solicitudes_uuid}}
+              - column:
+                  name: usuario_id
+                  type: BIGINT
+                  constraints: {foreignKeyName: fk_logs_de_auditoria_de_solicitudes_usuario, references: seguridad.tbl_usuarios(id)}
+              - column: {name: correo_usuario, type: VARCHAR(254)}
+              - column: {name: rol_usuario, type: VARCHAR(100)}
+              - column: {name: metodo, type: VARCHAR(10), constraints: {nullable: false}}
+              - column: {name: ruta, type: VARCHAR(500), constraints: {nullable: false}}
+              - column: {name: codigo_estado, type: INTEGER}
+              - column: {name: direccion_ip, type: INET}
+              - column: {name: agente_usuario, type: VARCHAR(500)}
+              - column: {name: plataforma, type: VARCHAR(50)}
+              - column: {name: duracion_ms, type: INTEGER}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - createIndex: {schemaName: historico, tableName: tbl_logs_de_auditoria_de_solicitudes, indexName: idx_logs_de_auditoria_de_solicitudes_usuario_id, columns: [{column: {name: usuario_id}}]}
+        - createIndex: {schemaName: historico, tableName: tbl_logs_de_auditoria_de_solicitudes, indexName: idx_logs_de_auditoria_de_solicitudes_creado_en, columns: [{column: {name: creado_en}}]}
+        - createIndex: {schemaName: historico, tableName: tbl_logs_de_auditoria_de_solicitudes, indexName: idx_logs_de_auditoria_de_solicitudes_ruta, columns: [{column: {name: ruta}}]}
+      rollback:
+        - dropTable: {schemaName: historico, tableName: tbl_logs_de_auditoria_de_solicitudes}

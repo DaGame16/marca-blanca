@@ -1,0 +1,44 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-tareas-0003-crear-tabla-actas-de-tarea
+      author: leidi
+      comment: Acta de cierre de una tarea (1:1). asistentes/soluciones/diagnosticos (JSON) como JSONB. firma_cliente es base64.
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_actas_de_tarea
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_actas_de_tarea}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_actas_de_tarea_uuid}}
+              - column:
+                  name: tarea_id
+                  type: BIGINT
+                  constraints: {unique: true, uniqueConstraintName: uq_actas_de_tarea_tarea, foreignKeyName: fk_actas_de_tarea_tarea, references: producto.tbl_tareas(id)}
+              - column: {name: id_visible_tarea, type: INTEGER}
+              - column: {name: tecnico_nombre, type: VARCHAR(191)}
+              - column: {name: cuadrilla_nombre, type: VARCHAR(191)}
+              - column: {name: asistentes, type: JSONB}
+              - column: {name: identificacion, type: VARCHAR(100)}
+              - column: {name: id_sucursal_sigma, type: INTEGER}
+              - column: {name: id_contrato_sigma, type: INTEGER}
+              - column: {name: clasificacion, type: VARCHAR(100)}
+              - column: {name: nombre_completo, type: VARCHAR(191)}
+              - column: {name: movil, type: VARCHAR(100)}
+              - column: {name: direccion, type: VARCHAR(255)}
+              - column: {name: plan, type: VARCHAR(120)}
+              - column: {name: barrio, type: VARCHAR(120)}
+              - column: {name: municipio, type: VARCHAR(120)}
+              - column: {name: descripcion_tarea, type: TEXT}
+              - column: {name: observaciones, type: TEXT}
+              - column: {name: soluciones, type: JSONB}
+              - column: {name: diagnosticos, type: JSONB}
+              - column: {name: firma_cliente, type: TEXT}
+              - column: {name: tipo_conector, type: VARCHAR(100)}
+              - column: {name: latitud, type: DOUBLE PRECISION}
+              - column: {name: longitud, type: DOUBLE PRECISION}
+              - column: {name: iniciada_en, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: finalizada_en, type: TIMESTAMP WITH TIME ZONE}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+              - column: {name: actualizado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_actas_de_tarea}

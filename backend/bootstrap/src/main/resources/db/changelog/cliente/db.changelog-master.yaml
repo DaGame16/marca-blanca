@@ -5,3 +5,5 @@ databaseChangeLog:
   - include: {file: seguridad/seguridad.changelog.yaml, relativeToChangelogFile: true}
   - include: {file: omnicanal/omnicanal.changelog.yaml, relativeToChangelogFile: true}
   - include: {file: producto/producto.changelog.yaml, relativeToChangelogFile: true}
+  - include: {file: cliente/cliente.changelog.yaml, relativeToChangelogFile: true}
+  - include: {file: historico/historico.changelog.yaml, relativeToChangelogFile: true}

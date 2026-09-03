@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-compras-0005-crear-tabla-legalizaciones
+      author: leidi
+      comment: Legalizacion contable de una compra (1:1). Sin empresaId; consecutivo unico por base.
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_legalizaciones
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_legalizaciones}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_legalizaciones_uuid}}
+              - column: {name: consecutivo, type: INTEGER, constraints: {nullable: false, unique: true, uniqueConstraintName: uq_legalizaciones_consecutivo}}
+              - column:
+                  name: compra_id
+                  type: BIGINT
+                  constraints: {nullable: false, unique: true, uniqueConstraintName: uq_legalizaciones_compra, foreignKeyName: fk_legalizaciones_compra, references: producto.tbl_compras(id)}
+              - column:
+                  name: registrado_por_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_legalizaciones_registrado_por, references: seguridad.tbl_usuarios(id)}
+              - column: {name: numero_factura_proveedor, type: VARCHAR(120)}
+              - column: {name: numero_documento_soporte, type: VARCHAR(120)}
+              - column: {name: fecha_factura, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: subtotal, type: "NUMERIC(18,2)", constraints: {nullable: false}}
+              - column: {name: impuestos, type: "NUMERIC(18,2)", constraints: {nullable: false}}
+              - column: {name: total, type: "NUMERIC(18,2)", constraints: {nullable: false}}
+              - column: {name: observaciones, type: TEXT}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - createIndex: {schemaName: producto, tableName: tbl_legalizaciones, indexName: idx_legalizaciones_registrado_por_id, columns: [{column: {name: registrado_por_id}}]}
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_legalizaciones}

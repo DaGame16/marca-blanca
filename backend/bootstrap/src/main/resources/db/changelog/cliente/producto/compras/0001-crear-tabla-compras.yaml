@@ -1,0 +1,34 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-compras-0001-crear-tabla-compras
+      author: leidi
+      comment: Ordenes de compra a proveedores. Sin empresaId; consecutivo unico por base. estado (enum) como VARCHAR + CHECK.
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_compras
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_compras}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_compras_uuid}}
+              - column: {name: consecutivo, type: INTEGER, constraints: {nullable: false, unique: true, uniqueConstraintName: uq_compras_consecutivo}}
+              - column:
+                  name: proveedor_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_compras_proveedor, references: producto.tbl_proveedores(id)}
+              - column:
+                  name: creado_por_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_compras_creado_por, references: seguridad.tbl_usuarios(id)}
+              - column: {name: estado, type: VARCHAR(20), defaultValue: BORRADOR, constraints: {nullable: false}}
+              - column: {name: observaciones, type: TEXT}
+              - column: {name: comprada_en, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+              - column: {name: actualizado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - sql:
+            sql: >
+              ALTER TABLE producto.tbl_compras ADD CONSTRAINT ck_compras_estado
+              CHECK (estado IN ('BORRADOR','APROBADA','RECIBIDA_PARCIAL','RECIBIDA_TOTAL','LEGALIZADA','ANULADA'))
+        - createIndex: {schemaName: producto, tableName: tbl_compras, indexName: idx_compras_proveedor_id, columns: [{column: {name: proveedor_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_compras, indexName: idx_compras_creado_por_id, columns: [{column: {name: creado_por_id}}]}
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_compras}

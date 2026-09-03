@@ -1,0 +1,48 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-ventas-0005-crear-tablas-precotizaciones
+      author: leidi
+      comment: Precotizaciones y sus items (item con producto opcional + descripcion libre). Sin empresaId; consecutivo unico por base.
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_precotizaciones
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_precotizaciones}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_precotizaciones_uuid}}
+              - column: {name: consecutivo, type: INTEGER, constraints: {nullable: false, unique: true, uniqueConstraintName: uq_precotizaciones_consecutivo}}
+              - column:
+                  name: cliente_comercial_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_precotizaciones_cliente_comercial, references: producto.tbl_clientes_comerciales(id)}
+              - column:
+                  name: creado_por_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_precotizaciones_creado_por, references: seguridad.tbl_usuarios(id)}
+              - column: {name: observaciones, type: TEXT}
+              - column: {name: emitida_en, type: TIMESTAMP WITH TIME ZONE, constraints: {nullable: false}}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - createIndex: {schemaName: producto, tableName: tbl_precotizaciones, indexName: idx_precotizaciones_cliente_comercial_id, columns: [{column: {name: cliente_comercial_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_precotizaciones, indexName: idx_precotizaciones_creado_por_id, columns: [{column: {name: creado_por_id}}]}
+        - createTable:
+            schemaName: producto
+            tableName: tbl_items_de_precotizacion
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_items_de_precotizacion}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_items_de_precotizacion_uuid}}
+              - column:
+                  name: precotizacion_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_items_de_precotizacion_precotizacion, references: producto.tbl_precotizaciones(id)}
+              - column:
+                  name: producto_id
+                  type: BIGINT
+                  constraints: {foreignKeyName: fk_items_de_precotizacion_producto, references: producto.tbl_productos(id)}
+              - column: {name: descripcion_libre, type: VARCHAR(191)}
+              - column: {name: cantidad, type: "NUMERIC(18,4)", constraints: {nullable: false}}
+              - column: {name: precio_estimado, type: "NUMERIC(18,2)", constraints: {nullable: false}}
+        - createIndex: {schemaName: producto, tableName: tbl_items_de_precotizacion, indexName: idx_items_de_precotizacion_precotizacion_id, columns: [{column: {name: precotizacion_id}}]}
+        - createIndex: {schemaName: producto, tableName: tbl_items_de_precotizacion, indexName: idx_items_de_precotizacion_producto_id, columns: [{column: {name: producto_id}}]}
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_items_de_precotizacion}
+        - dropTable: {schemaName: producto, tableName: tbl_precotizaciones}

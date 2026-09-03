@@ -11,3 +11,4 @@ databaseChangeLog:
   - include: {file: 0010-crear-tabla-tokens-fcm.yaml, relativeToChangelogFile: true}
   - include: {file: 0011-otorgar-privilegios.yaml, relativeToChangelogFile: true}
   - include: {file: 0012-ajustar-anchos-perfiles.yaml, relativeToChangelogFile: true}
+  - include: {file: 0013-crear-tabla-consentimientos-de-datos.yaml, relativeToChangelogFile: true}

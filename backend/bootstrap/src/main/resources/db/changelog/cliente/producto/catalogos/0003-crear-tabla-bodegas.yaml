@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-catalogos-0003-crear-tabla-bodegas
+      author: leidi
+      comment: Bodegas. Sin empresaId; nombre unico por base.
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_bodegas
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_bodegas}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_bodegas_uuid}}
+              - column: {name: nombre, type: VARCHAR(150), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_bodegas_nombre}}
+              - column: {name: ubicacion, type: VARCHAR(191)}
+              - column: {name: es_activa, type: BOOLEAN, defaultValueBoolean: true, constraints: {nullable: false}}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+              - column: {name: actualizado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_bodegas}

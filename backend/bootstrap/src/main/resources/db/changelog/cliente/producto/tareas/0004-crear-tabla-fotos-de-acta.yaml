@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-tareas-0004-crear-tabla-fotos-de-acta
+      author: leidi
+      comment: Fotos adjuntas a un acta de tarea.
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_fotos_de_acta
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_fotos_de_acta}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_fotos_de_acta_uuid}}
+              - column:
+                  name: acta_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_fotos_de_acta_acta, references: producto.tbl_actas_de_tarea(id)}
+              - column: {name: url, type: VARCHAR(500), constraints: {nullable: false}}
+              - column: {name: nombre_archivo, type: VARCHAR(255), constraints: {nullable: false}}
+              - column: {name: tamano_bytes, type: INTEGER}
+              - column: {name: categoria, type: VARCHAR(100)}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - createIndex: {schemaName: producto, tableName: tbl_fotos_de_acta, indexName: idx_fotos_de_acta_acta_id, columns: [{column: {name: acta_id}}]}
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_fotos_de_acta}

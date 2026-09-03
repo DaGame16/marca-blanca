@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: historico-0001-crear-tabla-logs-de-auditoria
+      author: leidi
+      comment: Log de auditoria heredado del sistema viejo (formato de aplicacion, no de triggers). Solo lectura. Sin empresaId. datos_anteriores/datos_nuevos (JSON) como JSONB.
+      changes:
+        - createTable:
+            schemaName: historico
+            tableName: tbl_logs_de_auditoria
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_logs_de_auditoria}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_logs_de_auditoria_uuid}}
+              - column:
+                  name: usuario_id
+                  type: BIGINT
+                  constraints: {foreignKeyName: fk_logs_de_auditoria_usuario, references: seguridad.tbl_usuarios(id)}
+              - column: {name: accion, type: VARCHAR(120), constraints: {nullable: false}}
+              - column: {name: entidad, type: VARCHAR(120), constraints: {nullable: false}}
+              - column: {name: id_entidad, type: VARCHAR(191)}
+              - column: {name: datos_anteriores, type: JSONB}
+              - column: {name: datos_nuevos, type: JSONB}
+              - column: {name: direccion_ip, type: INET}
+              - column: {name: hash, type: VARCHAR(191), constraints: {nullable: false}}
+              - column: {name: creado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - createIndex: {schemaName: historico, tableName: tbl_logs_de_auditoria, indexName: idx_logs_de_auditoria_usuario_id, columns: [{column: {name: usuario_id}}]}
+        - createIndex: {schemaName: historico, tableName: tbl_logs_de_auditoria, indexName: idx_logs_de_auditoria_creado_en, columns: [{column: {name: creado_en}}]}
+        - createIndex: {schemaName: historico, tableName: tbl_logs_de_auditoria, indexName: idx_logs_de_auditoria_entidad, columns: [{column: {name: entidad}}]}
+      rollback:
+        - dropTable: {schemaName: historico, tableName: tbl_logs_de_auditoria}

@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: producto-inventario-0003-crear-tabla-stock-de-producto
+      author: leidi
+      comment: Stock de un producto en una bodega. Sin empresaId; unico por (producto, bodega).
+      changes:
+        - createTable:
+            schemaName: producto
+            tableName: tbl_stock_de_producto
+            columns:
+              - column: {name: id, type: BIGINT, autoIncrement: true, constraints: {primaryKey: true, primaryKeyName: pk_stock_de_producto}}
+              - column: {name: uuid, type: UUID, defaultValueComputed: gen_random_uuid(), constraints: {nullable: false, unique: true, uniqueConstraintName: uq_stock_de_producto_uuid}}
+              - column:
+                  name: producto_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_stock_de_producto_producto, references: producto.tbl_productos(id)}
+              - column:
+                  name: bodega_id
+                  type: BIGINT
+                  constraints: {nullable: false, foreignKeyName: fk_stock_de_producto_bodega, references: producto.tbl_bodegas(id)}
+              - column: {name: stock_fisico, type: "NUMERIC(18,4)", defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: stock_comprometido, type: "NUMERIC(18,4)", defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: stock_pendiente_legalizar, type: "NUMERIC(18,4)", defaultValueNumeric: 0, constraints: {nullable: false}}
+              - column: {name: actualizado_en, type: TIMESTAMP WITH TIME ZONE, defaultValueComputed: now(), constraints: {nullable: false}}
+        - addUniqueConstraint:
+            schemaName: producto
+            tableName: tbl_stock_de_producto
+            columnNames: producto_id, bodega_id
+            constraintName: uq_stock_de_producto_par
+        - createIndex: {schemaName: producto, tableName: tbl_stock_de_producto, indexName: idx_stock_de_producto_bodega_id, columns: [{column: {name: bodega_id}}]}
+      rollback:
+        - dropTable: {schemaName: producto, tableName: tbl_stock_de_producto}
