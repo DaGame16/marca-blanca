@@ -70,25 +70,25 @@ jobs:
           PGPASSWORD=guajiranet_owner psql -h localhost -U guajiranet_owner -d postgres -c "CREATE DATABASE db_portal_guajiranet_control;"
           PGPASSWORD=guajiranet_owner psql -h localhost -U guajiranet_owner -d postgres -c "CREATE DATABASE db_plantilla_maestra;"
 
+      # "control" va primero: su changeset 0000 crea los roles guajiranet_app
+      # y guajiranet_lectura si no existen. Los roles de Postgres son a nivel
+      # de cluster (no de base de datos), asi que "cliente" -que otorga
+      # privilegios a esos mismos roles- los encuentra ya creados.
       - name: Validar changelog "control"
         working-directory: backend/bootstrap
         run: >
-          mvn -B -ntp liquibase:update
-          -Dliquibase.changelogFile=src/main/resources/db/changelog/control/db.changelog-master.yaml
-          -Dliquibase.url=jdbc:postgresql://localhost:5432/db_portal_guajiranet_control
-          -Dliquibase.username=guajiranet_owner
-          -Dliquibase.password=guajiranet_owner
-          -Dliquibase.driver=org.postgresql.Driver
+          mvn -B -ntp liquibase:update@aplicar-control
+          -Dliquibase.control.url=jdbc:postgresql://localhost:5432/db_portal_guajiranet_control
+          -Dliquibase.control.username=guajiranet_owner
+          -Dliquibase.control.password=guajiranet_owner
 
       - name: Validar changelog "cliente"
         working-directory: backend/bootstrap
         run: >
-          mvn -B -ntp liquibase:update
-          -Dliquibase.changelogFile=src/main/resources/db/changelog/cliente/db.changelog-master.yaml
-          -Dliquibase.url=jdbc:postgresql://localhost:5432/db_plantilla_maestra
-          -Dliquibase.username=guajiranet_owner
-          -Dliquibase.password=guajiranet_owner
-          -Dliquibase.driver=org.postgresql.Driver
+          mvn -B -ntp liquibase:update@aplicar-cliente
+          -Dliquibase.cliente.url=jdbc:postgresql://localhost:5432/db_plantilla_maestra
+          -Dliquibase.cliente.username=guajiranet_owner
+          -Dliquibase.cliente.password=guajiranet_owner
 
       - name: Resumen
         run: echo "Los changelogs de control y cliente aplicaron limpio contra Postgres 17."

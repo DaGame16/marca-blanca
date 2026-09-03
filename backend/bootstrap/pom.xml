@@ -14,11 +14,15 @@
     <artifactId>bootstrap</artifactId>
     <packaging>jar</packaging>
 
-    <!-- NUEVO: valores por defecto para el plugin de Liquibase de cliente -->
+    <!-- NUEVO: valores por defecto para el plugin de Liquibase de cliente y control -->
     <properties>
         <liquibase.cliente.url>jdbc:postgresql://localhost:5432/db_plantilla_maestra</liquibase.cliente.url>
         <liquibase.cliente.username>guajiranet_owner</liquibase.cliente.username>
         <liquibase.cliente.password>guajiranet_owner</liquibase.cliente.password>
+
+        <liquibase.control.url>jdbc:postgresql://localhost:5432/db_portal_guajiranet_control</liquibase.control.url>
+        <liquibase.control.username>guajiranet_owner</liquibase.control.username>
+        <liquibase.control.password>guajiranet_owner</liquibase.control.password>
     </properties>
 
     <dependencies>
@@ -94,19 +98,40 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
 
-            <!-- NUEVO: aplica el changelog de cliente a mano con "mvn liquibase:update".
-                 No corre en el build normal ni en el arranque de la app. -->
+            <!-- NUEVO: aplica los changelogs a mano.
+                 No corre en el build normal ni en el arranque de la app (el changelog de
+                 "control" sí corre solo al arrancar la app, vía Spring Boot Liquibase).
+
+                 Uso:
+                   mvn liquibase:update@aplicar-cliente   -> changelog de cliente (por defecto)
+                   mvn liquibase:update@aplicar-control   -> changelog de control (para CI/pruebas) -->
             <plugin>
                 <groupId>org.liquibase</groupId>
                 <artifactId>liquibase-maven-plugin</artifactId>
                 <configuration>
-                    <changeLogFile>db/changelog/cliente/db.changelog-master.yaml</changeLogFile>
                     <searchPath>${project.basedir}/src/main/resources</searchPath>
-                    <url>${liquibase.cliente.url}</url>
-                    <username>${liquibase.cliente.username}</username>
-                    <password>${liquibase.cliente.password}</password>
                     <driver>org.postgresql.Driver</driver>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>aplicar-cliente</id>
+                        <configuration>
+                            <changeLogFile>db/changelog/cliente/db.changelog-master.yaml</changeLogFile>
+                            <url>${liquibase.cliente.url}</url>
+                            <username>${liquibase.cliente.username}</username>
+                            <password>${liquibase.cliente.password}</password>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>aplicar-control</id>
+                        <configuration>
+                            <changeLogFile>db/changelog/control/db.changelog-master.yaml</changeLogFile>
+                            <url>${liquibase.control.url}</url>
+                            <username>${liquibase.control.username}</username>
+                            <password>${liquibase.control.password}</password>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
