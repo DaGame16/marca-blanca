@@ -30,8 +30,8 @@ public class JwtVerificadorDeToken implements VerificadorDeToken {
                     .parseSignedClaims(token)
                     .getPayload();
             return Optional.of(UUID.fromString(claims.getSubject()));
-        } catch (JwtException | IllegalArgumentException e) {
-            // Firma invalida, token vencido, o formato incorrecto - todos tratados igual: no autenticado.
+        } catch (JwtException | IllegalArgumentException _) {   
+         // Firma invalida, token vencido, o formato incorrecto - todos tratados igual: no autenticado.
             return Optional.empty();
         }
     }
