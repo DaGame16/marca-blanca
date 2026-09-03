@@ -1,4 +1,4 @@
-package com.marcablanca.platform.usuarios.infrastructure.seguridad;
+package com.marcablanca.platform.autenticacion.infrastructure.seguridad;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

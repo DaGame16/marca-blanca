@@ -1,4 +1,4 @@
-package com.marcablanca.platform.usuarios.application.port.out;
+package com.marcablanca.platform.autenticacion.application.port.out;
 
 import com.marcablanca.platform.usuarios.domain.Usuario;
 

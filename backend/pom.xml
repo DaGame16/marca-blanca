@@ -29,6 +29,8 @@
         <module>usuarios/usuarios-domain</module>
         <module>usuarios/usuarios-application</module>
         <module>usuarios/usuarios-infrastructure</module>
+        <module>autenticacion/autenticacion-application</module>
+        <module>autenticacion/autenticacion-infrastructure</module>
         <module>omnicanal/omnicanal-domain</module>
         <module>omnicanal/omnicanal-application</module>
         <module>omnicanal/omnicanal-infrastructure</module>

@@ -1,6 +1,6 @@
-package com.marcablanca.platform.usuarios.application.port.in;
+package com.marcablanca.platform.autenticacion.application.port.in;
 
-import com.marcablanca.platform.usuarios.application.ResultadoAutenticacion;
+import com.marcablanca.platform.autenticacion.application.ResultadoAutenticacion;
 
 /** Puerto de entrada. La infraestructura (controller REST) depende solo de esta interfaz. */
 public interface AutenticarUsuario {

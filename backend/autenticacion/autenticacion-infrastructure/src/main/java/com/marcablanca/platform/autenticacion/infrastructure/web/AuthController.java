@@ -1,7 +1,7 @@
-package com.marcablanca.platform.usuarios.infrastructure.web;
+package com.marcablanca.platform.autenticacion.infrastructure.web;
 
-import com.marcablanca.platform.usuarios.application.ResultadoAutenticacion;
-import com.marcablanca.platform.usuarios.application.port.in.AutenticarUsuario;
+import com.marcablanca.platform.autenticacion.application.ResultadoAutenticacion;
+import com.marcablanca.platform.autenticacion.application.port.in.AutenticarUsuario;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

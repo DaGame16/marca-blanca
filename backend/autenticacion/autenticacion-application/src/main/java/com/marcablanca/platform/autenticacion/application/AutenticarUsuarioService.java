@@ -1,7 +1,7 @@
-package com.marcablanca.platform.usuarios.application;
+package com.marcablanca.platform.autenticacion.application;
 
-import com.marcablanca.platform.usuarios.application.port.in.AutenticarUsuario;
-import com.marcablanca.platform.usuarios.application.port.out.GeneradorDeToken;
+import com.marcablanca.platform.autenticacion.application.port.in.AutenticarUsuario;
+import com.marcablanca.platform.autenticacion.application.port.out.GeneradorDeToken;
 import com.marcablanca.platform.usuarios.domain.Contrasena;
 import com.marcablanca.platform.usuarios.domain.Correo;
 import com.marcablanca.platform.usuarios.domain.CredencialesInvalidasException;

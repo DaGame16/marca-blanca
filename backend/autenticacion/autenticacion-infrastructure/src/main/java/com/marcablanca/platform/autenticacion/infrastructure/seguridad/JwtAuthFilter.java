@@ -1,6 +1,6 @@
-package com.marcablanca.platform.usuarios.infrastructure.seguridad;
+package com.marcablanca.platform.autenticacion.infrastructure.seguridad;
 
-import com.marcablanca.platform.usuarios.application.port.out.VerificadorDeToken;
+import com.marcablanca.platform.autenticacion.application.port.out.VerificadorDeToken;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
