@@ -6,9 +6,9 @@
 >
 > Área a cargo de: **Leidi**.
 
-Cubre la capa de datos del backend: motor, modelo multi-tenant, estructura de los
-changelogs de Liquibase, roles, auditoría y el workspace de migración desde el
-sistema anterior.
+Cubre la capa de datos del backend: motor, cómo se accede en cada ambiente,
+modelo multi-tenant, estructura de los changelogs de Liquibase, roles, auditoría
+y el workspace de migración desde el sistema anterior.
 
 La fuente de verdad del **diseño** es el documento *"Portal GuajiraNet —
 Arquitectura de Base de Datos"* (v5). Este README describe cómo está
@@ -23,7 +23,54 @@ Arquitectura de Base de Datos"* (v5). Este README describe cómo está
   `liquibase-core`, `spring-boot-liquibase`, `postgresql`, y el
   `liquibase-maven-plugin` para aplicar el changelog de cliente a demanda.
 
-## 2. Modelo multi-tenant: una base por cliente
+## 2. Cómo se accede a la base
+
+### DEV — cada quien la suya, no hay base compartida
+
+En desarrollo **no existe una base central a la que el equipo se conecte**. Cada
+persona corre su **propia copia local** en Docker. Nadie se conecta a la base de
+otra persona. Es a propósito (documento §8.1: "DEV = Docker, 1 instancia") y es lo
+que dan Docker + Liquibase: todos levantan un Postgres idéntico con un comando, y
+si algo se rompe se recrea desde cero.
+
+**Puesta en marcha de un compañero, desde cero:**
+
+1. Instalar **Docker Desktop** (con backend WSL2 en Windows). Una sola vez.
+2. `git pull` del repo.
+3. Levantar la app:
+   ```bash
+   mvn -f backend/pom.xml -pl bootstrap -am install -DskipTests
+   mvn -f backend/pom.xml -pl bootstrap spring-boot:run
+   ```
+   `spring-boot-docker-compose` levanta **su** contenedor `marca-blanca-postgres`
+   y Liquibase aplica el changelog de **control**. `Ctrl+C` al terminar.
+4. Crear la plantilla y aplicarle el changelog de **cliente** completo:
+   ```bash
+   docker exec -it marca-blanca-postgres psql -U guajiranet_owner -d db_portal_guajiranet_control \
+     -c "CREATE DATABASE db_plantilla_maestra"
+   mvn -f backend/pom.xml -pl bootstrap liquibase:update
+   ```
+5. (Opcional) Una base de cliente con datos para trabajar:
+   ```bash
+   docker exec -it marca-blanca-postgres psql -U guajiranet_owner -d db_portal_guajiranet_control \
+     -c "CREATE DATABASE db_cliente_demo TEMPLATE db_plantilla_maestra"
+   ```
+
+**Credenciales locales** (`guajiranet_owner` / `guajiranet_app` /
+`guajiranet_lectura`, contraseña = el mismo nombre): están en `compose.yaml` y
+`application.yml`, y son **solo para local**. Nunca se usan en otro ambiente.
+
+**Datos entre compañeros:** si dos personas necesitan el mismo set de datos, se
+comparte un dump o un script de *seed* — nunca la conexión a una base ajena.
+
+### QA / PROD — sí hay una instancia por ambiente
+
+La base compartida vive en **AWS RDS PostgreSQL** (Multi-AZ en PROD), detrás de
+RDS Proxy, con las credenciales en AWS Secrets Manager. Ahí se corren **los mismos
+changelogs** de este repo. Ese montaje es de **infraestructura (Neider)** —
+ver `docs/infraestructura/`.
+
+## 3. Modelo multi-tenant: una base por cliente
 
 No hay una sola base con columna `empresa_id`. Cada empresa cliente tiene su
 **propia base PostgreSQL completa**, más una base transversal que coordina todo.
@@ -37,9 +84,9 @@ No hay una sola base con columna `empresa_id`. Cada empresa cliente tiene su
 El backend nunca "adivina" a qué base ir: resuelve la empresa desde la petición,
 consulta `plataforma.tbl_empresa_conexiones` en la base de control, y se conecta a
 la `db_cliente_*` correspondiente. *(Ese ruteo es código Java y todavía no está
-hecho — ver [§9](#9-estado-y-pendientes).)*
+hecho — ver [§10](#10-estado-y-pendientes).)*
 
-## 3. La base de control (`db_portal_guajiranet_control`)
+## 4. La base de control (`db_portal_guajiranet_control`)
 
 Un solo schema: **`plataforma`**.
 
@@ -55,7 +102,7 @@ Un solo schema: **`plataforma`**.
 El changelog de control lo aplica **la app al arrancar** (`spring.liquibase`
 apunta a `db/changelog/control/db.changelog-master.yaml`).
 
-## 4. La base de cliente (`db_cliente_<slug>` / `db_plantilla_maestra`)
+## 5. La base de cliente (`db_cliente_<slug>` / `db_plantilla_maestra`)
 
 Toda base de cliente tiene la **misma** estructura, tenga o no activo cada módulo.
 **76 tablas** en 6 schemas:
@@ -67,7 +114,7 @@ Toda base de cliente tiene la **misma** estructura, tenga o no activo cada módu
 | `producto` | Núcleo operativo del ERP: catálogos, clientes finales, tareas, inventario/bodega, compras, ventas | 53 |
 | `cliente` | Configuración/personalización del tenant (hoy: avisos globales) | 1 |
 | `historico` | Logs de auditoría **heredados** del sistema viejo (solo lectura) | 2 |
-| `plataforma` | Tabla y funciones de **auditoría** de esta base (ver §7) | 1 |
+| `plataforma` | Tabla y funciones de **auditoría** de esta base (ver §8) | 1 |
 
 > No se usa el schema `public` — decisión de seguridad del documento (§4).
 
@@ -88,7 +135,7 @@ Toda base de cliente tiene la **misma** estructura, tenga o no activo cada módu
   `NUMERIC`; `double` → `DOUBLE PRECISION`; IPs → `INET`. Detalle en
   [ADR 0005](decisiones/2026-09-03-0005-mapeo-de-tipos-mysql-a-postgres.md).
 
-## 5. Roles del motor (documento §6.1)
+## 6. Roles del motor (documento §6.1)
 
 Tres roles a nivel de cluster, creados idempotentemente por Liquibase:
 
@@ -103,7 +150,7 @@ su schema y `ALTER DEFAULT PRIVILEGES` (para cubrir tablas futuras). En DEV la a
 se conecta como `guajiranet_owner`; `guajiranet_app` se usará en el DataSource de
 enrutamiento por tenant y en QA/PROD.
 
-## 6. Estructura de los changelogs
+## 7. Estructura de los changelogs
 
 ```
 backend/bootstrap/src/main/resources/db/changelog/
@@ -133,26 +180,10 @@ backend/bootstrap/src/main/resources/db/changelog/
 - Las rutas de los dos `db.changelog-master.yaml` **no cambian nunca** — agregar
   un módulo no toca `application.yml` ni el `pom.xml`.
 
+Los comandos para aplicarlos están en [§2](#dev--cada-quien-la-suya-no-hay-base-compartida).
 Por qué esta estructura: [ADR 0001](decisiones/2026-09-03-0001-estructura-de-los-changelogs.md).
 
-### Cómo aplicar (DEV)
-
-```bash
-# 1. control (lo hace la app al arrancar)
-mvn -f backend/pom.xml -pl bootstrap -am install -DskipTests
-mvn -f backend/pom.xml -pl bootstrap spring-boot:run      # aplica control/; Ctrl+C al terminar
-
-# 2. plantilla + changelog de cliente completo
-docker exec -it marca-blanca-postgres psql -U guajiranet_owner -d db_portal_guajiranet_control \
-  -c "CREATE DATABASE db_plantilla_maestra"
-mvn -f backend/pom.xml -pl bootstrap liquibase:update
-
-# 3. una base de cliente = clon de la plantilla
-docker exec -it marca-blanca-postgres psql -U guajiranet_owner -d db_portal_guajiranet_control \
-  -c "CREATE DATABASE db_cliente_<slug> TEMPLATE db_plantilla_maestra"
-```
-
-## 7. Auditoría (documento §7)
+## 8. Auditoría (documento §7)
 
 Cada base de cliente audita sus escrituras con **triggers de fila**. Módulo
 `cliente/auditoria/`.
@@ -177,7 +208,7 @@ Cada base de cliente audita sus escrituras con **triggers de fila**. Módulo
 
 Por qué así: [ADR 0004](decisiones/2026-09-03-0004-auditoria-por-triggers-inmutable.md).
 
-## 8. Migración desde el sistema anterior
+## 9. Migración desde el sistema anterior
 
 El sistema viejo es MariaDB 10.4 (`erp_saas_test`, hecho con Prisma, PKs de texto
 tipo cuid, multi-tenant por columna `empresaId`). Migración **big-bang** con una
@@ -202,7 +233,7 @@ dump MySQL  →  MariaDB (Docker)  →  pgloader  →  schema "staging" en la ba
 - Resultado sobre la empresa del dump (GuajiraNet, ~37 000 filas): todos los
   conteos origen = destino, 0 huérfanos en todas las FK.
 
-## 9. Estado y pendientes
+## 10. Estado y pendientes
 
 **Hecho:**
 
