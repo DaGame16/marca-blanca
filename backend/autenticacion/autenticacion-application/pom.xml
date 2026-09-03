@@ -11,7 +11,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>usuarios-infrastructure</artifactId>
+    <artifactId>autenticacion-application</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
@@ -19,15 +19,6 @@
             <groupId>com.marcablanca.platform</groupId>
             <artifactId>usuarios-domain</artifactId>
             <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-crypto</artifactId>
         </dependency>
     </dependencies>
 </project>

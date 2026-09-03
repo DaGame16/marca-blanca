@@ -1,4 +1,4 @@
-package com.marcablanca.platform.usuarios.infrastructure.web;
+package com.marcablanca.platform.autenticacion.infrastructure.web;
 
 import java.util.UUID;
 
