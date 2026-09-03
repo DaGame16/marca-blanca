@@ -10,8 +10,8 @@ import { Tarea } from '../../models/tarea.model';
   templateUrl: './detalle-tarea.html',
 })
 export class DetalleTarea {
-  private route = inject(ActivatedRoute);
-  private tareaService = inject(TareaService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly tareaService = inject(TareaService);
 
   tarea = signal<Tarea | null>(null);
   cargando = signal(true);

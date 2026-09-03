@@ -7,7 +7,7 @@ type FiltrosTarea = Record<string, string>;
 
 @Service()
 export class TareaService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
   listar(filtros?: FiltrosTarea): Observable<Tarea[]> {
     return this.http.get<Tarea[]>('/api/v1/tareas', { params: filtros });
