@@ -98,4 +98,5 @@ public class Usuario {
     public boolean isActivo() { return activo; }
     public int getIntentosFallidos() { return intentosFallidos; }
     public OffsetDateTime getBloqueadoHasta() { return bloqueadoHasta; }
+    public HashContrasena getHashContrasena() { return hashContrasena; }
 }
