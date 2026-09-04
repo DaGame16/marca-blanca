@@ -1,5 +1,6 @@
 package com.marcablanca.platform.autenticacion.infrastructure.web;
 
+import com.marcablanca.platform.autenticacion.domain.TokenDeRefrescoInvalidoException;
 import com.marcablanca.platform.usuarios.domain.CredencialesInvalidasException;
 import com.marcablanca.platform.usuarios.domain.UsuarioNoDisponibleException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +24,12 @@ public class ManejadorErroresAuth {
     public ResponseEntity<ErrorResponse> manejarUsuarioNoDisponible(
             UsuarioNoDisponibleException ex, HttpServletRequest request) {
         return construirRespuesta(HttpStatus.FORBIDDEN, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(TokenDeRefrescoInvalidoException.class)
+    public ResponseEntity<ErrorResponse> manejarTokenDeRefrescoInvalido(
+            TokenDeRefrescoInvalidoException ex, HttpServletRequest request) {
+        return construirRespuesta(HttpStatus.UNAUTHORIZED, ex.getMessage(), request);
     }
 
     private ResponseEntity<ErrorResponse> construirRespuesta(

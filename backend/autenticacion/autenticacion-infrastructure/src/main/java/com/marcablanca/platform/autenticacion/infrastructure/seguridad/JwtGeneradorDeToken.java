@@ -20,7 +20,7 @@ public class JwtGeneradorDeToken implements GeneradorDeToken {
 
     public JwtGeneradorDeToken(
             @Value("${app.jwt.secret}") String secreto,
-            @Value("${app.jwt.expiracion-minutos:60}") long minutosExpiracion) {
+            @Value("${app.jwt.expiracion-minutos:15}") long minutosExpiracion) {
         this.claveFirma = Keys.hmacShaKeyFor(secreto.getBytes());
         this.minutosExpiracion = minutosExpiracion;
     }
