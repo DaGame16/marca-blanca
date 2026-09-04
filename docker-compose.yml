@@ -1,0 +1,58 @@
+# Levanta el proyecto completo (backend + frontend + Postgres de la app)
+# con un solo comando:
+#
+#   docker compose up -d --build
+#
+# No reemplaza al compose de backend/bootstrap/compose.yaml (ese sigue
+# sirviendo para levantar SOLO el Postgres, mas liviano para desarrollar
+# el backend desde el IDE). Tampoco toca SonarQube: ese vive aparte en
+# infra/docker/sonarqube, porque es una herramienta de analisis, no parte
+# de lo que corre en produccion.
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: marca-blanca-postgres
+    environment:
+      POSTGRES_DB: db_portal_guajiranet_control
+      POSTGRES_USER: guajiranet_owner
+      POSTGRES_PASSWORD: guajiranet_owner
+    ports:
+      - "5432:5432"
+    volumes:
+      - marca-blanca-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U guajiranet_owner -d db_portal_guajiranet_control"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: marca-blanca-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/db_portal_guajiranet_control
+      SPRING_DATASOURCE_USERNAME: guajiranet_owner
+      SPRING_DATASOURCE_PASSWORD: guajiranet_owner
+      # En cualquier ambiente real esto se sobreescribe con un secreto de verdad.
+      JWT_SECRET: ${JWT_SECRET:-solo-para-desarrollo-local-cambiar-siempre}
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: marca-blanca-frontend
+    depends_on:
+      - backend
+    ports:
+      - "4200:80"
+
+volumes:
+  marca-blanca-postgres-data:
