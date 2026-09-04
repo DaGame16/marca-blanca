@@ -35,6 +35,9 @@
         <module>autenticacion/autenticacion-domain</module>
         <module>autenticacion/autenticacion-application</module>
         <module>autenticacion/autenticacion-infrastructure</module>
+        <module>identidad-visual/identidad-visual-domain</module>
+        <module>identidad-visual/identidad-visual-application</module>
+        <module>identidad-visual/identidad-visual-infrastructure</module>
         <module>omnicanal/omnicanal-domain</module>
         <module>omnicanal/omnicanal-application</module>
         <module>omnicanal/omnicanal-infrastructure</module>

@@ -4,6 +4,7 @@ import com.marcablanca.platform.autenticacion.application.port.in.RenovarToken;
 import com.marcablanca.platform.autenticacion.application.port.out.AlmacenDeTokensDeRefresco;
 import com.marcablanca.platform.autenticacion.application.port.out.GeneradorDeToken;
 import com.marcablanca.platform.autenticacion.domain.TokenDeRefrescoInvalidoException;
+import com.marcablanca.platform.empresas.application.ContextoEmpresaActual;
 import com.marcablanca.platform.usuarios.domain.Usuario;
 import com.marcablanca.platform.usuarios.domain.port.out.RepositorioUsuarios;
 
@@ -36,12 +37,12 @@ public class RenovarTokenService implements RenovarToken {
         Usuario usuario = repositorioUsuarios.buscarPorId(usuarioId)
                 .orElseThrow(TokenDeRefrescoInvalidoException::new);
 
-        // Rotacion: el token usado se invalida antes de emitir uno nuevo. Si
-        // alguien vuelve a usar este mismo valor despues, ya no se va a
-        // encontrar activo -- señal de que el token estaba comprometido.
         almacenDeTokensDeRefresco.eliminarPorHash(hashActual);
 
-        String nuevoToken = generadorDeToken.generarPara(usuario);
+        String identificadorEmpresa = ContextoEmpresaActual.obtener()
+                .orElseThrow(() -> new IllegalStateException("No hay empresa activa en el contexto de la peticion"));
+
+        String nuevoToken = generadorDeToken.generarPara(usuario, identificadorEmpresa);
 
         String nuevoRefrescoValor = GeneradorTokenDeRefresco.generarValor();
         String nuevoRefrescoHash = GeneradorTokenDeRefresco.hashear(nuevoRefrescoValor);
