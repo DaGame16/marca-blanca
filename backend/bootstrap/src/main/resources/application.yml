@@ -1,4 +1,8 @@
 app:
+  admin:
+    # En cualquier ambiente real esto viene de la variable de entorno ADMIN_CLAVE.
+    # Proteccion interina por clave compartida (ver ADR del modulo de modulos-por-empresa).
+    clave: ${ADMIN_CLAVE:solo-para-desarrollo-local-cambiar-siempre}
   jwt:
     # En cualquier ambiente real esto viene de la variable de entorno JWT_SECRET.
     # El valor de acá abajo es SOLO para que la app levante en una maquina local sin configurar nada -

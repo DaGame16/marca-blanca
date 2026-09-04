@@ -17,7 +17,7 @@ public class SecurityConfig {
         this.jwtAuthFilter = jwtAuthFilter;
     }
 
-        @Bean
+    @Bean
     public SecurityFilterChain filterChain(org.springframework.security.config.annotation.web.builders.HttpSecurity http) {
         try {
             http
@@ -25,6 +25,10 @@ public class SecurityConfig {
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(auth -> auth
                             .requestMatchers("/api/v1/auth/**").permitAll()
+                            // /api/v1/admin/** NO usa JWT -- se protege con clave compartida
+                            // (ClaveAdminInterceptor, modulo empresas). Ver ADR del modulo de
+                            // modulos-por-empresa para el porque de esta decision interina.
+                            .requestMatchers("/api/v1/admin/**").permitAll()
                             .anyRequest().authenticated()
                     )
                     .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
