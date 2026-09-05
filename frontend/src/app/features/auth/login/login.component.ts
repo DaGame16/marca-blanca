@@ -67,6 +67,13 @@ import { environment } from '../../../../environments/environment';
 
           <form [formGroup]="form" (ngSubmit)="submit()">
             <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Empresa</mat-label>
+              <input matInput formControlName="identificadorEmpresa" autocomplete="organization" />
+              <mat-icon matPrefix>apartment</mat-icon>
+              <mat-hint>El identificador que te dio tu administrador</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
               <mat-label>Correo electrónico</mat-label>
               <input matInput type="email" formControlName="correo" autocomplete="email" />
               <mat-icon matPrefix>mail_outline</mat-icon>
