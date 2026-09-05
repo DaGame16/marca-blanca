@@ -20,6 +20,9 @@ src/app/
 │   ├── admin/
 │   │   ├── admin.service.ts       → catálogo de módulos y módulos por empresa (activar/desactivar)
 │   │   └── models.ts              → Modulo, ModuloDeEmpresa, Empresa
+│   ├── identidad-visual/
+│   │   ├── marca.service.ts       → self-service de marca blanca (logo/colores/dominio), GET/PUT /mi-empresa/marca
+│   │   └── models.ts              → MarcaDeEmpresa
 │   ├── guards/
 │   │   └── auth.guard.ts          → guard activo, usado en app.routes.ts
 │   ├── interceptors/
@@ -34,12 +37,13 @@ src/app/
 │
 ├── features/
 │   ├── auth/
-│   │   └── login/login.component.ts   → login con diseño split-screen (Angular Material)
+│   │   └── login/login.component.ts   → login con diseño split-screen (Angular Material), incluye campo Empresa
 │   ├── home/home.component.ts         → landing pública, con ruta `''` (header + hero + módulos + footer)
 │   ├── admin/
 │   │   └── pages/modulos-admin/modulos-admin.component.ts → panel de catálogo de módulos, ruta `admin/modulos`
 │   ├── empresas/
-│   │   └── pages/mis-modulos/mis-modulos.component.ts     → pantalla "Mis módulos" estilo Odoo Apps, ruta `mis-modulos`
+│   │   ├── pages/mis-modulos/mis-modulos.component.ts     → pantalla "Mis módulos" estilo Odoo Apps, ruta `mis-modulos`
+│   │   └── pages/mi-marca/mi-marca.component.ts            → self-service de marca blanca (logo/colores/dominio), ruta `mi-marca`
 │   ├── omnicanal/
 │   │   └── pages/detalle/omnicanal-detalle.component.ts   → página de detalle del módulo, ruta `modulos/omnicanal`
 │   ├── 3cx/
@@ -96,7 +100,7 @@ Las viejas `features/auth/pages/login/` y `features/auth/register/` (huérfanas,
 | `omnicanal/` | Página de detalle (`pages/detalle/`) + ruta pública `modulos/omnicanal`. `data/` y `models/` aún vacíos. | ✅ Dentro del alcance — es uno de los dos módulos vendibles |
 | `3cx/` | Página de detalle (`pages/detalle/`) + ruta pública `modulos/pbx-3cx`. `data/` y `models/` aún vacíos. | ✅ Dentro del alcance — es el otro módulo vendible |
 | `admin/` | Panel de catálogo de módulos (`modulos-admin.component.ts`), ruta `admin/modulos`, protegido con `X-Admin-Key` (interceptor) en vez de un rol de usuario real | Herramienta interna, no pensada para el cliente final |
-| `empresas/` | Pantalla "Mis módulos" (`mis-modulos.component.ts`), ruta `mis-modulos`, estilo Odoo Apps: cada empresa activa/desactiva sus propios módulos desde su propia sesión | ✅ Dentro del alcance — es el flujo de autoservicio real para el cliente |
+| `empresas/` | Pantalla "Mis módulos" (`mis-modulos.component.ts`, ruta `mis-modulos`) + pantalla "Mi marca" (`mi-marca.component.ts`, ruta `mi-marca`): autoservicio de módulos y de personalización white-label, cada uno desde la propia sesión de la empresa | ✅ Dentro del alcance — son los dos flujos de autoservicio real para el cliente |
 | `tareas/` | Funcional | ❌ Fuera del alcance — construido como feature de referencia para validar el patrón de carpetas antes de que se confirmara el alcance real; se conserva a decisión del equipo |
 | `auth/` | Funcional (login con diseño split-screen, refresh token) | Soporte transversal, no es un módulo del piloto en sí |
 
@@ -108,6 +112,12 @@ Pantalla de autoservicio tipo "Apps" de Odoo: buscador + grilla de módulos, cad
 
 **Pendiente conocido:** el ID de la empresa está hardcodeado (`empresaId = '00000000-0000-0000-0000-000000000001'`, con TODO en el código). Falta que backend defina cómo exponer el ID de la empresa del usuario logueado (¿en el JWT? ¿en `UserInfo`?) para reemplazar ese valor por el real. Hasta entonces, la ruta solo está protegida por `authGuard` (sesión activa), no por pertenencia real a la empresa.
 
+## 7b. `features/empresas/pages/mi-marca/mi-marca.component.ts` — notas de implementación
+
+Pantalla self-service de personalización white-label: formulario con URL de logo, color primario, color secundario (ambos colores validados con el mismo regex hexadecimal `^#[0-9A-Fa-f]{6}$` que usa `ColorHex` en el dominio del backend) y dominio propio, con una vista previa en vivo a la derecha (tarjeta con gradiente usando los colores elegidos + logo + botón de ejemplo).
+
+Usa `MarcaService` (`core/identidad-visual/`) contra `GET/PUT /api/v1/mi-empresa/marca` — a diferencia de los endpoints de `admin/`, este está protegido por el JWT normal (no `X-Admin-Key`): el backend resuelve la empresa del propio token, nunca de un parámetro que mande el cliente. Único punto de entrada visible hoy: un link "Personalizar mi marca" en la cabecera de `mis-modulos.component.ts` (todavía no hay un shell/nav global).
+
 ## 8. Pendientes conocidos
 
 1. Borrar el remanente de autenticación del scaffolding inicial: `core/auth/auth.guard.ts`, `core/auth/auth.interceptor.ts`, `core/services/session.service.ts` (sección 4).
@@ -115,3 +125,5 @@ Pantalla de autoservicio tipo "Apps" de Odoo: buscador + grilla de módulos, cad
 3. Definir el tipo `TipoTarea`, referenciado en la documentación TO-BE original sin definición formal, si `tareas/` se mantiene.
 4. Reemplazar el `empresaId` hardcodeado en `mis-modulos.component.ts` por el de la empresa del usuario logueado (sección 7).
 5. Agregar un guard real de administrador a `admin/modulos` cuando exista un sistema de roles (hoy solo depende de `X-Admin-Key`, sin control de acceso en el frontend — ver TODO en `app.routes.ts`).
+6. El login ya tiene un campo "Empresa" visible y editable (antes estaba oculto, fijo en `environment.identificadorEmpresaPorDefecto`). Queda pendiente decidir si a futuro se resuelve por subdominio en vez de campo manual.
+7. `mi-marca.component.ts` no tiene selector/upload de logo, solo URL de imagen externa. Si el backend agrega upload de archivos, esta pantalla va a necesitar un `data/` con ese servicio nuevo.
