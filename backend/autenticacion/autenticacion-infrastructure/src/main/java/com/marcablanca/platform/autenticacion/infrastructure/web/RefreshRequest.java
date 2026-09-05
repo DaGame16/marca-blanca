@@ -1,4 +1,4 @@
 package com.marcablanca.platform.autenticacion.infrastructure.web;
 
-public record RefreshRequest(String refreshToken) {
+public record RefreshRequest(String refreshToken, String identificadorEmpresa) {
 }

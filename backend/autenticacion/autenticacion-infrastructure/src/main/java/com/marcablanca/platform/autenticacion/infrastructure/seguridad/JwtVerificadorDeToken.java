@@ -1,5 +1,6 @@
 package com.marcablanca.platform.autenticacion.infrastructure.seguridad;
 
+import com.marcablanca.platform.autenticacion.application.port.out.UsuarioAutenticado;
 import com.marcablanca.platform.autenticacion.application.port.out.VerificadorDeToken;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -22,16 +23,18 @@ public class JwtVerificadorDeToken implements VerificadorDeToken {
     }
 
     @Override
-    public Optional<UUID> verificar(String token) {
+    public Optional<UsuarioAutenticado> verificar(String token) {
         try {
             Claims claims = Jwts.parser()
                     .verifyWith(claveFirma)
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
-            return Optional.of(UUID.fromString(claims.getSubject()));
-        } catch (JwtException | IllegalArgumentException _) {   
-         // Firma invalida, token vencido, o formato incorrecto - todos tratados igual: no autenticado.
+            UUID usuarioId = UUID.fromString(claims.getSubject());
+            String identificadorEmpresa = claims.get("empresa", String.class);
+            return Optional.of(new UsuarioAutenticado(usuarioId, identificadorEmpresa));
+        } catch (JwtException | IllegalArgumentException _) {
+            // Firma invalida, token vencido, o formato incorrecto - todos tratados igual: no autenticado.
             return Optional.empty();
         }
     }
