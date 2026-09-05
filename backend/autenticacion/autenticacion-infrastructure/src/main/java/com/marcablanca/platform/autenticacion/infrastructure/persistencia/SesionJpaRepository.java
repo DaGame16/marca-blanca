@@ -9,11 +9,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Las dos consultas que referencian "UsuarioEntity" cruzan hacia la
- * entidad de usuarios-infrastructure por NOMBRE (JPQL no exige que
- * las clases sean publicas ni del mismo paquete -- se resuelve contra
- * el modelo de la unidad de persistencia "cliente" en tiempo de
- * ejecucion, no en tiempo de compilacion Java).
+ * Las dos consultas que cruzan hacia el usuario lo hacen contra
+ * UsuarioRefDeAutenticacion (mapeo propio, minimo, de solo lectura) --
+ * nunca contra la entidad real del modulo usuarios, para no depender
+ * de un nombre de clase que ese modulo puede cambiar sin aviso.
  */
 public interface SesionJpaRepository extends JpaRepository<SesionEntity, Long> {
 
@@ -21,10 +20,10 @@ public interface SesionJpaRepository extends JpaRepository<SesionEntity, Long> {
 
     void deleteByUsuarioId(Long usuarioId);
 
-    @Query("select u.id from UsuarioEntity u where u.uuid = :usuarioUuid")
+    @Query("select u.id from UsuarioRefDeAutenticacion u where u.uuid = :usuarioUuid")
     Optional<Long> buscarIdInternoPorUuid(@Param("usuarioUuid") UUID usuarioUuid);
 
-    @Query("select u.uuid from SesionEntity s join UsuarioEntity u on u.id = s.usuarioId "
+    @Query("select u.uuid from SesionEntity s join UsuarioRefDeAutenticacion u on u.id = s.usuarioId "
             + "where s.hashTokenRefresco = :hash and s.expiraEn > :ahora")
     Optional<UUID> buscarUuidUsuarioPorHashActivo(@Param("hash") String hash,
                                                     @Param("ahora") OffsetDateTime ahora);
