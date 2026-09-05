@@ -1,8 +1,8 @@
 package com.marcablanca.platform.autenticacion.infrastructure.web;
 
+import com.marcablanca.platform.autenticacion.domain.CredencialesInvalidasException;
 import com.marcablanca.platform.autenticacion.domain.TokenDeRefrescoInvalidoException;
-import com.marcablanca.platform.usuarios.domain.CredencialesInvalidasException;
-import com.marcablanca.platform.usuarios.domain.UsuarioNoDisponibleException;
+import com.marcablanca.platform.autenticacion.domain.UsuarioNoDisponibleException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

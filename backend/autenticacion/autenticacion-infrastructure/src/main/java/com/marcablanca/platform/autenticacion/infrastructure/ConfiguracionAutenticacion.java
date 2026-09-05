@@ -6,8 +6,7 @@ import com.marcablanca.platform.autenticacion.application.port.in.AutenticarUsua
 import com.marcablanca.platform.autenticacion.application.port.in.RenovarToken;
 import com.marcablanca.platform.autenticacion.application.port.out.AlmacenDeTokensDeRefresco;
 import com.marcablanca.platform.autenticacion.application.port.out.GeneradorDeToken;
-import com.marcablanca.platform.usuarios.domain.port.out.CifradorDeContrasenas;
-import com.marcablanca.platform.usuarios.domain.port.out.RepositorioUsuarios;
+import com.marcablanca.platform.autenticacion.application.port.out.VerificadorDeUsuarios;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -20,19 +19,17 @@ public class ConfiguracionAutenticacion {
 
     @Bean
     public AutenticarUsuario autenticarUsuario(
-            RepositorioUsuarios repositorioUsuarios,
-            CifradorDeContrasenas cifradorDeContrasenas,
+            VerificadorDeUsuarios verificadorDeUsuarios,
             GeneradorDeToken generadorDeToken,
             AlmacenDeTokensDeRefresco almacenDeTokensDeRefresco) {
-        return new AutenticarUsuarioService(repositorioUsuarios, cifradorDeContrasenas, generadorDeToken,
-                almacenDeTokensDeRefresco);
+        return new AutenticarUsuarioService(verificadorDeUsuarios, generadorDeToken, almacenDeTokensDeRefresco);
     }
 
     @Bean
     public RenovarToken renovarToken(
             AlmacenDeTokensDeRefresco almacenDeTokensDeRefresco,
             GeneradorDeToken generadorDeToken,
-            RepositorioUsuarios repositorioUsuarios) {
-        return new RenovarTokenService(almacenDeTokensDeRefresco, generadorDeToken, repositorioUsuarios);
+            VerificadorDeUsuarios verificadorDeUsuarios) {
+        return new RenovarTokenService(almacenDeTokensDeRefresco, generadorDeToken, verificadorDeUsuarios);
     }
 }
