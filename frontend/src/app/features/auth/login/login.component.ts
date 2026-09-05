@@ -7,6 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../core/auth/auth.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -29,13 +30,13 @@ import { AuthService } from '../../../core/auth/auth.service';
         <mat-card-content>
           <form [formGroup]="form" (ngSubmit)="submit()">
             <mat-form-field appearance="outline" class="full-width">
-              <mat-label>Email</mat-label>
-              <input matInput type="email" formControlName="email" autocomplete="email" />
+              <mat-label>Correo electrónico</mat-label>
+              <input matInput type="email" formControlName="correo" autocomplete="email" />
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Contraseña</mat-label>
-              <input matInput type="password" formControlName="password" autocomplete="current-password" />
+              <input matInput type="password" formControlName="contrasena" autocomplete="current-password" />
             </mat-form-field>
 
             @if (errorMessage()) {
@@ -74,8 +75,9 @@ export class LoginComponent {
   protected readonly errorMessage = signal<string | null>(null);
 
   protected readonly form = this.fb.nonNullable.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required]],
+    correo: ['', [Validators.required, Validators.email]],
+    contrasena: ['', [Validators.required]],
+    identificadorEmpresa: [environment.identificadorEmpresaPorDefecto, [Validators.required]],
   });
 
   submit(): void {
