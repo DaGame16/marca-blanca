@@ -29,7 +29,7 @@ public class JwtGeneradorDeToken implements GeneradorDeToken {
     public String generarPara(Usuario usuario, String identificadorEmpresa) {
         Instant ahora = Instant.now();
         return Jwts.builder()
-                .subject(usuario.getId().toString())
+                .subject(usuario.getUuid().toString())
                 .claim("correo", usuario.getCorreo().valor())
                 .claim("empresa", identificadorEmpresa)
                 .issuedAt(Date.from(ahora)) //NOSONAR jjwt 0.12.6 solo acepta java.util.Date en su API
