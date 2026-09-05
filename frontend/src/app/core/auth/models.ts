@@ -1,23 +1,30 @@
-export interface UserResponse {
-  id: string;
-  fullName: string;
-  email: string;
-  role: 'ADMIN' | 'USER';
-}
-
-export interface AuthResponse {
-  accessToken: string;
-  tokenType: string;
-  user: UserResponse;
-}
-
+// Request para login - coincide con backend LoginRequest
 export interface LoginRequest {
-  email: string;
-  password: string;
+  correo: string;
+  contrasena: string;
+  identificadorEmpresa: string;
 }
 
-export interface RegisterRequest {
-  fullName: string;
-  email: string;
-  password: string;
+// Response de login - coincide con backend LoginResponse
+export interface LoginResponse {
+  usuarioId: string;
+  token: string;
+  refreshToken: string;
+}
+
+// Request para renovar token - coincide con backend RefreshRequest
+export interface RefreshRequest {
+  refreshToken: string;
+}
+
+// Response de refresh token - coincide con backend RefreshResponse
+export interface RefreshResponse {
+  usuarioId: string;
+  token: string;
+  refreshToken: string;
+}
+
+// Modelo de usuario para el frontend (derivado de la respuesta de login)
+export interface UserInfo {
+  usuarioId: string;
 }
