@@ -14,7 +14,8 @@ import org.springframework.boot.persistence.autoconfigure.EntityScan;
 @SpringBootApplication(scanBasePackages = "com.marcablanca.platform")
 @EntityScan(basePackages = {
         "com.marcablanca.platform.empresas.infrastructure",
-        "com.marcablanca.platform.identidadvisual.infrastructure"
+        "com.marcablanca.platform.identidadvisual.infrastructure",
+        "com.marcablanca.platform.modulosempresa.infrastructure"
 })
 public class MarcaBlancaPlatformApplication {
 

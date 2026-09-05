@@ -11,24 +11,14 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>empresas-infrastructure</artifactId>
+    <artifactId>modulos-empresa-application</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>com.marcablanca.platform</groupId>
-            <artifactId>empresas-application</artifactId>
+            <artifactId>modulos-empresa-domain</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.marcablanca.platform</groupId>
-            <artifactId>empresas-domain</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
     </dependencies>
 </project>

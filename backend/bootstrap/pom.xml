@@ -48,6 +48,21 @@
         </dependency>
         <dependency>
             <groupId>com.marcablanca.platform</groupId>
+            <artifactId>modulos-empresa-domain</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.marcablanca.platform</groupId>
+            <artifactId>modulos-empresa-application</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.marcablanca.platform</groupId>
+            <artifactId>modulos-empresa-infrastructure</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.marcablanca.platform</groupId>
             <artifactId>usuarios-domain</artifactId>
             <version>${project.version}</version>
         </dependency>
