@@ -11,23 +11,13 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>autenticacion-application</artifactId>
+    <artifactId>identidad-visual-application</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>com.marcablanca.platform</groupId>
-            <artifactId>autenticacion-domain</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.marcablanca.platform</groupId>
-            <artifactId>usuarios-domain</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.marcablanca.platform</groupId>
-            <artifactId>empresas-application</artifactId>
+            <artifactId>identidad-visual-domain</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
