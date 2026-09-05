@@ -34,7 +34,7 @@ public class RenovarTokenService implements RenovarToken {
         UUID usuarioId = almacenDeTokensDeRefresco.buscarUsuarioPorHashActivo(hashActual, OffsetDateTime.now())
                 .orElseThrow(TokenDeRefrescoInvalidoException::new);
 
-        Usuario usuario = repositorioUsuarios.buscarPorUuid(usuarioId)
+        Usuario usuario = repositorioUsuarios.buscarPorId(usuarioId)
                 .orElseThrow(TokenDeRefrescoInvalidoException::new);
 
         almacenDeTokensDeRefresco.eliminarPorHash(hashActual);
@@ -47,8 +47,8 @@ public class RenovarTokenService implements RenovarToken {
         String nuevoRefrescoValor = GeneradorTokenDeRefresco.generarValor();
         String nuevoRefrescoHash = GeneradorTokenDeRefresco.hashear(nuevoRefrescoValor);
         OffsetDateTime expiraEn = OffsetDateTime.now().plusDays(REFRESCO_DIAS_VALIDEZ);
-        almacenDeTokensDeRefresco.guardar(usuario.getUuid(), nuevoRefrescoHash, expiraEn, null);
+        almacenDeTokensDeRefresco.guardar(usuario.getId(), nuevoRefrescoHash, expiraEn, null);
 
-        return new ResultadoAutenticacion(usuario.getUuid(), nuevoToken, nuevoRefrescoValor);
+        return new ResultadoAutenticacion(usuario.getId(), nuevoToken, nuevoRefrescoValor);
     }
 }
