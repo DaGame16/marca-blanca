@@ -16,18 +16,21 @@ import org.springframework.transaction.PlatformTransactionManager;
 import javax.sql.DataSource;
 
 /**
- * Repositorios de la base de CONTROL (modulo empresas).
+ * Repositorios de la base de CONTROL (modulos empresas + identidad-visual).
+ * Usa "entityManagerFactory" y "transactionManager" -- nombres de bean por
+ * defecto que Spring Boot auto-configura con spring.datasource.*.
  *
- * Esta clase existe SOLO porque ConfiguracionPersistenciaCliente (en este mismo
- * paquete) agrega su propio @EnableJpaRepositories -- y en cuanto aparece
- * CUALQUIER @EnableJpaRepositories explicito en la app, Spring Boot apaga la
- * deteccion automatica de repositorios para TODA la aplicacion, no solo para
- * el modulo nuevo. Sin esta clase, EmpresaConexionJpaRepository dejaria de
- * funcionar.
+ * Esta clase existe SOLO porque ConfiguracionPersistenciaCliente agrega su
+ * propio @EnableJpaRepositories -- y en cuanto aparece CUALQUIER
+ * @EnableJpaRepositories explicito en la app, Spring Boot apaga la
+ * deteccion automatica de repositorios para TODA la aplicacion.
  */
 @Configuration
 @EnableJpaRepositories(
-        basePackages = "com.marcablanca.platform.empresas.infrastructure",
+        basePackages = {
+                "com.marcablanca.platform.empresas.infrastructure",
+                "com.marcablanca.platform.identidadvisual.infrastructure"
+        },
         entityManagerFactoryRef = "entityManagerFactory",
         transactionManagerRef = "transactionManager"
 )
@@ -36,15 +39,12 @@ public class ConfiguracionPersistenciaControl {
     /**
      * Declarada explicita y marcada @Primary a proposito: al agregar un
      * segundo DataSource (el enrutador multi-tenant), Spring deja de saber
-     * cual es "el" DataSource por defecto. Sin esto, arrancar la app termina
-     * en un enredo circular -- Liquibase, al intentar resolver cual DataSource
-     * usar, termina disparando la construccion del enrutador, que a su vez
-     * depende de esta misma base de control para funcionar.
+     * cual es "el" DataSource por defecto.
      *
-     * Se arma en dos pasos (Properties + build) porque pegarle las propiedades
-     * directo a un DataSource ya construido no funciona -- Hikari usa
-     * "jdbcUrl", no "url", y DataSourceProperties es quien sabe traducir eso
-     * correctamente segun el pool que se use.
+     * Se arma en dos pasos (Properties + build) porque pegarle las
+     * propiedades directo a un DataSource ya construido no funciona --
+     * Hikari usa "jdbcUrl", no "url", y DataSourceProperties es quien sabe
+     * traducir eso correctamente segun el pool que se use.
      */
     @Bean
     @Primary
@@ -59,13 +59,6 @@ public class ConfiguracionPersistenciaControl {
         return controlDataSourceProperties.initializeDataSourceBuilder().build();
     }
 
-    /**
-     * Declarado a mano, no lo auto-configura Spring Boot: en cuanto la app
-     * tiene CUALQUIER OTRO bean de tipo EntityManagerFactory (el de "cliente"),
-     * Spring Boot deja de crear el suyo por defecto -- la condicion que usa
-     * es por tipo, no por nombre. Por eso hay que declarar este tambien a mano,
-     * o el nombre "entityManagerFactory" nunca llega a existir.
-     */
     @Bean(name = "entityManagerFactory")
     @Primary
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(
@@ -73,7 +66,8 @@ public class ConfiguracionPersistenciaControl {
             @Qualifier("controlDataSource") DataSource controlDataSource) {
         return builder
                 .dataSource(controlDataSource)
-                .packages("com.marcablanca.platform.empresas.infrastructure")
+                .packages("com.marcablanca.platform.empresas.infrastructure",
+                        "com.marcablanca.platform.identidadvisual.infrastructure")
                 .persistenceUnit("control")
                 .build();
     }

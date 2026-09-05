@@ -73,6 +73,21 @@
         </dependency>
         <dependency>
             <groupId>com.marcablanca.platform</groupId>
+            <artifactId>identidad-visual-domain</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.marcablanca.platform</groupId>
+            <artifactId>identidad-visual-application</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.marcablanca.platform</groupId>
+            <artifactId>identidad-visual-infrastructure</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.marcablanca.platform</groupId>
             <artifactId>omnicanal-domain</artifactId>
             <version>${project.version}</version>
         </dependency>
