@@ -15,7 +15,7 @@ import java.util.UUID;
  * el modelo de la unidad de persistencia "cliente" en tiempo de
  * ejecucion, no en tiempo de compilacion Java).
  */
-interface SesionJpaRepository extends JpaRepository<SesionEntity, Long> {
+public interface SesionJpaRepository extends JpaRepository<SesionEntity, Long> {
 
     void deleteByHashTokenRefresco(String hashTokenRefresco);
 

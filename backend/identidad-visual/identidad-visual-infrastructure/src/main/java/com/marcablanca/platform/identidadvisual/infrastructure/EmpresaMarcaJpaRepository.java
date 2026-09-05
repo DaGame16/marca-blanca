@@ -6,7 +6,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-interface EmpresaMarcaJpaRepository extends JpaRepository<EmpresaMarcaEntity, Long> {
+public interface EmpresaMarcaJpaRepository extends JpaRepository<EmpresaMarcaEntity, Long> {
 
     Optional<EmpresaMarcaEntity> findByEmpresaId(Long empresaId);
 

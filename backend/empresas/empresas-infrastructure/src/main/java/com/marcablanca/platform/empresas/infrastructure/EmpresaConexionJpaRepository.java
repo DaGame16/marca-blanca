@@ -11,7 +11,7 @@ import java.util.Optional;
  * RepositorioEmpresaConexionesJpa, que es quien expone el puerto real
  * hacia el resto de la aplicacion.
  */
-interface EmpresaConexionJpaRepository extends JpaRepository<EmpresaConexionEntity, Long> {
+public interface EmpresaConexionJpaRepository extends JpaRepository<EmpresaConexionEntity, Long> {
 
     @Query("""
         select c from EmpresaConexionEntity c
