@@ -4,6 +4,7 @@ import { HomeComponent } from './features/home/home.component';
 import { LoginComponent } from './features/auth/login/login.component';
 import { ListaTareas } from './features/tareas/pages/lista-tareas/lista-tareas';
 import { DetalleTarea } from './features/tareas/pages/detalle-tarea/detalle-tarea';
+import { ModulosAdminComponent } from './features/admin/pages/modulos-admin/modulos-admin.component';
 import { MisModulosComponent } from './features/empresas/pages/mis-modulos/mis-modulos.component';
 import { OmnicanalDetalleComponent } from './features/omnicanal/pages/detalle/omnicanal-detalle.component';
 import { Pbx3cxDetalleComponent } from './features/3cx/pages/detalle/pbx-3cx-detalle.component';
@@ -16,6 +17,12 @@ export const routes: Routes = [
   {
     path: 'login',
     component: LoginComponent,
+  },
+  {
+    path: 'admin/modulos',
+    component: ModulosAdminComponent,
+    // TODO: Agregar guard de admin cuando se implemente sistema de roles
+    // canActivate: [authGuard, adminGuard],
   },
   {
     path: 'modulos/omnicanal',
