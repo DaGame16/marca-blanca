@@ -16,9 +16,10 @@ import org.springframework.transaction.PlatformTransactionManager;
 import javax.sql.DataSource;
 
 /**
- * Repositorios de la base de CONTROL (modulos empresas + identidad-visual).
- * Usa "entityManagerFactory" y "transactionManager" -- nombres de bean por
- * defecto que Spring Boot auto-configura con spring.datasource.*.
+ * Repositorios de la base de CONTROL (modulos empresas + identidad-visual +
+ * modulos-empresa). Usa "entityManagerFactory" y "transactionManager" --
+ * nombres de bean por defecto que Spring Boot auto-configura con
+ * spring.datasource.*.
  *
  * Esta clase existe SOLO porque ConfiguracionPersistenciaCliente agrega su
  * propio @EnableJpaRepositories -- y en cuanto aparece CUALQUIER
@@ -29,7 +30,8 @@ import javax.sql.DataSource;
 @EnableJpaRepositories(
         basePackages = {
                 "com.marcablanca.platform.empresas.infrastructure",
-                "com.marcablanca.platform.identidadvisual.infrastructure"
+                "com.marcablanca.platform.identidadvisual.infrastructure",
+                "com.marcablanca.platform.modulosempresa.infrastructure"
         },
         entityManagerFactoryRef = "entityManagerFactory",
         transactionManagerRef = "transactionManager"
@@ -67,7 +69,8 @@ public class ConfiguracionPersistenciaControl {
         return builder
                 .dataSource(controlDataSource)
                 .packages("com.marcablanca.platform.empresas.infrastructure",
-                        "com.marcablanca.platform.identidadvisual.infrastructure")
+                        "com.marcablanca.platform.identidadvisual.infrastructure",
+                        "com.marcablanca.platform.modulosempresa.infrastructure")
                 .persistenceUnit("control")
                 .build();
     }
