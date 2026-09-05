@@ -1,5 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -19,13 +20,17 @@ const APARIENCIA_DEFECTO = { icono: 'extension', color: '#64748b' };
 @Component({
   selector: 'app-mis-modulos',
   standalone: true,
-  imports: [FormsModule, MatIconModule, MatButtonModule, MatProgressSpinnerModule, MatSnackBarModule],
+  imports: [FormsModule, RouterLink, MatIconModule, MatButtonModule, MatProgressSpinnerModule, MatSnackBarModule],
   template: `
     <div class="apps-page">
       <header class="apps-header">
         <div class="apps-header-text">
           <h1>Mis módulos</h1>
           <p>Activa los módulos que quieras usar en tu empresa. Puedes desactivarlos cuando quieras.</p>
+          <a routerLink="/mi-marca" class="marca-link">
+            <mat-icon inline>palette</mat-icon>
+            Personalizar mi marca
+          </a>
         </div>
 
         <div class="search-box">
@@ -131,6 +136,21 @@ const APARIENCIA_DEFECTO = { icono: 'extension', color: '#64748b' };
       font-weight: 800;
       margin: 0 0 6px;
       color: #0f172a;
+    }
+
+    .marca-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #2563eb;
+      text-decoration: none;
+    }
+
+    .marca-link:hover {
+      text-decoration: underline;
     }
 
     .apps-header-text p {
