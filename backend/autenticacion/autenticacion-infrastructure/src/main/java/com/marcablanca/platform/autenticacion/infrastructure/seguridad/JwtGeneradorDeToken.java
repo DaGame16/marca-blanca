@@ -1,7 +1,7 @@
 package com.marcablanca.platform.autenticacion.infrastructure.seguridad;
 
+import com.marcablanca.platform.autenticacion.application.port.out.DatosDeUsuario;
 import com.marcablanca.platform.autenticacion.application.port.out.GeneradorDeToken;
-import com.marcablanca.platform.usuarios.domain.Usuario;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,11 +26,11 @@ public class JwtGeneradorDeToken implements GeneradorDeToken {
     }
 
     @Override
-    public String generarPara(Usuario usuario, String identificadorEmpresa) {
+    public String generarPara(DatosDeUsuario usuario, String identificadorEmpresa) {
         Instant ahora = Instant.now();
         return Jwts.builder()
-                .subject(usuario.getId().toString())
-                .claim("correo", usuario.getCorreo().valor())
+                .subject(usuario.id().toString())
+                .claim("correo", usuario.correo())
                 .claim("empresa", identificadorEmpresa)
                 .issuedAt(Date.from(ahora)) //NOSONAR jjwt 0.12.6 solo acepta java.util.Date en su API
                 .expiration(Date.from(ahora.plus(minutosExpiracion, ChronoUnit.MINUTES))) //NOSONAR idem
