@@ -20,7 +20,7 @@ public class JwtGeneradorDeToken implements GeneradorDeToken {
 
     public JwtGeneradorDeToken(
             @Value("${app.jwt.secret}") String secreto,
-            @Value("${app.jwt.expiracion-minutos:60}") long minutosExpiracion) {
+            @Value("${app.jwt.expiracion-minutos:15}") long minutosExpiracion) {
         this.claveFirma = Keys.hmacShaKeyFor(secreto.getBytes());
         this.minutosExpiracion = minutosExpiracion;
     }
@@ -29,7 +29,7 @@ public class JwtGeneradorDeToken implements GeneradorDeToken {
     public String generarPara(Usuario usuario) {
         Instant ahora = Instant.now();
         return Jwts.builder()
-                .subject(usuario.getId().toString())
+                .subject(usuario.getUuid().toString())
                 .claim("correo", usuario.getCorreo().valor())
                 .issuedAt(Date.from(ahora))
                 .expiration(Date.from(ahora.plus(minutosExpiracion, ChronoUnit.MINUTES)))

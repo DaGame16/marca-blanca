@@ -4,7 +4,7 @@ app:
     # El valor de acá abajo es SOLO para que la app levante en una maquina local sin configurar nada -
     # nunca usar este valor en DEV compartido, QA o PROD.
     secret: ${JWT_SECRET:solo-para-desarrollo-local-cambiar-siempre}
-    expiracion-minutos: 60
+    expiracion-minutos: 15
 spring:
   application:
     name: marca-blanca-backend
