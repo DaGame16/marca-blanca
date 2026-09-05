@@ -49,12 +49,12 @@ public class AdaptadorVerificadorDeUsuarios implements VerificadorDeUsuarios {
             throw new UsuarioNoDisponibleException(e.getMessage());
         }
 
-        return new DatosDeUsuario(usuario.getId(), usuario.getCorreo().valor());
+        return new DatosDeUsuario(usuario.getUuid(), usuario.getCorreo().valor());
     }
 
     @Override
     public Optional<DatosDeUsuario> buscarPorId(UUID usuarioId) {
-        return repositorioUsuarios.buscarPorId(usuarioId)
-                .map(u -> new DatosDeUsuario(u.getId(), u.getCorreo().valor()));
+        return repositorioUsuarios.buscarPorUuid(usuarioId)
+                .map(u -> new DatosDeUsuario(u.getUuid(), u.getCorreo().valor()));
     }
 }
