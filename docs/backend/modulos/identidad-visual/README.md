@@ -24,7 +24,7 @@ identidad-visual/
 │       ├── in/ObtenerMarcaDeEmpresa.java, ActualizarMarcaDeEmpresa.java
 │       └── out/RepositorioMarcaDeEmpresa.java
 └── identidad-visual-infrastructure/.../identidadvisual/infrastructure/
-    ├── EmpresaRefEntity.java   <- lectura minima de tbl_empresas, sin depender de "empresas"
+    ├── EmpresaRefDeIdentidadVisual.java   <- lectura minima de tbl_empresas, sin depender de "empresas"
     ├── EmpresaMarcaEntity.java, EmpresaMarcaJpaRepository.java
     ├── RepositorioMarcaDeEmpresaJpa.java, ConfiguracionIdentidadVisual.java
     └── web/
@@ -49,12 +49,14 @@ Ambas identifican la empresa por su **`identificador`** (slug), no por UUID — 
 ## 5. Infraestructura (`identidad-visual-infrastructure`)
 
 ### Persistencia
-- **`EmpresaRefEntity`**: mapeo de solo lectura de `tbl_empresas`, con lo mínimo (`id`, `uuid`, `identificador`, `estado`) — a propósito no reutiliza `EmpresaEntity` del módulo `empresas`, para no acoplar los dos módulos en código.
+- **`EmpresaRefDeIdentidadVisual`**: mapeo de solo lectura de `tbl_empresas`, con lo mínimo (`id`, `uuid`, `identificador`, `estado`) — a propósito no reutiliza `EmpresaEntity` del módulo `empresas`, para no acoplar los dos módulos en código.
 - **`EmpresaMarcaEntity`**: mapeo de `tbl_empresas_marca`.
 - Vive en la unidad de persistencia **"control"** (`ConfiguracionPersistenciaControl`, en `bootstrap`), junto a `empresas.infrastructure` — ambos paquetes están en su `@EntityScan`/`@EnableJpaRepositories`.
 
 ### `web/` — self-service, sin clave de administrador
 `MarcaController` saca el `identificadorEmpresa` del **atributo del request que deja `JwtAuthFilter`** (ver README de `autenticacion`), nunca de un parámetro de la URL o del body — así ningún usuario puede tocar la marca de una empresa que no es la suya, sin importar qué le pida al servidor. No hace falta ningún ajuste en `SecurityConfig`: la ruta ya exige JWT por defecto (`.anyRequest().authenticated()`).
+
+> **Nota (2026-09-05):** `EmpresaRefDeIdentidadVisual` se llamaba `EmpresaRefEntity` hasta que `modulos-empresa` (extraido de `empresas` el mismo dia) creo su propio mapeo minimo con el mismo nombre de clase -- Hibernate rechazo el arranque por nombre de entidad JPA duplicado. Renombradas ambas clases explicitamente; no hubo ningun acoplamiento real entre modulos, fue coincidencia de nombre. Ver ADR 0001 de modulos-empresa.
 
 ## 6. Contrato REST
 

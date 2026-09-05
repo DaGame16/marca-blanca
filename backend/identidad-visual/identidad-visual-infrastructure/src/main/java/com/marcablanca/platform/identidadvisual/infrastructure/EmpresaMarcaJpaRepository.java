@@ -10,6 +10,6 @@ interface EmpresaMarcaJpaRepository extends JpaRepository<EmpresaMarcaEntity, Lo
 
     Optional<EmpresaMarcaEntity> findByEmpresaId(Long empresaId);
 
-    @Query("select e.id from EmpresaRefEntity e where e.identificador = :identificadorEmpresa and e.estado = 'activa'")
+    @Query("select e.id from EmpresaRefDeIdentidadVisual e where e.identificador = :identificadorEmpresa and e.estado = 'activa'")
     Optional<Long> buscarEmpresaIdInternoPorIdentificador(@Param("identificadorEmpresa") String identificadorEmpresa);
 }

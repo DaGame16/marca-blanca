@@ -29,6 +29,9 @@
         <module>empresas/empresas-domain</module>
         <module>empresas/empresas-application</module>
         <module>empresas/empresas-infrastructure</module>
+        <module>modulos-empresa/modulos-empresa-domain</module>
+        <module>modulos-empresa/modulos-empresa-application</module>
+        <module>modulos-empresa/modulos-empresa-infrastructure</module>
         <module>usuarios/usuarios-domain</module>
         <module>usuarios/usuarios-application</module>
         <module>usuarios/usuarios-infrastructure</module>
