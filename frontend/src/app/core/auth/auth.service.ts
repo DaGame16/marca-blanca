@@ -8,6 +8,7 @@ import { LoginRequest, LoginResponse, RefreshRequest, RefreshResponse, UserInfo 
 const TOKEN_KEY = 'mp_access_token';
 const REFRESH_TOKEN_KEY = 'mp_refresh_token';
 const USER_KEY = 'mp_user';
+const EMPRESA_KEY = 'mp_identificador_empresa';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -21,25 +22,27 @@ export class AuthService {
   login(request: LoginRequest): Observable<LoginResponse> {
     return this.http
       .post<LoginResponse>(`${environment.apiUrl}/auth/login`, request)
-      .pipe(tap((res) => this.storeSession(res)));
+      .pipe(tap((res) => this.storeSession(res, request.identificadorEmpresa)));
   }
 
   refresh(): Observable<RefreshResponse> {
     const refreshToken = this.getRefreshToken();
-    if (!refreshToken) {
-      throw new Error('No refresh token available');
+    const identificadorEmpresa = this.getIdentificadorEmpresa();
+    if (!refreshToken || !identificadorEmpresa) {
+      throw new Error('No refresh token o identificadorEmpresa disponible');
     }
 
-    const request: RefreshRequest = { refreshToken };
+    const request: RefreshRequest = { refreshToken, identificadorEmpresa };
     return this.http
       .post<RefreshResponse>(`${environment.apiUrl}/auth/refresh`, request)
-      .pipe(tap((res) => this.storeSession(res)));
+      .pipe(tap((res) => this.storeSession(res, identificadorEmpresa)));
   }
 
   logout(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(EMPRESA_KEY);
     this.currentUserSignal.set(null);
     this.router.navigateByUrl('/login');
   }
@@ -52,10 +55,15 @@ export class AuthService {
     return localStorage.getItem(REFRESH_TOKEN_KEY);
   }
 
-  private storeSession(res: LoginResponse | RefreshResponse): void {
+  getIdentificadorEmpresa(): string | null {
+    return localStorage.getItem(EMPRESA_KEY);
+  }
+
+  private storeSession(res: LoginResponse | RefreshResponse, identificadorEmpresa: string): void {
     localStorage.setItem(TOKEN_KEY, res.token);
     localStorage.setItem(REFRESH_TOKEN_KEY, res.refreshToken);
-    
+    localStorage.setItem(EMPRESA_KEY, identificadorEmpresa);
+
     const userInfo: UserInfo = { usuarioId: res.usuarioId };
     localStorage.setItem(USER_KEY, JSON.stringify(userInfo));
     this.currentUserSignal.set(userInfo);

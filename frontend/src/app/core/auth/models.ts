@@ -13,8 +13,11 @@ export interface LoginResponse {
 }
 
 // Request para renovar token - coincide con backend RefreshRequest
+// (identificadorEmpresa es obligatorio en el backend: sin el, RenovarToken
+// no puede establecer el ContextoEmpresaActual y falla)
 export interface RefreshRequest {
   refreshToken: string;
+  identificadorEmpresa: string;
 }
 
 // Response de refresh token - coincide con backend RefreshResponse
