@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -321,9 +321,13 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
                       @switch (opcion.codigo) {
                         @case ('lateral') {
                           <div class="preview-lateral">
-                            <div class="preview-panel"></div>
+                            <div class="preview-panel" [style.background]="colorPrimario()">
+                              @if (logoDataUrl()) {
+                                <img [src]="logoDataUrl()" alt="" class="preview-logo" />
+                              }
+                            </div>
                             <div class="preview-form">
-                              <div class="preview-linea corta"></div>
+                              <div class="preview-linea corta" [style.background]="colorSecundario()"></div>
                               <div class="preview-linea"></div>
                             </div>
                           </div>
@@ -331,15 +335,21 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
                         @case ('centrado') {
                           <div class="preview-centrado">
                             <div class="preview-tarjeta">
-                              <div class="preview-linea corta centrada"></div>
+                              @if (logoDataUrl()) {
+                                <img [src]="logoDataUrl()" alt="" class="preview-logo preview-logo-chica" />
+                              }
+                              <div class="preview-linea corta centrada" [style.background]="colorPrimario()"></div>
                               <div class="preview-linea"></div>
                             </div>
                           </div>
                         }
                         @case ('fondo') {
-                          <div class="preview-fondo">
+                          <div class="preview-fondo" [style.background]="'linear-gradient(135deg, ' + colorPrimario() + ', ' + colorSecundario() + ')'">
                             <div class="preview-tarjeta">
-                              <div class="preview-linea corta centrada"></div>
+                              @if (logoDataUrl()) {
+                                <img [src]="logoDataUrl()" alt="" class="preview-logo preview-logo-chica" />
+                              }
+                              <div class="preview-linea corta centrada" [style.background]="colorPrimario()"></div>
                               <div class="preview-linea"></div>
                             </div>
                           </div>
@@ -899,6 +909,20 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
         height: 6px;
       }
 
+      .preview-logo {
+        max-width: 32px;
+        max-height: 32px;
+        object-fit: contain;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.85);
+        padding: 3px;
+      }
+
+      .preview-logo-chica {
+        align-self: center;
+        margin-bottom: 4px;
+      }
+
       .preview-linea.centrada {
         align-self: center;
       }
@@ -1153,10 +1177,16 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
 })
 export class RegistroEmpresaComponent {
   private readonly fb = inject(FormBuilder);
+  private readonly route = inject(ActivatedRoute);
   private readonly snackBar = inject(MatSnackBar);
   private readonly adminService = inject(AdminService);
   private readonly registroService = inject(RegistroEmpresaService);
   private readonly marcaPendiente = inject(MarcaPendienteService);
+
+  // Codigo de modulo que llego por query param (ej: /registro?modulo=omnicanal),
+  // usado desde el boton "Adquirir modulo" en el detalle de un modulo. Se
+  // preselecciona en el paso 2 en cuanto el catalogo termina de cargar.
+  private readonly moduloPreseleccionado = this.route.snapshot.queryParamMap.get('modulo');
 
   protected readonly temaLogin = inject(TemaLoginService);
   protected readonly temaPagina = inject(TemaPaginaService);
@@ -1205,13 +1235,25 @@ export class RegistroEmpresaComponent {
       next: (modulos) => {
         this.modulos.set(modulos);
         this.cargandoModulos.set(false);
+        this.aplicarModuloPreseleccionado(modulos);
       },
       error: () => {
         this.modulos.set(MODULOS_RESPALDO);
         this.errorModulos.set(true);
         this.cargandoModulos.set(false);
+        this.aplicarModuloPreseleccionado(MODULOS_RESPALDO);
       },
     });
+  }
+
+  private aplicarModuloPreseleccionado(modulos: Modulo[]): void {
+    if (!this.moduloPreseleccionado) {
+      return;
+    }
+    const existe = modulos.some((m) => m.codigo === this.moduloPreseleccionado);
+    if (existe && !this.modulosSeleccionados().includes(this.moduloPreseleccionado)) {
+      this.modulosSeleccionados.set([...this.modulosSeleccionados(), this.moduloPreseleccionado]);
+    }
   }
 
   onCambiarNombre(): void {
