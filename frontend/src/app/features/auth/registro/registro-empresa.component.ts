@@ -14,6 +14,7 @@ import { TemaPagina, TemaPaginaService } from '../../../core/temas/tema-pagina.s
 import { AdminService } from '../../../core/admin/admin.service';
 import { Modulo } from '../../../core/admin/models';
 import { MarcaPendienteService } from '../../../core/identidad-visual/marca-pendiente.service';
+import { DatosContactoPendienteService } from '../../../core/identidad-visual/datos-contacto-pendiente.service';
 import { RegistroEmpresaService } from './registro-empresa.service';
 import { RegistrarEmpresaResponse } from './registro-empresa.models';
 
@@ -104,7 +105,7 @@ const PALETAS_PREDEFINIDAS: PaletaPredefinida[] = [
 
 const MAX_LOGO_BYTES = 500 * 1024;
 
-type PasoWizard = 1 | 2 | 3 | 4 | 5;
+type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
 
 @Component({
   selector: 'app-registro-empresa',
@@ -130,7 +131,7 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
         <a routerLink="/login" class="topbar-link">Ya tengo cuenta</a>
       </header>
 
-      @if (paso() <= 4) {
+      @if (paso() <= 5) {
         <div class="stepper">
           <div class="stepper-item" [class.stepper-item-activo]="paso() >= 1" [class.stepper-item-hecho]="paso() > 1">
             <span class="stepper-circulo">
@@ -153,9 +154,16 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
             <span class="stepper-texto">Login</span>
           </div>
           <span class="stepper-raya" [class.stepper-raya-activa]="paso() > 3"></span>
-          <div class="stepper-item" [class.stepper-item-activo]="paso() >= 4">
-            <span class="stepper-circulo">4</span>
+          <div class="stepper-item" [class.stepper-item-activo]="paso() >= 4" [class.stepper-item-hecho]="paso() > 4">
+            <span class="stepper-circulo">
+              @if (paso() > 4) { <mat-icon inline>check</mat-icon> } @else { 4 }
+            </span>
             <span class="stepper-texto">Páginas</span>
+          </div>
+          <span class="stepper-raya" [class.stepper-raya-activa]="paso() > 4"></span>
+          <div class="stepper-item" [class.stepper-item-activo]="paso() >= 5">
+            <span class="stepper-circulo">5</span>
+            <span class="stepper-texto">Pago</span>
           </div>
         </div>
       }
@@ -184,6 +192,24 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
                   <input matInput formControlName="nombreComercial" />
                   <mat-icon matPrefix>storefront</mat-icon>
                 </mat-form-field>
+
+                <div class="campos-fila">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Correo del representante</mat-label>
+                    <input matInput type="email" formControlName="correo" autocomplete="email" />
+                    <mat-icon matPrefix>mail</mat-icon>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Teléfono</mat-label>
+                    <input matInput formControlName="telefono" autocomplete="tel" />
+                    <mat-icon matPrefix>call</mat-icon>
+                  </mat-form-field>
+                </div>
+                <p class="campo-hint">
+                  Los usamos para las notificaciones de tu cuenta y para contactarte si algo falla
+                  en la creación de tu empresa.
+                </p>
 
                 <div class="slug-preview">
                   @if (editandoIdentificador()) {
@@ -496,6 +522,46 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
                 }
               </div>
 
+              <button
+                mat-flat-button
+                color="primary"
+                class="full-width submit-btn"
+                type="button"
+                (click)="paso.set(5)"
+              >
+                Continuar
+              </button>
+            }
+
+            @case (5) {
+              <button mat-button type="button" class="back-link back-link-btn" (click)="paso.set(4)">
+                <mat-icon>arrow_back</mat-icon>
+                Volver
+              </button>
+
+              <h2>Resumen y pago</h2>
+              <p class="form-subtitle">Revisa lo que vas a activar antes de crear tu empresa</p>
+
+              <div class="resumen-pago-lista">
+                @for (codigo of modulosSeleccionados(); track codigo) {
+                  <div class="resumen-pago-item">
+                    <span>{{ nombreModulo(codigo) }}</span>
+                    <span class="resumen-pago-precio">Incluido</span>
+                  </div>
+                } @empty {
+                  <p class="tema-hint">No elegiste módulos adicionales — puedes activarlos después desde "Mis módulos".</p>
+                }
+              </div>
+
+              <div class="resumen-pago-total">
+                <span>Total a pagar hoy</span>
+                <strong>$0</strong>
+              </div>
+              <p class="campo-hint">
+                La pasarela de pago todavía no está activa — por ahora la creación de tu empresa es
+                gratuita. Cuando esté lista, este paso te pedirá el pago antes de continuar.
+              </p>
+
               @if (errorCreacion()) {
                 <p class="error-creacion">
                   <mat-icon inline>error_outline</mat-icon>
@@ -514,7 +580,7 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
                 @if (creando()) {
                   <mat-spinner diameter="20" />
                 } @else {
-                  Crear empresa
+                  Pagar y crear empresa
                 }
               </button>
 
@@ -525,7 +591,7 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
               </p>
             }
 
-            @case (5) {
+            @case (6) {
               <div class="exito-panel">
                 <p class="construyendo-texto">
                   Construyendo tu espacio para
@@ -735,6 +801,16 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
 
       .full-width {
         width: 100%;
+      }
+
+      .campos-fila {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .campos-fila .full-width {
+        flex: 1 1 200px;
       }
 
       .slug-preview {
@@ -1162,6 +1238,43 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
         margin-bottom: 20px;
       }
 
+      .resumen-pago-lista {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+
+      .resumen-pago-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 14px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 0.88rem;
+      }
+
+      .resumen-pago-precio {
+        color: #16a34a;
+        font-weight: 600;
+      }
+
+      .resumen-pago-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding: 12px 14px;
+        border-top: 2px solid #0f172a;
+        margin-bottom: 8px;
+        font-size: 1rem;
+      }
+
+      .resumen-pago-total strong {
+        font-size: 1.3rem;
+        color: #0f172a;
+      }
+
       .resumen-logo {
         width: 32px;
         height: 32px;
@@ -1353,6 +1466,7 @@ export class RegistroEmpresaComponent {
   private readonly adminService = inject(AdminService);
   private readonly registroService = inject(RegistroEmpresaService);
   private readonly marcaPendiente = inject(MarcaPendienteService);
+  private readonly datosContactoPendiente = inject(DatosContactoPendienteService);
 
   // Codigo de modulo que llego por query param (ej: /registro?modulo=omnicanal),
   // usado desde el boton "Adquirir modulo" en el detalle de un modulo. Se
@@ -1394,6 +1508,12 @@ export class RegistroEmpresaComponent {
       '',
       [Validators.required, Validators.minLength(3), Validators.maxLength(40), Validators.pattern(PATRON_IDENTIFICADOR)],
     ],
+    // Correo y telefono del representante legal: el backend (RegistrarEmpresaRequest)
+    // todavia no los acepta -- se capturan aqui y se guardan aparte via
+    // DatosContactoPendienteService (igual que el logo/colores) para no perderlos,
+    // hasta que el equipo de backend amplie el contrato.
+    correo: ['', [Validators.required, Validators.email, Validators.maxLength(200)]],
+    telefono: ['', [Validators.required, Validators.maxLength(30)]],
     dominio: ['', [Validators.maxLength(191)]],
     contrasenaMaestra: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(100)]],
   });
@@ -1458,6 +1578,10 @@ export class RegistroEmpresaComponent {
     return this.modulosSeleccionados().includes(codigo);
   }
 
+  nombreModulo(codigo: string): string {
+    return this.modulos().find((m) => m.codigo === codigo)?.nombre ?? codigo;
+  }
+
   alternarModulo(codigo: string): void {
     const actuales = this.modulosSeleccionados();
     this.modulosSeleccionados.set(
@@ -1520,7 +1644,15 @@ export class RegistroEmpresaComponent {
             dominioPropio: null,
           });
 
-          this.paso.set(5);
+          // El correo y telefono capturados tampoco tienen donde ir todavia en
+          // el backend -- se guardan aparte para no perderlos (ver TODO en
+          // DatosContactoPendienteService).
+          this.datosContactoPendiente.guardar(valores.identificador, {
+            correo: valores.correo,
+            telefono: valores.telefono,
+          });
+
+          this.paso.set(6);
         },
         error: (error: HttpErrorResponse) => {
           this.creando.set(false);
