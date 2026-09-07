@@ -3,6 +3,7 @@ package com.marcablanca.platform.usuarios.domain;
 import com.marcablanca.platform.usuarios.domain.port.out.CifradorDeContrasenas;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 public class Usuario {
@@ -14,35 +15,24 @@ public class Usuario {
     private final Correo correo;
     private HashContrasena hashContrasena;
     private String nombreCompleto;
-    private boolean activo;
-    private int intentosFallidos;
-    private OffsetDateTime bloqueadoHasta;
+    private EstadoCuenta estadoCuenta;
 
     public Usuario(Long id, UUID uuid, Correo correo, HashContrasena hashContrasena,
-                   String nombreCompleto, boolean activo,
-                   int intentosFallidos, OffsetDateTime bloqueadoHasta) {
+                   String nombreCompleto, EstadoCuenta estadoCuenta) {
         this.id = id;
         this.uuid = uuid;
         this.correo = correo;
         this.hashContrasena = hashContrasena;
         this.nombreCompleto = nombreCompleto;
-        this.activo = activo;
-        this.intentosFallidos = intentosFallidos;
-        this.bloqueadoHasta = bloqueadoHasta;
+        this.estadoCuenta = estadoCuenta;
     }
 
-    /** Constructor para usuario nuevo (aun sin id/uuid, los asigna la base de datos). */
     public static Usuario nuevo(Correo correo, HashContrasena hashContrasena, String nombreCompleto) {
-        return new Usuario(null, null, correo, hashContrasena, nombreCompleto, true, 0, null);
+        return new Usuario(null, null, correo, hashContrasena, nombreCompleto, EstadoCuenta.nueva());
     }
 
-    /**
-     * Regla de negocio central del login: valida estado y credenciales, o lanza la excepcion que corresponda.
-     * Mantiene el mismo contrato de excepciones que antes (CredencialesInvalidasException /
-     * UsuarioNoDisponibleException) para no romper AutenticarUsuarioService en el modulo autenticacion.
-     */
     public void verificarCredenciales(Contrasena contrasenaCandidata, CifradorDeContrasenas cifrador) {
-        if (!activo) {
+        if (!estadoCuenta.isActivo()) {
             throw new UsuarioNoDisponibleException(EstadoUsuario.INACTIVO);
         }
         if (estaBloqueado()) {
@@ -56,22 +46,21 @@ public class Usuario {
     }
 
     public boolean estaBloqueado() {
-        return bloqueadoHasta != null && bloqueadoHasta.isAfter(OffsetDateTime.now());
+        OffsetDateTime bloqueadoHasta = estadoCuenta.getBloqueadoHasta();
+        return bloqueadoHasta != null && bloqueadoHasta.isAfter(OffsetDateTime.now(ZoneOffset.UTC));
     }
 
     private void registrarIntentoFallido() {
-        intentosFallidos++;
-        if (intentosFallidos >= MAX_INTENTOS_FALLIDOS) {
-            bloqueadoHasta = OffsetDateTime.now().plusMinutes(15);
-        }
+        int intentos = estadoCuenta.getIntentosFallidos() + 1;
+        OffsetDateTime bloqueadoHasta = intentos >= MAX_INTENTOS_FALLIDOS
+                ? OffsetDateTime.now(ZoneOffset.UTC).plusMinutes(15)
+                : estadoCuenta.getBloqueadoHasta();
+        estadoCuenta = new EstadoCuenta(estadoCuenta.isActivo(), intentos, bloqueadoHasta);
     }
 
     private void reiniciarIntentosFallidos() {
-        intentosFallidos = 0;
-        bloqueadoHasta = null;
+        estadoCuenta = new EstadoCuenta(estadoCuenta.isActivo(), 0, null);
     }
-
-    // --- Operaciones del CRUD ---
 
     public void actualizarDatos(String nombreCompleto) {
         this.nombreCompleto = nombreCompleto;
@@ -82,21 +71,19 @@ public class Usuario {
     }
 
     public void activar() {
-        this.activo = true;
+        estadoCuenta = new EstadoCuenta(true, estadoCuenta.getIntentosFallidos(), estadoCuenta.getBloqueadoHasta());
     }
 
     public void desactivar() {
-        this.activo = false;
+        estadoCuenta = new EstadoCuenta(false, estadoCuenta.getIntentosFallidos(), estadoCuenta.getBloqueadoHasta());
     }
-
-    // --- Getters ---
 
     public Long getId() { return id; }
     public UUID getUuid() { return uuid; }
     public Correo getCorreo() { return correo; }
     public String getNombreCompleto() { return nombreCompleto; }
-    public boolean isActivo() { return activo; }
-    public int getIntentosFallidos() { return intentosFallidos; }
-    public OffsetDateTime getBloqueadoHasta() { return bloqueadoHasta; }
+    public boolean isActivo() { return estadoCuenta.isActivo(); }
+    public int getIntentosFallidos() { return estadoCuenta.getIntentosFallidos(); }
+    public OffsetDateTime getBloqueadoHasta() { return estadoCuenta.getBloqueadoHasta(); }
     public HashContrasena getHashContrasena() { return hashContrasena; }
 }
