@@ -54,6 +54,21 @@
         </dependency>
         <dependency>
             <groupId>com.marcablanca.platform</groupId>
+            <artifactId>aprovisionamiento-domain</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.marcablanca.platform</groupId>
+            <artifactId>aprovisionamiento-application</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.marcablanca.platform</groupId>
+            <artifactId>aprovisionamiento-infrastructure</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.marcablanca.platform</groupId>
             <artifactId>modulos-empresa-domain</artifactId>
             <version>${project.version}</version>
         </dependency>

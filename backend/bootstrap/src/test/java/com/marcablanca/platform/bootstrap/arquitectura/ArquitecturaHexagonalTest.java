@@ -85,6 +85,21 @@ class ArquitecturaHexagonalTest {
     }
 
     @Test
+    void aprovisionamiento_dominio_y_aplicacion_no_dependen_de_otros_contextos() {
+        // El nucleo del contexto de aprovisionamiento solo habla con el exterior a
+        // traves de sus puertos. El unico acoplamiento permitido hacia modulos-empresa
+        // es el adaptador ACL, y vive en infrastructure (no aca).
+        ArchRule regla = noClasses()
+                .that().resideInAnyPackage(
+                        "..aprovisionamiento.domain..", "..aprovisionamiento.application..")
+                .should().dependOnClassesThat().resideInAnyPackage(
+                        "..empresas..", "..modulosempresa..", "..identidadvisual..",
+                        "..usuarios..", "..autenticacion..", "..omnicanal..");
+
+        regla.check(clases);
+    }
+
+    @Test
     void las_excepciones_de_dominio_terminan_en_exception() {
         ArchRule regla = classes()
                 .that().resideInAPackage("..domain..")

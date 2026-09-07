@@ -9,6 +9,7 @@ import { ModulosAdminComponent } from './features/admin/pages/modulos-admin/modu
 import { MisModulosComponent } from './features/empresas/pages/mis-modulos/mis-modulos.component';
 import { MiMarcaComponent } from './features/empresas/pages/mi-marca/mi-marca.component';
 import { SelectorTemaLoginComponent } from './features/empresas/pages/selector-tema-login/selector-tema-login.component';
+import { ListaUsuariosComponent } from './features/usuarios/pages/lista-usuarios/lista-usuarios.component';
 import { OmnicanalDetalleComponent } from './features/omnicanal/pages/detalle/omnicanal-detalle.component';
 import { Pbx3cxDetalleComponent } from './features/3cx/pages/detalle/pbx-3cx-detalle.component';
 
@@ -54,6 +55,11 @@ export const routes: Routes = [
   {
     path: 'tema-login',
     component: SelectorTemaLoginComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'usuarios',
+    component: ListaUsuariosComponent,
     canActivate: [authGuard],
   },
   {

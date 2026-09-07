@@ -1,10 +1,15 @@
 package com.marcablanca.platform.usuarios.infrastructure.persistencia;
 
 import com.marcablanca.platform.usuarios.domain.Correo;
+import com.marcablanca.platform.usuarios.domain.EstadoCuenta;
 import com.marcablanca.platform.usuarios.domain.HashContrasena;
 import com.marcablanca.platform.usuarios.domain.Usuario;
 
-public class UsuarioMapper {
+public final class UsuarioMapper {
+
+    private UsuarioMapper() {
+        throw new UnsupportedOperationException("Clase utilitaria, no instanciable");
+    }
 
     public static Usuario aDominio(UsuarioJpaEntity entidad) {
         return new Usuario(
@@ -13,10 +18,7 @@ public class UsuarioMapper {
                 new Correo(entidad.getCorreo()),
                 new HashContrasena(entidad.getHashContrasena()),
                 entidad.getNombreCompleto(),
-                entidad.isActivo(),
-                entidad.getIntentosFallidos(),
-                entidad.getBloqueadoHasta()
-        );
+                new EstadoCuenta(entidad.isActivo(), entidad.getIntentosFallidos(), entidad.getBloqueadoHasta()));
     }
 
     public static UsuarioJpaEntity aEntidad(Usuario dominio) {
@@ -26,9 +28,7 @@ public class UsuarioMapper {
                 dominio.getCorreo().valor(),
                 dominio.getHashContrasena().valor(),
                 dominio.getNombreCompleto(),
-                dominio.isActivo(),
-                dominio.getIntentosFallidos(),
-                dominio.getBloqueadoHasta()
-        );
+                new EstadoCuentaEmbeddable(dominio.isActivo(), dominio.getIntentosFallidos(),
+                        dominio.getBloqueadoHasta()));
     }
 }

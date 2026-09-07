@@ -2,6 +2,7 @@ package com.marcablanca.platform.usuarios.infrastructure.persistencia;
 
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 @Entity
@@ -24,14 +25,8 @@ public class UsuarioJpaEntity {
     @Column(name = "nombre_completo", nullable = false)
     private String nombreCompleto;
 
-    @Column(name = "es_activo", nullable = false)
-    private boolean activo;
-
-    @Column(name = "intentos_fallidos", nullable = false)
-    private int intentosFallidos;
-
-    @Column(name = "bloqueado_hasta")
-    private OffsetDateTime bloqueadoHasta;
+    @Embedded
+    private EstadoCuentaEmbeddable estadoCuenta;
 
     @Column(name = "creado_en", nullable = false, updatable = false)
     private OffsetDateTime creadoEn;
@@ -42,37 +37,33 @@ public class UsuarioJpaEntity {
     protected UsuarioJpaEntity() {}
 
     public UsuarioJpaEntity(Long id, UUID uuid, String correo, String hashContrasena,
-                             String nombreCompleto, boolean activo,
-                             int intentosFallidos, OffsetDateTime bloqueadoHasta) {
+                             String nombreCompleto, EstadoCuentaEmbeddable estadoCuenta) {
         this.id = id;
         this.uuid = uuid;
         this.correo = correo;
         this.hashContrasena = hashContrasena;
         this.nombreCompleto = nombreCompleto;
-        this.activo = activo;
-        this.intentosFallidos = intentosFallidos;
-        this.bloqueadoHasta = bloqueadoHasta;
+        this.estadoCuenta = estadoCuenta;
     }
 
     @PrePersist
     void alCrear() {
         if (uuid == null) uuid = UUID.randomUUID();
-        creadoEn = OffsetDateTime.now();
+        creadoEn = OffsetDateTime.now(ZoneOffset.UTC);
         actualizadoEn = creadoEn;
     }
 
     @PreUpdate
     void alActualizar() {
-        actualizadoEn = OffsetDateTime.now();
+        actualizadoEn = OffsetDateTime.now(ZoneOffset.UTC);
     }
 
-    // --- Getters (necesarios para el mapper) ---
     public Long getId() { return id; }
     public UUID getUuid() { return uuid; }
     public String getCorreo() { return correo; }
     public String getHashContrasena() { return hashContrasena; }
     public String getNombreCompleto() { return nombreCompleto; }
-    public boolean isActivo() { return activo; }
-    public int getIntentosFallidos() { return intentosFallidos; }
-    public OffsetDateTime getBloqueadoHasta() { return bloqueadoHasta; }
+    public boolean isActivo() { return estadoCuenta.isActivo(); }
+    public int getIntentosFallidos() { return estadoCuenta.getIntentosFallidos(); }
+    public OffsetDateTime getBloqueadoHasta() { return estadoCuenta.getBloqueadoHasta(); }
 }

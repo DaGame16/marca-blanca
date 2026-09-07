@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0011-poblar-catalogo-modulos
+      author: leidi
+      comment: Semilla del catalogo de modulos de la plataforma (usuarios, omnicanal, 3cx). Idempotente via ON CONFLICT.
+      changes:
+        - sql:
+            sql: >
+              INSERT INTO plataforma.tbl_modulos (codigo, nombre, descripcion) VALUES
+                ('usuarios',  'Usuarios y acceso',       'Gestion de usuarios, roles y permisos'),
+                ('omnicanal', 'Comunicacion omnicanal',  'Chat interno y bot de WhatsApp (Liwa)'),
+                ('3cx',       '3CX',                     'Integracion telefonica 3CX')
+              ON CONFLICT (codigo) DO NOTHING
+      rollback:
+        - sql:
+            sql: DELETE FROM plataforma.tbl_modulos WHERE codigo IN ('usuarios', 'omnicanal', '3cx')

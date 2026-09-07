@@ -22,18 +22,43 @@ public class RepositorioUsuarioPerfilesJpaAdapter implements RepositorioUsuarioP
 
     @Override
     public UsuarioPerfil guardar(UsuarioPerfil perfil) {
-        UsuarioPerfilJpaEntity entidad = new UsuarioPerfilJpaEntity(
-                perfil.getId(), perfil.getUuid(), perfil.getUsuarioId(), perfil.getIdEmpleado(),
-                perfil.getUrlFoto(), perfil.getCedula(), perfil.getTipoDocumento(), perfil.getFechaNacimiento(),
-                perfil.getTelefono(), perfil.getDireccion(), perfil.getContactoEmergencia(),
-                perfil.getTelefonoEmergencia(), perfil.getZona(), perfil.getCuadrillaId(), perfil.getEstadoLaboral()
-        );
+        UsuarioPerfilJpaEntity entidad = UsuarioPerfilJpaEntity.builder()
+                .id(perfil.getId())
+                .uuid(perfil.getUuid())
+                .usuarioId(perfil.getUsuarioId())
+                .idEmpleado(perfil.getIdEmpleado())
+                .urlFoto(perfil.getUrlFoto())
+                .cedula(perfil.getCedula())
+                .tipoDocumento(perfil.getTipoDocumento())
+                .fechaNacimiento(perfil.getFechaNacimiento())
+                .telefono(perfil.getTelefono())
+                .direccion(perfil.getDireccion())
+                .contactoEmergencia(perfil.getContactoEmergencia())
+                .telefonoEmergencia(perfil.getTelefonoEmergencia())
+                .zona(perfil.getZona())
+                .cuadrillaId(perfil.getCuadrillaId())
+                .estadoLaboral(perfil.getEstadoLaboral())
+                .build();
         return aDominio(jpaRepository.save(entidad));
     }
 
     private UsuarioPerfil aDominio(UsuarioPerfilJpaEntity e) {
-        return new UsuarioPerfil(e.getId(), e.getUuid(), e.getUsuarioId(), e.getIdEmpleado(), e.getUrlFoto(),
-                e.getCedula(), e.getTipoDocumento(), e.getFechaNacimiento(), e.getTelefono(), e.getDireccion(),
-                e.getContactoEmergencia(), e.getTelefonoEmergencia(), e.getZona(), e.getCuadrillaId(), e.getEstadoLaboral());
+        return UsuarioPerfil.builder()
+                .id(e.getId())
+                .uuid(e.getUuid())
+                .usuarioId(e.getUsuarioId())
+                .idEmpleado(e.getIdEmpleado())
+                .urlFoto(e.getUrlFoto())
+                .cedula(e.getCedula())
+                .tipoDocumento(e.getTipoDocumento())
+                .fechaNacimiento(e.getFechaNacimiento())
+                .telefono(e.getTelefono())
+                .direccion(e.getDireccion())
+                .contactoEmergencia(e.getContactoEmergencia())
+                .telefonoEmergencia(e.getTelefonoEmergencia())
+                .zona(e.getZona())
+                .cuadrillaId(e.getCuadrillaId())
+                .estadoLaboral(e.getEstadoLaboral())
+                .build();
     }
 }

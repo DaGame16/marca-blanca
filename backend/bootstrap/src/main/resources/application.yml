@@ -14,6 +14,17 @@ app:
     # Angular (ng serve). En otros ambientes se sobreescribe con la variable de
     # entorno CORS_ALLOWED_ORIGINS (nunca usar "*", las peticiones van con credenciales).
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
+  aprovisionamiento:
+    sondeo-ms: ${APROV_SONDEO_MS:5000}
+    plantilla: ${APROV_PLANTILLA:db_plantilla_maestra}
+    cliente-host: ${APROV_CLIENTE_HOST:localhost}
+    cliente-puerto: ${APROV_CLIENTE_PUERTO:5432}
+    mantenimiento:
+      url: ${APROV_MANT_URL:jdbc:postgresql://localhost:5432/postgres}
+      username: ${APROV_MANT_USER:guajiranet_owner}
+      password: ${APROV_MANT_PASSWORD:guajiranet_owner}
+
+
 spring:
   application:
     name: marca-blanca-backend
