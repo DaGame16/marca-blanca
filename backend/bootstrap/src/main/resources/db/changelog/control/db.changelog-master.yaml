@@ -26,3 +26,12 @@ databaseChangeLog:
   - include:
       file: changes/0008-otorgar-privilegios-roles.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changes/0009-crear-tabla-eventos-salientes.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/0010-crear-tabla-aprovisionamiento-tareas.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/0011-poblar-catalogo-modulos.yaml
+      relativeToChangelogFile: true

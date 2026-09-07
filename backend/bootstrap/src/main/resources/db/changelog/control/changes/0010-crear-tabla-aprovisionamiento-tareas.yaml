@@ -1,0 +1,128 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0010-crear-tabla-aprovisionamiento-tareas
+      author: leidi
+      comment: Estado de la saga de aprovisionamiento por empresa. paso_actual = ultimo checkpoint completado; el pipeline reanuda desde ahi en cada reintento. Una fila por empresa.
+      changes:
+        - createTable:
+            schemaName: plataforma
+            tableName: tbl_aprovisionamiento_tareas
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_aprovisionamiento_tareas
+              - column:
+                  name: uuid
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_aprovisionamiento_tareas_uuid
+              - column:
+                  name: empresa_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_aprovisionamiento_tareas_empresa
+                    foreignKeyName: fk_aprovisionamiento_tareas_empresa
+                    references: plataforma.tbl_empresas(id)
+              - column:
+                  name: evento_saliente_id
+                  type: BIGINT
+                  constraints:
+                    foreignKeyName: fk_aprovisionamiento_tareas_evento
+                    references: plataforma.tbl_eventos_salientes(id)
+              - column:
+                  name: estado
+                  type: VARCHAR(30)
+                  defaultValue: pendiente
+                  constraints:
+                    nullable: false
+              - column:
+                  name: paso_actual
+                  type: VARCHAR(50)
+                  defaultValue: no_iniciado
+                  constraints:
+                    nullable: false
+              - column:
+                  name: nombre_bd
+                  type: VARCHAR(120)
+              - column:
+                  name: intentos
+                  type: INTEGER
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: max_intentos
+                  type: INTEGER
+                  defaultValueNumeric: 5
+                  constraints:
+                    nullable: false
+              - column:
+                  name: disponible_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: bloqueado_en
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: bloqueado_por
+                  type: VARCHAR(120)
+              - column:
+                  name: ultimo_error
+                  type: TEXT
+              - column:
+                  name: iniciado_en
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: completado_en
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: creado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: actualizado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: >
+              ALTER TABLE plataforma.tbl_aprovisionamiento_tareas
+              ADD CONSTRAINT ck_aprovisionamiento_tareas_estado
+              CHECK (estado IN ('pendiente', 'en_progreso', 'completado', 'error'))
+        - sql:
+            sql: >
+              ALTER TABLE plataforma.tbl_aprovisionamiento_tareas
+              ADD CONSTRAINT ck_aprovisionamiento_tareas_paso
+              CHECK (paso_actual IN ('no_iniciado', 'base_creada', 'semilla_aplicada',
+              'roles_creados', 'conexion_registrada', 'version_registrada',
+              'modulos_poblados', 'empresa_activada'))
+        - createIndex:
+            schemaName: plataforma
+            tableName: tbl_aprovisionamiento_tareas
+            indexName: idx_aprovisionamiento_tareas_evento_saliente_id
+            columns:
+              - column:
+                  name: evento_saliente_id
+        - sql:
+            sql: >
+              CREATE INDEX idx_aprovisionamiento_tareas_pendientes
+              ON plataforma.tbl_aprovisionamiento_tareas (disponible_en)
+              WHERE estado IN ('pendiente', 'en_progreso')
+      rollback:
+        - dropTable:
+            schemaName: plataforma
+            tableName: tbl_aprovisionamiento_tareas

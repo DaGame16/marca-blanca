@@ -64,6 +64,14 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
     steps:
+      # Windows corta las rutas en ~260 caracteres. Algunos paquetes hexagonales
+      # profundos (p. ej. aprovisionamiento-infrastructure) rozan ese limite y el
+      # checkout falla en el runner self-hosted. core.longpaths lo sube a ~32k.
+      - name: Habilitar rutas largas en Windows
+        shell: powershell
+        working-directory: ${{ github.workspace }}
+        run: git config --global core.longpaths true
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
