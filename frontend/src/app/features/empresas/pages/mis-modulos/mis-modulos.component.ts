@@ -31,6 +31,10 @@ const APARIENCIA_DEFECTO = { icono: 'extension', color: '#64748b' };
             <mat-icon inline>palette</mat-icon>
             Personalizar mi marca
           </a>
+          <a routerLink="/usuarios" class="marca-link">
+            <mat-icon inline>group</mat-icon>
+            Gestionar usuarios
+          </a>
         </div>
 
         <div class="search-box">
