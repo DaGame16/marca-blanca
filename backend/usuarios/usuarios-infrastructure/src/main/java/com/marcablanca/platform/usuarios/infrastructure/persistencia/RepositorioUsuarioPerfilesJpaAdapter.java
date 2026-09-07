@@ -1,9 +1,7 @@
 package com.marcablanca.platform.usuarios.infrastructure.persistencia;
-
 import com.marcablanca.platform.usuarios.domain.UsuarioPerfil;
-import com.marcablanca.platform.usuarios.domain.port.out.RepositorioUsuarioPerfiles;
+import com.marcablanca.platform.usuarios.application.port.out.RepositorioUsuarioPerfiles;
 import org.springframework.stereotype.Component;
-
 import java.util.Optional;
 
 @Component

@@ -2,9 +2,9 @@ package com.marcablanca.platform.usuarios.application;
 
 import com.marcablanca.platform.usuarios.application.port.in.GestionarUsuario;
 import com.marcablanca.platform.usuarios.domain.*;
-import com.marcablanca.platform.usuarios.domain.port.out.CifradorDeContrasenas;
-import com.marcablanca.platform.usuarios.domain.port.out.RepositorioUsuarioPerfiles;
-import com.marcablanca.platform.usuarios.domain.port.out.RepositorioUsuarios;
+import com.marcablanca.platform.usuarios.application.port.out.CifradorDeContrasenas;
+import com.marcablanca.platform.usuarios.application.port.out.RepositorioUsuarios;
+import com.marcablanca.platform.usuarios.application.port.out.RepositorioUsuarioPerfiles;
 
 import java.util.List;
 import java.util.UUID;

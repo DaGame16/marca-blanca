@@ -1,6 +1,6 @@
 package com.marcablanca.platform.usuarios.domain;
 
-import com.marcablanca.platform.usuarios.domain.port.out.CifradorDeContrasenas;
+
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -18,7 +18,7 @@ public class Usuario {
     private EstadoCuenta estadoCuenta;
 
     public Usuario(Long id, UUID uuid, Correo correo, HashContrasena hashContrasena,
-                   String nombreCompleto, EstadoCuenta estadoCuenta) {
+            String nombreCompleto, EstadoCuenta estadoCuenta) {
         this.id = id;
         this.uuid = uuid;
         this.correo = correo;
@@ -31,14 +31,14 @@ public class Usuario {
         return new Usuario(null, null, correo, hashContrasena, nombreCompleto, EstadoCuenta.nueva());
     }
 
-    public void verificarCredenciales(Contrasena contrasenaCandidata, CifradorDeContrasenas cifrador) {
+    public void verificarCredenciales(boolean contrasenaCorrecta) {
         if (!estadoCuenta.isActivo()) {
             throw new UsuarioNoDisponibleException(EstadoUsuario.INACTIVO);
         }
         if (estaBloqueado()) {
             throw new UsuarioNoDisponibleException(EstadoUsuario.BLOQUEADO);
         }
-        if (!cifrador.verificar(contrasenaCandidata, hashContrasena)) {
+        if (!contrasenaCorrecta) {
             registrarIntentoFallido();
             throw new CredencialesInvalidasException();
         }
@@ -78,12 +78,35 @@ public class Usuario {
         estadoCuenta = new EstadoCuenta(false, estadoCuenta.getIntentosFallidos(), estadoCuenta.getBloqueadoHasta());
     }
 
-    public Long getId() { return id; }
-    public UUID getUuid() { return uuid; }
-    public Correo getCorreo() { return correo; }
-    public String getNombreCompleto() { return nombreCompleto; }
-    public boolean isActivo() { return estadoCuenta.isActivo(); }
-    public int getIntentosFallidos() { return estadoCuenta.getIntentosFallidos(); }
-    public OffsetDateTime getBloqueadoHasta() { return estadoCuenta.getBloqueadoHasta(); }
-    public HashContrasena getHashContrasena() { return hashContrasena; }
+    public Long getId() {
+        return id;
+    }
+
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public Correo getCorreo() {
+        return correo;
+    }
+
+    public String getNombreCompleto() {
+        return nombreCompleto;
+    }
+
+    public boolean isActivo() {
+        return estadoCuenta.isActivo();
+    }
+
+    public int getIntentosFallidos() {
+        return estadoCuenta.getIntentosFallidos();
+    }
+
+    public OffsetDateTime getBloqueadoHasta() {
+        return estadoCuenta.getBloqueadoHasta();
+    }
+
+    public HashContrasena getHashContrasena() {
+        return hashContrasena;
+    }
 }

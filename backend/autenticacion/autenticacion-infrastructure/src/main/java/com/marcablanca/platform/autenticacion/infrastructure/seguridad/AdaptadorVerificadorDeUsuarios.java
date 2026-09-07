@@ -7,8 +7,8 @@ import com.marcablanca.platform.autenticacion.domain.UsuarioNoDisponibleExceptio
 import com.marcablanca.platform.usuarios.domain.Contrasena;
 import com.marcablanca.platform.usuarios.domain.Correo;
 import com.marcablanca.platform.usuarios.domain.Usuario;
-import com.marcablanca.platform.usuarios.domain.port.out.CifradorDeContrasenas;
-import com.marcablanca.platform.usuarios.domain.port.out.RepositorioUsuarios;
+import com.marcablanca.platform.usuarios.application.port.out.CifradorDeContrasenas;
+import com.marcablanca.platform.usuarios.application.port.out.RepositorioUsuarios;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -41,8 +41,9 @@ public class AdaptadorVerificadorDeUsuarios implements VerificadorDeUsuarios {
         Usuario usuario = repositorioUsuarios.buscarPorCorreo(correo)
                 .orElseThrow(CredencialesInvalidasException::new);
 
+        boolean contrasenaCorrecta = cifradorDeContrasenas.verificar(contrasena, usuario.getHashContrasena());
         try {
-            usuario.verificarCredenciales(contrasena, cifradorDeContrasenas);
+            usuario.verificarCredenciales(contrasenaCorrecta);
         } catch (com.marcablanca.platform.usuarios.domain.CredencialesInvalidasException e) {
             throw new CredencialesInvalidasException();
         } catch (com.marcablanca.platform.usuarios.domain.UsuarioNoDisponibleException e) {
