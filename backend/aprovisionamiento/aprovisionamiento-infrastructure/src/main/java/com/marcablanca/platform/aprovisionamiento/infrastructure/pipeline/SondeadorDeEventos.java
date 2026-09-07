@@ -102,21 +102,21 @@ class SondeadorDeEventos {
         Set<String> modulos = new LinkedHashSet<>();
         JsonNode arr = n.get("modulosSolicitados");
         if (arr != null) {
-            arr.forEach(m -> modulos.add(m.asText()));
+            arr.forEach(m -> modulos.add(m.asString()));
         }
         return new EmpresaRegistrada(
-                UUID.fromString(n.get("empresaUuid").asText()),
-                n.get("identificador").asText(),
-                n.get("nombreLegal").asText(),
+                UUID.fromString(n.get("empresaUuid").asString()),
+                n.get("identificador").asString(),
+                n.get("nombreLegal").asString(),
                 textoONull(n, "nombreComercial"),
                 textoONull(n, "dominio"),
                 modulos,
-                Instant.parse(n.get("ocurridoEn").asText()));
+                Instant.parse(n.get("ocurridoEn").asString()));
     }
 
     private static String textoONull(JsonNode n, String campo) {
         JsonNode f = n.get(campo);
-        return (f == null || f.isNull() || f.asText().isBlank()) ? null : f.asText();
+        return (f == null || f.isNull() || f.asString().isBlank()) ? null : f.asString();
     }
 
     private record FilaOutbox(long id, String tipoEvento, String payload, int intentos, int maxIntentos) {
