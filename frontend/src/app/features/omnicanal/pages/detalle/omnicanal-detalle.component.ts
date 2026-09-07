@@ -48,8 +48,8 @@ import { MatIconModule } from '@angular/material/icon';
           </div>
         </div>
 
-        <a mat-flat-button color="primary" routerLink="/login" class="cta-btn">
-          Iniciar Sesión
+        <a mat-flat-button color="primary" routerLink="/mis-modulos" class="cta-btn">
+          Adquirir módulo
           <mat-icon>arrow_forward</mat-icon>
         </a>
       </section>
