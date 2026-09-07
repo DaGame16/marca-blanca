@@ -37,14 +37,12 @@ export const refreshTokenInterceptor: HttpInterceptorFn = (req, next) => {
 
       // Si ya hay un refresh en curso (disparado por otra petición que
       // también recibió 401), nos sumamos a ese en vez de duplicarlo.
-      if (!refreshInProgress$) {
-        refreshInProgress$ = authService.refresh().pipe(
-          shareReplay(1),
-          finalize(() => {
-            refreshInProgress$ = null;
-          })
-        );
-      }
+      refreshInProgress$ ??= authService.refresh().pipe(
+        shareReplay(1),
+        finalize(() => {
+          refreshInProgress$ = null;
+        })
+      );
 
       return refreshInProgress$.pipe(
         switchMap(() => {
