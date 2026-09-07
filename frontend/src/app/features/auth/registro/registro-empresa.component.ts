@@ -78,6 +78,30 @@ const OPCIONES_TEMA_PAGINA: OpcionTemaPagina[] = [
   { codigo: 'amplio', nombre: 'Amplio', descripcion: 'Más aire entre secciones, tipografía más grande.', icono: 'view_stream' },
 ];
 
+interface PaletaPredefinida {
+  nombre: string;
+  primario: string;
+  secundario: string;
+}
+
+// Paletas de dos colores tipo "swatch" (inspirado en selectores de marca como
+// el de Odoo) para elegir rapido; el usuario igual puede afinar con los
+// selectores de color de abajo.
+const PALETAS_PREDEFINIDAS: PaletaPredefinida[] = [
+  { nombre: 'Coast', primario: '#2563eb', secundario: '#facc95' },
+  { nombre: 'Candy', primario: '#3b82f6', secundario: '#fbcfe8' },
+  { nombre: 'Mint', primario: '#a78bfa', secundario: '#86efac' },
+  { nombre: 'Cobalt', primario: '#1d4ed8', secundario: '#d6c9a8' },
+  { nombre: 'Coral', primario: '#f87171', secundario: '#fde68a' },
+  { nombre: 'Slate', primario: '#f87171', secundario: '#334155' },
+  { nombre: 'Esmeralda', primario: '#10b981', secundario: '#134e4a' },
+  { nombre: 'Forest', primario: '#166534', secundario: '#a3a380' },
+  { nombre: 'Violeta', primario: '#7c3aed', secundario: '#c2410c' },
+  { nombre: 'Burgundy', primario: '#9f1239', secundario: '#1e3a5f' },
+  { nombre: 'Ember', primario: '#ea580c', secundario: '#bae6fd' },
+  { nombre: 'Midnight', primario: '#0f172a', secundario: '#7dd3fc' },
+];
+
 const MAX_LOGO_BYTES = 500 * 1024;
 
 type PasoWizard = 1 | 2 | 3 | 4 | 5;
@@ -369,9 +393,32 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
                   }
                 </div>
 
+                <div class="paleta-field">
+                  <span class="campo-label">Paleta de colores</span>
+                  <div class="paleta-grid">
+                    @for (paleta of paletasPredefinidas; track paleta.nombre) {
+                      <button
+                        type="button"
+                        class="paleta-swatch"
+                        [class.paleta-swatch-activa]="colorPrimario() === paleta.primario && colorSecundario() === paleta.secundario"
+                        (click)="elegirPaleta(paleta)"
+                      >
+                        <span class="paleta-colores">
+                          <span class="paleta-mitad" [style.background]="paleta.primario"></span>
+                          <span class="paleta-mitad" [style.background]="paleta.secundario"></span>
+                        </span>
+                        <span class="paleta-nombre">{{ paleta.nombre }}</span>
+                        @if (colorPrimario() === paleta.primario && colorSecundario() === paleta.secundario) {
+                          <mat-icon class="paleta-check" inline>check_circle</mat-icon>
+                        }
+                      </button>
+                    }
+                  </div>
+                </div>
+
                 <div class="colores-fields">
                   <label class="color-field">
-                    <span class="campo-label">Color primario</span>
+                    <span class="campo-label">Primario (a medida)</span>
                     <input
                       type="color"
                       [value]="colorPrimario()"
@@ -380,7 +427,7 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
                     <span class="color-valor">{{ colorPrimario() }}</span>
                   </label>
                   <label class="color-field">
-                    <span class="campo-label">Color secundario</span>
+                    <span class="campo-label">Secundario (a medida)</span>
                     <input
                       type="color"
                       [value]="colorSecundario()"
@@ -480,17 +527,27 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
 
             @case (5) {
               <div class="exito-panel">
-                <mat-icon class="exito-icono">check_circle</mat-icon>
-                <h2>Empresa registrada</h2>
-                <p class="form-subtitle">
-                  <strong>{{ form.controls.identificador.value }}</strong> quedó creada con estado
-                  <code>{{ resultado()?.estado }}</code>. El aprovisionamiento de la base de datos
-                  sigue en curso — intenta iniciar sesión en un momento con el identificador y la
-                  contraseña maestra que definiste.
+                <p class="construyendo-texto">
+                  Construyendo tu espacio para
+                  <strong>{{ form.controls.nombreComercial.value || form.controls.nombreLegal.value || form.controls.identificador.value }}</strong>
                 </p>
-                <a mat-flat-button color="primary" routerLink="/login" class="full-width submit-btn">
-                  Ir a iniciar sesión
-                </a>
+                <div class="construyendo-barra">
+                  <div class="construyendo-barra-relleno"></div>
+                </div>
+
+                <div class="exito-tarjeta">
+                  <mat-icon class="exito-icono">check_circle</mat-icon>
+                  <h2>Empresa registrada</h2>
+                  <p class="form-subtitle">
+                    <strong>{{ form.controls.identificador.value }}</strong> quedó creada con estado
+                    <code>{{ resultado()?.estado }}</code>. El aprovisionamiento de la base de datos
+                    sigue en curso — intenta iniciar sesión en un momento con el identificador y la
+                    contraseña maestra que definiste.
+                  </p>
+                  <a mat-flat-button color="primary" routerLink="/login" class="full-width submit-btn">
+                    Ir a iniciar sesión
+                  </a>
+                </div>
               </div>
             }
           }
@@ -510,7 +567,7 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
         min-height: 100vh;
         display: flex;
         flex-direction: column;
-        background: radial-gradient(circle at 15% 0%, #eef2ff 0%, #f8fafc 45%, #f8fafc 100%);
+        background: radial-gradient(circle at 20% -10%, #1e293b 0%, #0f172a 55%, #0b1120 100%);
       }
 
       .topbar {
@@ -526,11 +583,11 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
         gap: 8px;
         font-size: 18px;
         font-weight: 700;
-        color: var(--brand-dark);
+        color: #f1f5f9;
       }
 
       .topbar-logo-icon {
-        color: var(--brand-light);
+        color: #60a5fa;
       }
 
       .topbar-link {
@@ -539,7 +596,7 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
         gap: 4px;
         font-size: 0.88rem;
         font-weight: 600;
-        color: var(--brand-light);
+        color: #93c5fd;
         text-decoration: none;
       }
 
@@ -571,8 +628,8 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
         justify-content: center;
         font-size: 0.85rem;
         font-weight: 700;
-        background: #e2e8f0;
-        color: #94a3b8;
+        background: #1e293b;
+        color: #64748b;
         transition: background 0.2s, color 0.2s;
       }
 
@@ -583,7 +640,7 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
       }
 
       .stepper-item-activo .stepper-circulo {
-        background: var(--brand-light);
+        background: #3b82f6;
         color: #fff;
       }
 
@@ -595,17 +652,17 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
       .stepper-texto {
         font-size: 0.72rem;
         font-weight: 600;
-        color: #94a3b8;
+        color: #64748b;
       }
 
       .stepper-item-activo .stepper-texto {
-        color: #0f172a;
+        color: #f1f5f9;
       }
 
       .stepper-raya {
         flex: 0 0 40px;
         height: 2px;
-        background: #e2e8f0;
+        background: #1e293b;
         margin-bottom: 20px;
         transition: background 0.2s;
       }
@@ -628,11 +685,14 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
         padding: 32px 36px 40px;
         background: #fff;
         border-radius: 16px;
-        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 32px rgba(15, 23, 42, 0.08);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 24px 60px rgba(0, 0, 0, 0.45);
       }
 
       .form-wrapper-exito {
         text-align: center;
+        background: transparent;
+        box-shadow: none;
+        max-width: 640px;
       }
 
       .back-link {
@@ -992,6 +1052,70 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
         color: #dc2626;
       }
 
+      .paleta-field {
+        margin-bottom: 18px;
+      }
+
+      .paleta-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .paleta-swatch {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 6px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 10px;
+        background: #fff;
+        cursor: pointer;
+        transition: border-color 0.15s, transform 0.1s;
+      }
+
+      .paleta-swatch:hover {
+        border-color: #cbd5e1;
+      }
+
+      .paleta-swatch-activa {
+        border-color: var(--brand-light);
+        box-shadow: 0 0 0 1px var(--brand-light);
+      }
+
+      .paleta-colores {
+        display: flex;
+        width: 100%;
+        height: 24px;
+        border-radius: 6px;
+        overflow: hidden;
+      }
+
+      .paleta-mitad {
+        flex: 1;
+      }
+
+      .paleta-nombre {
+        font-size: 0.68rem;
+        font-weight: 600;
+        color: #475569;
+      }
+
+      .paleta-check {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        color: #16a34a;
+        background: #fff;
+        border-radius: 50%;
+      }
+
       .colores-fields {
         display: flex;
         gap: 20px;
@@ -1131,6 +1255,52 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
       .exito-panel {
         text-align: center;
         padding: 20px 0;
+        width: 100%;
+      }
+
+      .construyendo-texto {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: #f1f5f9;
+        margin: 0 0 20px;
+      }
+
+      .construyendo-texto strong {
+        color: #93c5fd;
+      }
+
+      .construyendo-barra {
+        width: 100%;
+        max-width: 280px;
+        height: 4px;
+        margin: 0 auto 32px;
+        border-radius: 4px;
+        background: #1e293b;
+        overflow: hidden;
+      }
+
+      .construyendo-barra-relleno {
+        height: 100%;
+        width: 40%;
+        border-radius: 4px;
+        background: linear-gradient(90deg, #3b82f6, #93c5fd);
+        animation: construyendo-avance 1.4s ease-in-out infinite;
+      }
+
+      @keyframes construyendo-avance {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(350%);
+        }
+      }
+
+      .exito-tarjeta {
+        background: #fff;
+        border-radius: 16px;
+        padding: 28px 32px 32px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 24px 60px rgba(0, 0, 0, 0.45);
       }
 
       .exito-icono {
@@ -1207,6 +1377,7 @@ export class RegistroEmpresaComponent {
   protected readonly errorLogo = signal<string | null>(null);
   protected readonly colorPrimario = signal('#2563eb');
   protected readonly colorSecundario = signal('#1e3a5f');
+  protected readonly paletasPredefinidas = PALETAS_PREDEFINIDAS;
 
   protected readonly creando = signal(false);
   protected readonly errorCreacion = signal<string | null>(null);
@@ -1255,6 +1426,11 @@ export class RegistroEmpresaComponent {
     if (existe && !this.modulosSeleccionados().includes(this.moduloPreseleccionado)) {
       this.modulosSeleccionados.set([...this.modulosSeleccionados(), this.moduloPreseleccionado]);
     }
+  }
+
+  elegirPaleta(paleta: PaletaPredefinida): void {
+    this.colorPrimario.set(paleta.primario);
+    this.colorSecundario.set(paleta.secundario);
   }
 
   onCambiarNombre(): void {
