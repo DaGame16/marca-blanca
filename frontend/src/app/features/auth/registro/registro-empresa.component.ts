@@ -98,75 +98,48 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
   ],
   template: `
     <div class="registro-page">
-      <section class="brand-panel">
-        <div class="brand-shape shape-a"></div>
-        <div class="brand-shape shape-b"></div>
+      <header class="topbar">
+        <div class="topbar-logo">
+          <mat-icon class="topbar-logo-icon">hub</mat-icon>
+          <span>Marca Blanca</span>
+        </div>
+        <a routerLink="/login" class="topbar-link">Ya tengo cuenta</a>
+      </header>
 
-        <div class="brand-content">
-          <div class="brand-logo">
-            <mat-icon class="brand-logo-icon">hub</mat-icon>
-            <span>Marca Blanca</span>
+      @if (paso() <= 4) {
+        <div class="stepper">
+          <div class="stepper-item" [class.stepper-item-activo]="paso() >= 1" [class.stepper-item-hecho]="paso() > 1">
+            <span class="stepper-circulo">
+              @if (paso() > 1) { <mat-icon inline>check</mat-icon> } @else { 1 }
+            </span>
+            <span class="stepper-texto">Empresa</span>
           </div>
-
-          @switch (paso()) {
-            @case (1) {
-              <h1>Crea el espacio de tu empresa</h1>
-              <p class="brand-tagline">
-                Elige un identificador único: será la dirección desde la que tu equipo entra a la
-                plataforma.
-              </p>
-            }
-            @case (2) {
-              <h1>Elige tus módulos</h1>
-              <p class="brand-tagline">
-                Selecciona lo que tu equipo va a usar. Puedes activar o desactivar módulos cuando
-                quieras después, desde "Mis módulos".
-              </p>
-            }
-            @case (3) {
-              <h1>Diseño de inicio de sesión</h1>
-              <p class="brand-tagline">
-                Elige el estilo del login y sube el logo y los colores de tu empresa. Se usarán en
-                toda la plataforma, no solo en el login.
-              </p>
-            }
-            @case (4) {
-              <h1>Diseño de páginas</h1>
-              <p class="brand-tagline">
-                Elige cómo se ven el resto de las pantallas. El logo y los colores ya quedaron
-                definidos en el paso anterior.
-              </p>
-            }
-            @case (5) {
-              <h1>¡Ya casi está lista!</h1>
-              <p class="brand-tagline">
-                Estamos preparando la base de datos y el primer usuario de tu empresa. Esto tarda
-                unos segundos.
-              </p>
-            }
-          }
-
-          <div class="pasos-indicador">
-            <span class="paso-punto" [class.paso-punto-activo]="paso() >= 1">1. Empresa</span>
-            <span class="paso-linea"></span>
-            <span class="paso-punto" [class.paso-punto-activo]="paso() >= 2">2. Módulos</span>
-            <span class="paso-linea"></span>
-            <span class="paso-punto" [class.paso-punto-activo]="paso() >= 3">3. Login</span>
-            <span class="paso-linea"></span>
-            <span class="paso-punto" [class.paso-punto-activo]="paso() >= 4">4. Páginas</span>
+          <span class="stepper-raya" [class.stepper-raya-activa]="paso() > 1"></span>
+          <div class="stepper-item" [class.stepper-item-activo]="paso() >= 2" [class.stepper-item-hecho]="paso() > 2">
+            <span class="stepper-circulo">
+              @if (paso() > 2) { <mat-icon inline>check</mat-icon> } @else { 2 }
+            </span>
+            <span class="stepper-texto">Módulos</span>
+          </div>
+          <span class="stepper-raya" [class.stepper-raya-activa]="paso() > 2"></span>
+          <div class="stepper-item" [class.stepper-item-activo]="paso() >= 3" [class.stepper-item-hecho]="paso() > 3">
+            <span class="stepper-circulo">
+              @if (paso() > 3) { <mat-icon inline>check</mat-icon> } @else { 3 }
+            </span>
+            <span class="stepper-texto">Login</span>
+          </div>
+          <span class="stepper-raya" [class.stepper-raya-activa]="paso() > 3"></span>
+          <div class="stepper-item" [class.stepper-item-activo]="paso() >= 4">
+            <span class="stepper-circulo">4</span>
+            <span class="stepper-texto">Páginas</span>
           </div>
         </div>
-      </section>
+      }
 
       <section class="form-panel">
-        <div class="form-wrapper">
+        <div class="form-wrapper" [class.form-wrapper-exito]="paso() === 5">
           @switch (paso()) {
             @case (1) {
-              <a routerLink="/login" class="back-link">
-                <mat-icon>arrow_back</mat-icon>
-                Ya tengo cuenta
-              </a>
-
               <h2>Datos de tu empresa</h2>
               <p class="form-subtitle">Esto es lo que necesita el sistema para crear tu cuenta</p>
 
@@ -535,116 +508,131 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
 
       .registro-page {
         min-height: 100vh;
-        display: grid;
-        grid-template-columns: 1.1fr 1fr;
+        display: flex;
+        flex-direction: column;
+        background: radial-gradient(circle at 15% 0%, #eef2ff 0%, #f8fafc 45%, #f8fafc 100%);
       }
 
-      .brand-panel {
-        position: relative;
-        overflow: hidden;
+      .topbar {
         display: flex;
         align-items: center;
-        justify-content: center;
-        padding: 48px;
-        background: linear-gradient(135deg, var(--brand-dark) 0%, var(--brand-light) 100%);
-        color: #fff;
+        justify-content: space-between;
+        padding: 20px 32px;
       }
 
-      .brand-shape {
-        position: absolute;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.08);
-      }
-
-      .shape-a {
-        width: 420px;
-        height: 420px;
-        top: -120px;
-        left: -140px;
-      }
-
-      .shape-b {
-        width: 300px;
-        height: 300px;
-        bottom: -100px;
-        right: -80px;
-        background: rgba(255, 255, 255, 0.06);
-      }
-
-      .brand-content {
-        position: relative;
-        z-index: 1;
-        max-width: 420px;
-      }
-
-      .brand-logo {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 20px;
-        font-weight: 700;
-        margin-bottom: 48px;
-        letter-spacing: 0.2px;
-      }
-
-      .brand-logo-icon {
-        font-size: 28px;
-        width: 28px;
-        height: 28px;
-      }
-
-      .brand-content h1 {
-        font-size: 2.1rem;
-        line-height: 1.25;
-        font-weight: 700;
-        margin: 0 0 16px;
-      }
-
-      .brand-tagline {
-        font-size: 1.02rem;
-        line-height: 1.6;
-        opacity: 0.9;
-        margin: 0 0 32px;
-      }
-
-      .pasos-indicador {
+      .topbar-logo {
         display: flex;
         align-items: center;
         gap: 8px;
-        font-size: 0.78rem;
-        opacity: 0.75;
-        flex-wrap: wrap;
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--brand-dark);
       }
 
-      .paso-punto {
+      .topbar-logo-icon {
+        color: var(--brand-light);
+      }
+
+      .topbar-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.88rem;
         font-weight: 600;
-        opacity: 0.55;
+        color: var(--brand-light);
+        text-decoration: none;
       }
 
-      .paso-punto-activo {
-        opacity: 1;
+      .topbar-link:hover {
+        text-decoration: underline;
+      }
+
+      .stepper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 8px 24px 28px;
+      }
+
+      .stepper-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .stepper-circulo {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        font-weight: 700;
+        background: #e2e8f0;
+        color: #94a3b8;
+        transition: background 0.2s, color 0.2s;
+      }
+
+      .stepper-circulo mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+      }
+
+      .stepper-item-activo .stepper-circulo {
+        background: var(--brand-light);
         color: #fff;
       }
 
-      .paso-linea {
-        flex: 0 0 16px;
-        height: 1px;
-        background: rgba(255, 255, 255, 0.4);
+      .stepper-item-hecho .stepper-circulo {
+        background: #16a34a;
+        color: #fff;
+      }
+
+      .stepper-texto {
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: #94a3b8;
+      }
+
+      .stepper-item-activo .stepper-texto {
+        color: #0f172a;
+      }
+
+      .stepper-raya {
+        flex: 0 0 40px;
+        height: 2px;
+        background: #e2e8f0;
+        margin-bottom: 20px;
+        transition: background 0.2s;
+      }
+
+      .stepper-raya-activa {
+        background: #16a34a;
       }
 
       .form-panel {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
-        padding: 48px 24px;
-        background: #f8fafc;
-        overflow-y: auto;
+        padding: 8px 24px 64px;
+        flex: 1;
       }
 
       .form-wrapper {
         width: 100%;
-        max-width: 480px;
-        padding: 24px 0;
+        max-width: 560px;
+        padding: 32px 36px 40px;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 32px rgba(15, 23, 42, 0.08);
+      }
+
+      .form-wrapper-exito {
+        text-align: center;
       }
 
       .back-link {
@@ -1160,16 +1148,29 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5;
       }
 
       @media (max-width: 900px) {
-        .registro-page {
-          grid-template-columns: 1fr;
+        .topbar {
+          padding: 16px 20px;
         }
 
-        .brand-panel {
+        .stepper {
+          gap: 4px;
+          padding: 4px 12px 20px;
+        }
+
+        .stepper-raya {
+          flex-basis: 20px;
+        }
+
+        .stepper-texto {
           display: none;
         }
 
         .form-panel {
-          padding: 32px 20px;
+          padding: 4px 16px 48px;
+        }
+
+        .form-wrapper {
+          padding: 24px 20px 28px;
         }
       }
     `,
