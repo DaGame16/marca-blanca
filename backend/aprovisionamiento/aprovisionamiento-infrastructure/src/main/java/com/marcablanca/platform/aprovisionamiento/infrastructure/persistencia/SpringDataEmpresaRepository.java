@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.Optional;
 import java.util.UUID;
 
-interface SpringDataEmpresaRepository extends JpaRepository<EmpresaDeAprovisionamientoEntity, Long> {
+public interface SpringDataEmpresaRepository extends JpaRepository<EmpresaDeAprovisionamientoEntity, Long> {
 
     boolean existsByIdentificador(String identificador);
 
