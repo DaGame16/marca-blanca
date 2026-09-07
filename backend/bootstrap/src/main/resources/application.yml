@@ -9,6 +9,11 @@ app:
     # nunca usar este valor en DEV compartido, QA o PROD.
     secret: ${JWT_SECRET:solo-para-desarrollo-local-cambiar-siempre}
     expiracion-minutos: 15
+  cors:
+    # Origenes permitidos separados por coma. Por defecto solo el dev server de
+    # Angular (ng serve). En otros ambientes se sobreescribe con la variable de
+    # entorno CORS_ALLOWED_ORIGINS (nunca usar "*", las peticiones van con credenciales).
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
 spring:
   application:
     name: marca-blanca-backend
