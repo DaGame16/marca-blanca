@@ -1,0 +1,116 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0009-crear-tabla-eventos-salientes
+      author: leidi
+      comment: Outbox transaccional. La Capa 1 escribe aqui en la misma transaccion que el alta de la empresa; el pipeline lo consume con FOR UPDATE SKIP LOCKED. Mecanismo generico, sin FK al agregado.
+      changes:
+        - createTable:
+            schemaName: plataforma
+            tableName: tbl_eventos_salientes
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_eventos_salientes
+              - column:
+                  name: uuid
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_eventos_salientes_uuid
+              - column:
+                  name: tipo_evento
+                  type: VARCHAR(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: agregado_tipo
+                  type: VARCHAR(60)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: agregado_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: payload
+                  type: JSONB
+                  constraints:
+                    nullable: false
+              - column:
+                  name: estado
+                  type: VARCHAR(20)
+                  defaultValue: pendiente
+                  constraints:
+                    nullable: false
+              - column:
+                  name: intentos
+                  type: INTEGER
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: max_intentos
+                  type: INTEGER
+                  defaultValueNumeric: 10
+                  constraints:
+                    nullable: false
+              - column:
+                  name: disponible_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: bloqueado_en
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: bloqueado_por
+                  type: VARCHAR(120)
+              - column:
+                  name: ultimo_error
+                  type: TEXT
+              - column:
+                  name: procesado_en
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: creado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: actualizado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: >
+              ALTER TABLE plataforma.tbl_eventos_salientes
+              ADD CONSTRAINT ck_eventos_salientes_estado
+              CHECK (estado IN ('pendiente', 'procesando', 'procesado', 'fallido'))
+        - sql:
+            sql: >
+              CREATE INDEX idx_eventos_salientes_pendientes
+              ON plataforma.tbl_eventos_salientes (disponible_en)
+              WHERE estado IN ('pendiente', 'procesando')
+        - createIndex:
+            schemaName: plataforma
+            tableName: tbl_eventos_salientes
+            indexName: idx_eventos_salientes_agregado
+            columns:
+              - column:
+                  name: agregado_tipo
+              - column:
+                  name: agregado_id
+      rollback:
+        - dropTable:
+            schemaName: plataforma
+            tableName: tbl_eventos_salientes
