@@ -119,6 +119,11 @@ import { environment } from '../../../../environments/environment';
                 Entrar
               }
             </button>
+
+            <p class="registro-link">
+              ¿Tu empresa aún no tiene cuenta?
+              <a routerLink="/registro">Regístrala aquí</a>
+            </p>
           </form>
         </div>
       </section>
@@ -299,6 +304,23 @@ import { environment } from '../../../../environments/environment';
         font-size: 18px;
         width: 18px;
         height: 18px;
+      }
+
+      .registro-link {
+        text-align: center;
+        margin: 20px 0 0;
+        font-size: 0.85rem;
+        color: #64748b;
+      }
+
+      .registro-link a {
+        color: var(--brand-light);
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .registro-link a:hover {
+        text-decoration: underline;
       }
 
       /* ---------- Responsive ---------- */

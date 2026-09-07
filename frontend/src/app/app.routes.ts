@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { HomeComponent } from './features/home/home.component';
 import { LoginComponent } from './features/auth/login/login.component';
+import { RegistroEmpresaComponent } from './features/auth/registro/registro-empresa.component';
 import { ListaTareas } from './features/tareas/pages/lista-tareas/lista-tareas';
 import { DetalleTarea } from './features/tareas/pages/detalle-tarea/detalle-tarea';
 import { ModulosAdminComponent } from './features/admin/pages/modulos-admin/modulos-admin.component';
@@ -18,6 +19,10 @@ export const routes: Routes = [
   {
     path: 'login',
     component: LoginComponent,
+  },
+  {
+    path: 'registro',
+    component: RegistroEmpresaComponent,
   },
   {
     path: 'admin/modulos',
