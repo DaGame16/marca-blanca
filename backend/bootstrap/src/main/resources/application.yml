@@ -14,15 +14,6 @@ app:
     # (QA, PROD) viene de la variable de entorno CORS_ORIGENES, con el
     # dominio real del frontend desplegado -- nunca localhost.
     origenes-permitidos: ${CORS_ORIGENES:http://localhost:4200}
-  omnicanal:
-    # Llave de la PLATAFORMA (no por empresa -- decision confirmada: marca-blanca
-    # provee el analisis de IA como parte del servicio). En cualquier ambiente
-    # real viene de OPENAI_API_KEY.
-    openai-api-key: ${OPENAI_API_KEY:}
-    openai-modelo: ${OPENAI_MODELO:gpt-4.1-mini}
-    # Apagado por defecto -- se prende explicito por ambiente cuando se
-    # confirme el modelo/costo, mismo criterio que tenia el pipeline anterior.
-    ia-habilitada: ${OMNICANAL_IA_HABILITADA:false}
   correo:
     # Direccion "De:" en cada correo saliente. En cualquier ambiente real
     # viene de CORREO_REMITENTE.
