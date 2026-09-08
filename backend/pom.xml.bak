@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.1</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.marcablanca.platform</groupId>
+    <artifactId>marca-blanca-backend</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>marca-blanca-backend</name>
+
+    <properties>
+        <java.version>25</java.version>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <modules>
+        <module>shared-kernel</module>
+        <module>empresas/empresas-domain</module>
+        <module>empresas/empresas-application</module>
+        <module>empresas/empresas-infrastructure</module>
+        <module>aprovisionamiento/aprovisionamiento-domain</module>
+        <module>aprovisionamiento/aprovisionamiento-application</module>
+        <module>aprovisionamiento/aprovisionamiento-infrastructure</module>
+        <module>modulos-empresa/modulos-empresa-domain</module>
+        <module>modulos-empresa/modulos-empresa-application</module>
+        <module>modulos-empresa/modulos-empresa-infrastructure</module>
+        <module>usuarios/usuarios-domain</module>
+        <module>usuarios/usuarios-application</module>
+        <module>usuarios/usuarios-infrastructure</module>
+        <module>autenticacion/autenticacion-domain</module>
+        <module>autenticacion/autenticacion-application</module>
+        <module>autenticacion/autenticacion-infrastructure</module>
+        <module>identidad-visual/identidad-visual-domain</module>
+        <module>identidad-visual/identidad-visual-application</module>
+        <module>identidad-visual/identidad-visual-infrastructure</module>
+        <module>omnicanal/omnicanal-domain</module>
+        <module>omnicanal/omnicanal-application</module>
+        <module>omnicanal/omnicanal-infrastructure</module>
+        <module>bootstrap</module>
+    </modules>
+</project>

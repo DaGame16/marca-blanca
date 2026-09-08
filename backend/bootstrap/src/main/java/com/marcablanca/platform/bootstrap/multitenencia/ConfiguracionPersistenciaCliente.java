@@ -1,5 +1,6 @@
 package com.marcablanca.platform.bootstrap.multitenencia;
 
+import com.marcablanca.platform.empresas.application.ContextoEmpresaActual;
 import com.marcablanca.platform.empresas.application.port.in.ResolverConexionDeEmpresa;
 import jakarta.persistence.EntityManagerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,10 +18,14 @@ import java.util.Map;
 
 /**
  * Segunda unidad de persistencia -- para las tablas que viven en la base
- * de CADA EMPRESA (schema "seguridad", etc.), no en la de control.
+ * de CADA EMPRESA (schemas "seguridad", "omnicanal", etc.), no en la de
+ * control.
  *
- * Paquetes de "cliente" incluidos hasta ahora: usuarios (identidad) y
- * autenticacion (sesiones/refresh token). Al agregar mas adaptadores de
+ * Paquetes de "cliente" incluidos hasta ahora: usuarios (identidad),
+ * autenticacion (sesiones/refresh token), y omnicanal (conversaciones/
+ * casos/analisis IA -- solo la parte de "cliente"; la parte de "control"
+ * de omnicanal, tbl_empresas_omnicanal, sigue pendiente, ver
+ * ConfiguracionPersistenciaControl). Al agregar mas adaptadores de
  * "cliente" en el futuro, hay que sumar su paquete tanto a basePackages
  * de @EnableJpaRepositories como al .packages(...) de abajo.
  */
@@ -28,7 +33,8 @@ import java.util.Map;
 @EnableJpaRepositories(
         basePackages = {
                 "com.marcablanca.platform.usuarios.infrastructure.persistencia",
-                "com.marcablanca.platform.autenticacion.infrastructure.persistencia"
+                "com.marcablanca.platform.autenticacion.infrastructure.persistencia",
+                "com.marcablanca.platform.omnicanal.infrastructure.persistencia.cliente"
         },
         entityManagerFactoryRef = "clienteEntityManagerFactory",
         transactionManagerRef = "clienteTransactionManager"
@@ -47,7 +53,8 @@ public class ConfiguracionPersistenciaCliente {
         return builder
                 .dataSource(clienteRoutingDataSource)
                 .packages("com.marcablanca.platform.usuarios.infrastructure.persistencia",
-                        "com.marcablanca.platform.autenticacion.infrastructure.persistencia")
+                        "com.marcablanca.platform.autenticacion.infrastructure.persistencia",
+                        "com.marcablanca.platform.omnicanal.infrastructure.persistencia.cliente")
                 .persistenceUnit("cliente")
                 // Liquibase (aplicado a mano contra la plantilla) es quien garantiza
                 // la estructura de cada base de cliente -- Hibernate no necesita
