@@ -11,7 +11,9 @@ public record Identificador(String valor) {
 
     // letra minuscula al inicio; luego grupos alfanumericos separados por un solo guion bajo.
     // sin guion bajo al inicio, al final, ni dos seguidos.
-    private static final Pattern FORMATO = Pattern.compile("^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$");
+    // Cuantificadores posesivos (*+ / ++): impiden el backtracking y por tanto el
+    // riesgo de desbordar la pila con una entrada adversa (Sonar java:S5998).
+    private static final Pattern FORMATO = Pattern.compile("^[a-z][a-z0-9]*+(?:_[a-z0-9]++)*+$");
 
     private static final int LARGO_MIN = 3;
     // "db_cliente_" son 11 caracteres; el limite de identificador de PostgreSQL es 63 => quedarian 52.

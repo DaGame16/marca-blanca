@@ -14,15 +14,21 @@
     <artifactId>bootstrap</artifactId>
     <packaging>jar</packaging>
 
-    <!-- NUEVO: valores por defecto para el plugin de Liquibase de cliente y control -->
+    <!-- Valores por defecto para el plugin de Liquibase de cliente y control.
+         La contrasena NO se hard-codea (Sonar xml:S2068): se toma de la variable
+         de entorno APROV_MANT_PASSWORD, la misma que usa la app en application.yml
+         (app.aprovisionamiento.mantenimiento.password). Para DEV local:
+           PowerShell:  $env:APROV_MANT_PASSWORD = "guajiranet_owner"
+           bash:        export APROV_MANT_PASSWORD=guajiranet_owner
+         O pasar -Dliquibase.control.password=... en la invocacion de Maven. -->
     <properties>
         <liquibase.cliente.url>jdbc:postgresql://localhost:5432/db_plantilla_maestra</liquibase.cliente.url>
         <liquibase.cliente.username>guajiranet_owner</liquibase.cliente.username>
-        <liquibase.cliente.password>guajiranet_owner</liquibase.cliente.password>
+        <liquibase.cliente.password>${env.APROV_MANT_PASSWORD}</liquibase.cliente.password>
 
         <liquibase.control.url>jdbc:postgresql://localhost:5432/db_portal_guajiranet_control</liquibase.control.url>
         <liquibase.control.username>guajiranet_owner</liquibase.control.username>
-        <liquibase.control.password>guajiranet_owner</liquibase.control.password>
+        <liquibase.control.password>${env.APROV_MANT_PASSWORD}</liquibase.control.password>
     </properties>
 
     <dependencies>

@@ -10,6 +10,7 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 /**
@@ -74,13 +75,13 @@ class EmpresaDeAprovisionamientoEntity {
         if (uuid == null) {
             uuid = UUID.randomUUID();
         }
-        creadoEn = OffsetDateTime.now();
+        creadoEn = OffsetDateTime.now(ZoneOffset.UTC);
         actualizadoEn = creadoEn;
     }
 
     @PreUpdate
     void alActualizar() {
-        actualizadoEn = OffsetDateTime.now();
+        actualizadoEn = OffsetDateTime.now(ZoneOffset.UTC);
     }
 
     Long getId() { return id; }

@@ -11,6 +11,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 @Entity(name = "EventoSaliente")
@@ -68,7 +69,7 @@ class EventoSalienteEntity {
 
     @PrePersist
     void alCrear() {
-        OffsetDateTime ahora = OffsetDateTime.now();
+        OffsetDateTime ahora = OffsetDateTime.now(ZoneOffset.UTC);
         if (uuid == null) {
             uuid = UUID.randomUUID();
         }

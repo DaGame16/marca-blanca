@@ -14,7 +14,7 @@ final class TareaDeAprovisionamientoMapper {
     }
 
     static TareaDeAprovisionamiento aDominio(TareaDeAprovisionamientoEntity e, UUID empresaUuid) {
-        return new TareaDeAprovisionamiento(
+        return TareaDeAprovisionamiento.reconstituir(new TareaDeAprovisionamiento.Instantanea(
                 e.getUuid(),
                 empresaUuid,
                 e.getNombreBd(),
@@ -24,7 +24,7 @@ final class TareaDeAprovisionamientoMapper {
                 e.getMaxIntentos(),
                 e.getUltimoError(),
                 e.getDisponibleEn() == null ? null : e.getDisponibleEn().toInstant()
-        );
+        ));
     }
 
     static void aplicar(TareaDeAprovisionamiento d, Long empresaIdInterno, TareaDeAprovisionamientoEntity e) {
@@ -40,7 +40,7 @@ final class TareaDeAprovisionamientoMapper {
                 ? null
                 : OffsetDateTime.ofInstant(d.getDisponibleEn(), ZoneOffset.UTC));
         if (d.getEstado() == EstadoTarea.COMPLETADO) {
-            e.setCompletadoEn(OffsetDateTime.now());
+            e.setCompletadoEn(OffsetDateTime.now(ZoneOffset.UTC));
         }
     }
 }
