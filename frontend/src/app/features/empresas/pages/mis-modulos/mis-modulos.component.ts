@@ -384,7 +384,7 @@ export class MisModulosComponent implements OnInit {
     this.error.set(null);
 
     this.adminService.getModulosDeEmpresa(this.empresaId).subscribe({
-      next: (modulos) => {
+      next: (modulos: ModuloDeEmpresa[]) => {
         this.modulos.set(modulos);
         this.cargando.set(false);
       },

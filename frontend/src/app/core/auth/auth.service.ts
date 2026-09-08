@@ -26,7 +26,7 @@ export class AuthService {
   login(request: LoginRequest): Observable<LoginResponse> {
     return this.http
       .post<LoginResponse>(`${environment.apiUrl}/auth/login`, request)
-      .pipe(tap((res) => this.storeSession(res, request.identificadorEmpresa)));
+      .pipe(tap((res: LoginResponse) => this.storeSession(res, request.identificadorEmpresa)));
   }
 
   refresh(): Observable<RefreshResponse> {
@@ -39,7 +39,7 @@ export class AuthService {
     const request: RefreshRequest = { refreshToken, identificadorEmpresa };
     return this.http
       .post<RefreshResponse>(`${environment.apiUrl}/auth/refresh`, request)
-      .pipe(tap((res) => this.storeSession(res, identificadorEmpresa)));
+      .pipe(tap((res: RefreshResponse) => this.storeSession(res, identificadorEmpresa)));
   }
 
   logout(): void {

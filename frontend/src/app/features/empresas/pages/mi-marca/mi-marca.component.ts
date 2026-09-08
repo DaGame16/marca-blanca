@@ -287,7 +287,7 @@ export class MiMarcaComponent implements OnInit {
     this.cargando.set(true);
     this.errorCarga.set(null);
     this.marcaService.obtener().subscribe({
-      next: (marca) => {
+      next: (marca: MarcaDeEmpresa) => {
         this.form.patchValue({
           urlLogo: marca.urlLogo ?? '',
           colorPrimario: marca.colorPrimario ?? '',

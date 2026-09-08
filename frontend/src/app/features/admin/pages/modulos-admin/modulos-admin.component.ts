@@ -271,11 +271,11 @@ export class ModulosAdminComponent implements OnInit {
     this.errorModulos.set(null);
 
     this.adminService.getModulos().subscribe({
-      next: (modulos) => {
+      next: (modulos: Modulo[]) => {
         this.modulos.set(modulos);
         this.loadingModulos.set(false);
       },
-      error: (error) => {
+      error: (error: unknown) => {
         console.error('Error al cargar módulos:', error);
         this.errorModulos.set('No se pudieron cargar los módulos. Verifica que el backend esté corriendo y la clave de admin sea correcta.');
         this.loadingModulos.set(false);
@@ -288,11 +288,11 @@ export class ModulosAdminComponent implements OnInit {
     this.errorModulosEmpresa.set(null);
 
     this.adminService.getModulosDeEmpresa(this.empresaDemoId).subscribe({
-      next: (modulos) => {
+      next: (modulos: ModuloDeEmpresa[]) => {
         this.modulosEmpresa.set(modulos);
         this.loadingModulosEmpresa.set(false);
       },
-      error: (error) => {
+      error: (error: unknown) => {
         console.error('Error al cargar módulos de empresa:', error);
         this.errorModulosEmpresa.set('No se pudieron cargar los módulos de la empresa. Asegúrate de que existan datos de prueba en la base de datos.');
         this.loadingModulosEmpresa.set(false);
@@ -322,7 +322,7 @@ export class ModulosAdminComponent implements OnInit {
         );
         this.procesando.set(false);
       },
-      error: (error) => {
+      error: (error: unknown) => {
         console.error(`Error al ${accion} módulo:`, error);
         this.snackBar.open(
           `Error al ${accion} el módulo. Intenta nuevamente.`,
