@@ -3,9 +3,14 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { MarcaPendienteService } from '../identidad-visual/marca-pendiente.service';
-import { MarcaService } from '../identidad-visual/marca.service';
-import { LoginRequest, LoginResponse, RefreshRequest, RefreshResponse, UserInfo } from './models';
+import {
+  CambiarContrasenaRequest,
+  LoginRequest,
+  LoginResponse,
+  RefreshRequest,
+  RefreshResponse,
+  UserInfo,
+} from './models';
 
 const TOKEN_KEY = 'mp_access_token';
 const REFRESH_TOKEN_KEY = 'mp_refresh_token';
@@ -16,12 +21,16 @@ const EMPRESA_KEY = 'mp_identificador_empresa';
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
-  private readonly marcaService = inject(MarcaService);
-  private readonly marcaPendiente = inject(MarcaPendienteService);
 
   private readonly currentUserSignal = signal<UserInfo | null>(this.readStoredUser());
   readonly currentUser = this.currentUserSignal.asReadonly();
   readonly isAuthenticated = computed(() => this.currentUserSignal() !== null);
+
+  // Si el token trae la claim "pwd_temp", el backend (JwtAuthFilter) bloquea
+  // todas las rutas menos /auth/** hasta que se llame POST
+  // /auth/cambiar-contrasena. Se lee del propio JWT (no solo de la respuesta
+  // de login) para que sobreviva a un refresh de pagina.
+  readonly debeCambiarContrasena = signal(this.leerPwdTempDelToken());
 
   login(request: LoginRequest): Observable<LoginResponse> {
     return this.http
@@ -40,6 +49,12 @@ export class AuthService {
     return this.http
       .post<RefreshResponse>(`${environment.apiUrl}/auth/refresh`, request)
       .pipe(tap((res: RefreshResponse) => this.storeSession(res, identificadorEmpresa)));
+  }
+
+  cambiarContrasena(request: CambiarContrasenaRequest): Observable<void> {
+    return this.http
+      .post<void>(`${environment.apiUrl}/auth/cambiar-contrasena`, request)
+      .pipe(tap(() => this.debeCambiarContrasena.set(false)));
   }
 
   logout(): void {
@@ -71,34 +86,29 @@ export class AuthService {
     const userInfo: UserInfo = { usuarioId: res.usuarioId };
     localStorage.setItem(USER_KEY, JSON.stringify(userInfo));
     this.currentUserSignal.set(userInfo);
-
-    this.aplicarMarcaPendienteSiExiste(identificadorEmpresa);
-  }
-
-  /**
-   * Si en el registro (RegistroEmpresaComponent) el usuario eligio logo y/o
-   * colores antes de que la empresa existiera realmente, quedaron guardados
-   * en localStorage (MarcaPendienteService) porque en ese momento no habia
-   * JWT con el que llamar a PUT /mi-empresa/marca. Ahora que hay sesion,
-   * los aplicamos una sola vez y los borramos. Si falla (red, validacion),
-   * los dejamos para reintentar en el proximo login -- no bloquea el login
-   * actual de ninguna forma.
-   */
-  private aplicarMarcaPendienteSiExiste(identificadorEmpresa: string): void {
-    const marca = this.marcaPendiente.obtener(identificadorEmpresa);
-    if (!marca) {
-      return;
-    }
-    this.marcaService.actualizar(marca).subscribe({
-      next: () => this.marcaPendiente.limpiar(identificadorEmpresa),
-      error: () => {
-        // se reintenta en el proximo login
-      },
-    });
+    this.debeCambiarContrasena.set(res.debeCambiarContrasena);
   }
 
   private readStoredUser(): UserInfo | null {
     const raw = localStorage.getItem(USER_KEY);
     return raw ? (JSON.parse(raw) as UserInfo) : null;
+  }
+
+  // Decodifica el payload del JWT (sin validar firma -- eso ya lo hizo el
+  // backend; aqui solo leemos la claim para decidir a donde navegar) y lee
+  // "pwd_temp". Si no hay token o no se puede decodificar, asume que no.
+  private leerPwdTempDelToken(): boolean {
+    const token = this.getToken();
+    if (!token) {
+      return false;
+    }
+    try {
+      const payloadBase64Url = token.split('.')[1];
+      const payloadJson = atob(payloadBase64Url.replaceAll('-', '+').replaceAll('_', '/'));
+      const payload = JSON.parse(payloadJson) as { pwd_temp?: boolean };
+      return payload.pwd_temp === true;
+    } catch {
+      return false;
+    }
   }
 }
