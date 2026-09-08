@@ -15,7 +15,10 @@ import java.time.Instant;
 import java.util.stream.Collectors;
 
 /** Acotado a estos controllers: el handler de IllegalArgumentException es amplio y no debe pisar a otros modulos. */
-@RestControllerAdvice(assignableTypes = { AltaEmpresaController.class, RegistroModulosController.class })
+@RestControllerAdvice(assignableTypes = {
+        AltaEmpresaController.class,
+        RegistroModulosController.class,
+        RegistroPersonalizacionController.class })
 class ManejadorErroresAprovisionamiento {
 
     @ExceptionHandler(EmpresaYaExisteException.class)

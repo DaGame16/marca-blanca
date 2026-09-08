@@ -1,11 +1,14 @@
 package com.marcablanca.platform.aprovisionamiento.infrastructure;
 
+import com.marcablanca.platform.aprovisionamiento.application.PersonalizarEmpresaService;
 import com.marcablanca.platform.aprovisionamiento.application.RegistrarEmpresaService;
 import com.marcablanca.platform.aprovisionamiento.application.SeleccionarModuloService;
+import com.marcablanca.platform.aprovisionamiento.application.port.in.PersonalizarEmpresa;
 import com.marcablanca.platform.aprovisionamiento.application.port.in.RegistrarEmpresa;
 import com.marcablanca.platform.aprovisionamiento.application.port.in.SeleccionarModulo;
 import com.marcablanca.platform.aprovisionamiento.application.port.out.ActivadorDeModulosDeEmpresa;
 import com.marcablanca.platform.aprovisionamiento.application.port.out.RepositorioEmpresas;
+import com.marcablanca.platform.aprovisionamiento.application.port.out.RepositorioPersonalizacion;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,5 +32,11 @@ public class ConfiguracionAprovisionamiento {
     SeleccionarModulo seleccionarModulo(RepositorioEmpresas repositorioEmpresas,
                                         ActivadorDeModulosDeEmpresa modulos) {
         return new SeleccionarModuloService(repositorioEmpresas, modulos);
+    }
+
+    @Bean
+    PersonalizarEmpresa personalizarEmpresa(RepositorioEmpresas repositorioEmpresas,
+                                            RepositorioPersonalizacion repositorioPersonalizacion) {
+        return new PersonalizarEmpresaService(repositorioEmpresas, repositorioPersonalizacion);
     }
 }

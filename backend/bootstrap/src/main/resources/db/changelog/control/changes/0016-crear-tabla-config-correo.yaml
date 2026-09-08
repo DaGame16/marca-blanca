@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 0018-crear-tabla-config-correo
+      id: 0016-crear-tabla-config-correo
       author: leidi
       comment: Config SMTP de la plataforma marca blanca (correos de bienvenida y notificaciones a clientes). secreto_ref apunta al vault.
       changes:
