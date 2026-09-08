@@ -6,6 +6,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MarcaService } from '../../../../core/identidad-visual/marca.service';
 import type { MarcaDeEmpresa } from '../../../../core/identidad-visual/models';
+import { TemaPaginaService, TemaPagina } from '../../../../core/temas/tema-pagina.service';
 
 type CodigoTema = 'lateral' | 'centrado' | 'fondo';
 
@@ -35,6 +36,19 @@ const OPCIONES: OpcionTema[] = [
     nombre: 'Fondo completo',
     descripcion: 'Fondo degradado a pantalla completa con el formulario flotando en el centro.',
   },
+];
+
+interface OpcionPagina {
+  codigo: TemaPagina;
+  numero: number;
+  nombre: string;
+  descripcion: string;
+}
+
+const OPCIONES_PAGINA: OpcionPagina[] = [
+  { codigo: 'clasico', numero: 1, nombre: 'Clásico', descripcion: 'El espaciado y densidad actuales de la plataforma.' },
+  { codigo: 'compacto', numero: 2, nombre: 'Compacto', descripcion: 'Menos espacio entre elementos, más contenido visible.' },
+  { codigo: 'amplio', numero: 3, nombre: 'Amplio', descripcion: 'Más aire entre secciones, tipografía más grande.' },
 ];
 
 @Component({
@@ -115,6 +129,32 @@ const OPCIONES: OpcionTema[] = [
         <mat-icon inline>open_in_new</mat-icon>
         Ver el login en una pestaña nueva
       </a>
+
+      <header class="temas-header seccion-pagina">
+        <h1>Densidad de las páginas</h1>
+        <p>Cuánto espacio dejar entre elementos en el resto de la plataforma (menú, listados, etc.).</p>
+      </header>
+
+      <div class="opciones-pagina">
+        @for (opcion of opcionesPagina; track opcion.codigo) {
+          <div class="pagina-card" [class.pagina-card-activa]="codigoPaginaActivo() === opcion.codigo">
+            <div>
+              <h3>{{ opcion.nombre }}</h3>
+              <p class="tema-desc">{{ opcion.descripcion }}</p>
+            </div>
+            @if (codigoPaginaActivo() === opcion.codigo) {
+              <button mat-flat-button disabled class="btn-activo">
+                <mat-icon>check_circle</mat-icon>
+                En uso
+              </button>
+            } @else {
+              <button mat-stroked-button [disabled]="guardandoPagina()" (click)="elegirPagina(opcion)">
+                Usar esta densidad
+              </button>
+            }
+          </div>
+        }
+      </div>
     </div>
   `,
   styles: [`
@@ -281,18 +321,60 @@ const OPCIONES: OpcionTema[] = [
       justify-content: center;
       padding: 40px 0;
     }
+
+    .seccion-pagina {
+      margin-top: 56px;
+    }
+
+    .opciones-pagina {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .pagina-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .pagina-card-activa {
+      border-color: #93c5fd;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    .pagina-card h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin: 0 0 2px;
+      color: #0f172a;
+    }
+
+    .pagina-card .tema-desc {
+      margin: 0;
+      min-height: 0;
+    }
   `],
 })
 export class SelectorTemaLoginComponent implements OnInit {
   private readonly marcaService = inject(MarcaService);
+  private readonly temaPaginaService = inject(TemaPaginaService);
   private readonly snackBar = inject(MatSnackBar);
 
   protected readonly opciones = OPCIONES;
+  protected readonly opcionesPagina = OPCIONES_PAGINA;
   protected readonly cargando = signal(true);
   protected readonly guardando = signal(false);
+  protected readonly guardandoPagina = signal(false);
   private marcaActual: MarcaDeEmpresa | null = null;
 
   protected readonly codigoActivo = signal<CodigoTema>('lateral');
+  protected readonly codigoPaginaActivo = signal<TemaPagina>('clasico');
 
   ngOnInit(): void {
     this.marcaService.obtener().subscribe({
@@ -300,6 +382,8 @@ export class SelectorTemaLoginComponent implements OnInit {
         this.marcaActual = marca;
         const opcion = OPCIONES.find((o) => o.numero === marca.tipoLogin);
         this.codigoActivo.set(opcion?.codigo ?? 'lateral');
+        const opcionPagina = OPCIONES_PAGINA.find((o) => o.numero === marca.tipoPantallaPrincipal);
+        this.codigoPaginaActivo.set(opcionPagina?.codigo ?? 'clasico');
         this.cargando.set(false);
       },
       error: () => this.cargando.set(false),
@@ -326,6 +410,34 @@ export class SelectorTemaLoginComponent implements OnInit {
       error: () => {
         this.guardando.set(false);
         this.snackBar.open('No se pudo guardar el diseño. Intenta de nuevo.', 'Cerrar', { duration: 4000 });
+      },
+    });
+  }
+
+  elegirPagina(opcion: OpcionPagina): void {
+    this.guardandoPagina.set(true);
+    const marca: MarcaDeEmpresa = {
+      urlLogo: this.marcaActual?.urlLogo ?? null,
+      colorPrimario: this.marcaActual?.colorPrimario ?? null,
+      colorSecundario: this.marcaActual?.colorSecundario ?? null,
+      dominioPropio: this.marcaActual?.dominioPropio ?? null,
+      tipoLogin: this.marcaActual?.tipoLogin ?? null,
+      tipoPantallaPrincipal: opcion.numero,
+    };
+    this.marcaService.actualizar(marca).subscribe({
+      next: () => {
+        this.marcaActual = marca;
+        this.codigoPaginaActivo.set(opcion.codigo);
+        // Se aplica al instante en este mismo navegador (el shell, la
+        // proxima vez que abra en cualquier otro, lo sincroniza desde el
+        // backend -- ver ShellComponent).
+        this.temaPaginaService.elegir(opcion.codigo);
+        this.guardandoPagina.set(false);
+        this.snackBar.open(`Densidad "${opcion.nombre}" activada`, 'Cerrar', { duration: 2500 });
+      },
+      error: () => {
+        this.guardandoPagina.set(false);
+        this.snackBar.open('No se pudo guardar la densidad. Intenta de nuevo.', 'Cerrar', { duration: 4000 });
       },
     });
   }

@@ -3,7 +3,10 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../core/auth/auth.service';
-import { TemaPaginaService } from '../core/temas/tema-pagina.service';
+import { TemaPaginaService, TemaPagina } from '../core/temas/tema-pagina.service';
+import { MarcaService } from '../core/identidad-visual/marca.service';
+
+const CODIGO_A_TEMA_PAGINA: Record<number, TemaPagina> = { 1: 'clasico', 2: 'compacto', 3: 'amplio' };
 @Component({
   selector: 'app-shell',
   standalone: true,
@@ -69,6 +72,30 @@ import { TemaPaginaService } from '../core/temas/tema-pagina.service';
 export class ShellComponent {
   protected readonly auth = inject(AuthService);
   protected readonly temaPagina = inject(TemaPaginaService);
+  private readonly marcaService = inject(MarcaService);
+
+  constructor() {
+    // El tema de pagina se elige una vez en el wizard de registro y ahi
+    // queda guardado en el backend -- pero TemaPaginaService por su cuenta
+    // solo conoce lo ultimo que se guardo en localStorage DE ESTE
+    // navegador. En cualquier otro navegador/dispositivo (o si se cambia
+    // despues desde "Experiencia de acceso") se veia siempre el default.
+    // Al entrar al shell, la fuente de verdad real (el backend) sincroniza
+    // el valor correcto.
+    this.marcaService.obtener().subscribe({
+      next: (marca) => {
+        const tema = marca.tipoPantallaPrincipal ? CODIGO_A_TEMA_PAGINA[marca.tipoPantallaPrincipal] : undefined;
+        if (tema) {
+          this.temaPagina.elegir(tema);
+        }
+      },
+      error: () => {
+        // Sin marca configurada todavia -- se queda con lo que ya habia en
+        // localStorage (o el default), no es un error visible para el usuario.
+      },
+    });
+  }
+
   protected empresa(): string {
     return localStorage.getItem('mp_identificador_empresa') || 'Mi empresa';
   }
