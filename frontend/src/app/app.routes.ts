@@ -12,64 +12,27 @@ import { SelectorTemaLoginComponent } from './features/empresas/pages/selector-t
 import { ListaUsuariosComponent } from './features/usuarios/pages/lista-usuarios/lista-usuarios.component';
 import { OmnicanalDetalleComponent } from './features/omnicanal/pages/detalle/omnicanal-detalle.component';
 import { Pbx3cxDetalleComponent } from './features/3cx/pages/detalle/pbx-3cx-detalle.component';
+import { ShellComponent } from './layout/shell.component';
 
 export const routes: Routes = [
+  { path: '', component: HomeComponent, pathMatch: 'full' },
+  { path: 'login', component: LoginComponent },
+  { path: 'registro', component: RegistroEmpresaComponent },
+  { path: 'admin/modulos', component: ModulosAdminComponent },
+  { path: 'modulos/omnicanal', component: OmnicanalDetalleComponent },
+  { path: 'modulos/pbx-3cx', component: Pbx3cxDetalleComponent },
   {
     path: '',
-    component: HomeComponent,
-  },
-  {
-    path: 'login',
-    component: LoginComponent,
-  },
-  {
-    path: 'registro',
-    component: RegistroEmpresaComponent,
-  },
-  {
-    path: 'admin/modulos',
-    component: ModulosAdminComponent,
-    // TODO: Agregar guard de admin cuando se implemente sistema de roles
-    // canActivate: [authGuard, adminGuard],
-  },
-  {
-    path: 'modulos/omnicanal',
-    component: OmnicanalDetalleComponent,
-  },
-  {
-    path: 'modulos/pbx-3cx',
-    component: Pbx3cxDetalleComponent,
-  },
-  {
-    // Pantalla estilo "Apps" de Odoo: cada empresa activa/desactiva sus
-    // propios modulos desde su propia sesion.
-    path: 'mis-modulos',
-    component: MisModulosComponent,
+    component: ShellComponent,
     canActivate: [authGuard],
+    children: [
+      { path: 'mis-modulos', component: MisModulosComponent },
+      { path: 'mi-marca', component: MiMarcaComponent },
+      { path: 'tema-login', component: SelectorTemaLoginComponent },
+      { path: 'usuarios', component: ListaUsuariosComponent },
+      { path: 'tareas', component: ListaTareas },
+      { path: 'tareas/:id', component: DetalleTarea },
+    ],
   },
-  {
-    path: 'mi-marca',
-    component: MiMarcaComponent,
-    canActivate: [authGuard],
-  },
-  {
-    path: 'tema-login',
-    component: SelectorTemaLoginComponent,
-    canActivate: [authGuard],
-  },
-  {
-    path: 'usuarios',
-    component: ListaUsuariosComponent,
-    canActivate: [authGuard],
-  },
-  {
-    path: 'tareas',
-    component: ListaTareas,
-    canActivate: [authGuard],
-  },
-  {
-    path: 'tareas/:id',
-    component: DetalleTarea,
-    canActivate: [authGuard],
-  },
+  { path: '**', redirectTo: '' },
 ];
