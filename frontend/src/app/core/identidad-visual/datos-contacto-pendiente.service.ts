@@ -14,7 +14,7 @@ const PREFIJO = 'mp_contacto_pendiente_';
  * quedan aqui hasta que el equipo de backend amplie el contrato. Mismo
  * patron que MarcaPendienteService.
  *
- * TODO(backend): cuando RegistrarEmpresaRequest incluya correo/telefono,
+ * Pendiente (backend): cuando RegistrarEmpresaRequest incluya correo/telefono,
  * enviarlos directo en el POST /api/v1/admin/empresas y eliminar este
  * servicio (o usarlo solo como respaldo si el POST falla).
  */

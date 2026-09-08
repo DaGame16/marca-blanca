@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, effect, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -34,7 +34,8 @@ function generarIdentificador(nombre: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '_')
     .replace(/_+/g, '_')
-    .replace(/^_+|_+$/g, '');
+    .replace(/^_+/, '')
+    .replace(/_+$/, '');
 
   if (!valor) {
     valor = 'empresa';
@@ -49,7 +50,6 @@ function generarIdentificador(nombre: string): string {
 // 0011-poblar-catalogo-modulos.yaml en bootstrap) -- solo para que el
 // wizard no se quede sin opciones si el backend no responde.
 const MODULOS_RESPALDO: Modulo[] = [
-  { id: 'usuarios', codigo: 'usuarios', nombre: 'Usuarios y acceso', descripcion: 'Gestion de usuarios, roles y permisos' },
   { id: 'omnicanal', codigo: 'omnicanal', nombre: 'Comunicacion omnicanal', descripcion: 'Chat interno y bot de WhatsApp (Liwa)' },
   { id: '3cx', codigo: '3cx', nombre: '3CX', descripcion: 'Integracion telefonica 3CX' },
 ];
@@ -107,6 +107,29 @@ const MAX_LOGO_BYTES = 500 * 1024;
 
 type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
 
+// Guardamos el progreso del wizard en sessionStorage para que un refresh de
+// pagina (F5, cierre accidental de pestaña que el navegador restaura, etc.)
+// no borre lo que el usuario ya escribio. La contraseña maestra queda fuera
+// a propósito -- no queremos contraseñas en texto plano en almacenamiento del
+// navegador, así que ese campo se pide de nuevo si hubo un refresh.
+const CLAVE_ESTADO_WIZARD = 'registro-empresa-wizard-v1';
+
+interface EstadoWizardGuardado {
+  paso: PasoWizard;
+  identificadorTocadoManualmente: boolean;
+  form: {
+    nombreLegal: string;
+    nombreRepresentanteLegal: string;
+    identificador: string;
+    correo: string;
+    telefono: string;
+  };
+  modulosSeleccionados: string[];
+  logoDataUrl: string | null;
+  colorPrimario: string;
+  colorSecundario: string;
+}
+
 @Component({
   selector: 'app-registro-empresa',
   standalone: true,
@@ -123,21 +146,18 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
   ],
   template: `
     <div class="registro-page">
-      <header class="topbar">
-        <div class="topbar-left">
-          <a routerLink="/" class="topbar-back">
-            <mat-icon inline>arrow_back</mat-icon>
-            Volver al inicio
-          </a>
-          <div class="topbar-logo">
-          <mat-icon class="topbar-logo-icon">hub</mat-icon>
-          <span>Marca Blanca</span>
+      <div class="cabecera-fija">
+        <header class="topbar">
+          <div class="topbar-left">
+            <a routerLink="/" class="topbar-logo">
+              <mat-icon class="topbar-logo-icon">hub</mat-icon>
+              <span>Marca Blanca</span>
+            </a>
           </div>
-        </div>
-        <a routerLink="/login" class="topbar-link">Ya tengo cuenta</a>
-      </header>
+          <a routerLink="/login" class="topbar-link">Ya tengo cuenta</a>
+        </header>
 
-      @if (paso() <= 5) {
+        @if (paso() <= 5) {
         <div class="stepper">
           <div class="stepper-item" [class.stepper-item-activo]="paso() >= 1" [class.stepper-item-hecho]="paso() > 1">
             <span class="stepper-circulo">
@@ -169,13 +189,18 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
           <span class="stepper-raya" [class.stepper-raya-activa]="paso() > 4"></span>
           <div class="stepper-item" [class.stepper-item-activo]="paso() >= 5">
             <span class="stepper-circulo">5</span>
-            <span class="stepper-texto">Pago</span>
+            <span class="stepper-texto">Confirmar</span>
           </div>
         </div>
-      }
+        }
+      </div>
 
       <section class="form-panel">
-        <div class="form-wrapper" [class.form-wrapper-exito]="paso() === 5">
+        <div
+          class="form-wrapper"
+          [class.form-wrapper-exito]="paso() === 6"
+          [class.form-wrapper-ancho]="paso() === 3"
+        >
           @switch (paso()) {
             @case (1) {
               <h2>Datos de tu empresa</h2>
@@ -386,75 +411,79 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
               </div>
 
               <div class="marca-fields">
-                <div class="logo-field">
-                  <span class="campo-label">Logo de tu empresa</span>
-                  <div class="logo-row">
-                    @if (logoDataUrl()) {
-                      <img [src]="logoDataUrl()" alt="Vista previa del logo" class="logo-preview" />
-                    } @else {
-                      <div class="logo-preview logo-preview-vacio">
-                        <mat-icon>image</mat-icon>
-                      </div>
-                    }
-                    <div class="logo-acciones">
-                      <input #inputLogo type="file" accept="image/*" hidden (change)="onLogoSeleccionado($event)" />
-                      <button mat-stroked-button type="button" (click)="inputLogo.click()">
-                        {{ logoDataUrl() ? 'Cambiar logo' : 'Subir logo' }}
-                      </button>
+                <div class="marca-fields-col">
+                  <div class="logo-field">
+                    <span class="campo-label">Logo de tu empresa</span>
+                    <div class="logo-row">
                       @if (logoDataUrl()) {
-                        <button mat-button type="button" (click)="quitarLogo()">Quitar</button>
+                        <img [src]="logoDataUrl()" alt="Vista previa del logo" class="logo-preview" />
+                      } @else {
+                        <div class="logo-preview logo-preview-vacio">
+                          <mat-icon>image</mat-icon>
+                        </div>
+                      }
+                      <div class="logo-acciones">
+                        <input #inputLogo type="file" accept="image/*" hidden (change)="onLogoSeleccionado($event)" />
+                        <button mat-stroked-button type="button" (click)="inputLogo.click()">
+                          {{ logoDataUrl() ? 'Cambiar logo' : 'Subir logo' }}
+                        </button>
+                        @if (logoDataUrl()) {
+                          <button mat-button type="button" (click)="quitarLogo()">Quitar</button>
+                        }
+                      </div>
+                    </div>
+                    @if (errorLogo()) {
+                      <p class="error-logo">{{ errorLogo() }}</p>
+                    } @else {
+                      <p class="campo-hint">PNG o JPG, hasta 500 KB.</p>
+                    }
+                  </div>
+
+                  <div class="colores-fields">
+                    <label class="color-field">
+                      <span class="campo-label">Primario (a medida)</span>
+                      <input
+                        type="color"
+                        [value]="colorPrimario()"
+                        (input)="colorPrimario.set($any($event.target).value)"
+                      />
+                      <span class="color-valor">{{ colorPrimario() }}</span>
+                    </label>
+                    <label class="color-field">
+                      <span class="campo-label">Secundario (a medida)</span>
+                      <input
+                        type="color"
+                        [value]="colorSecundario()"
+                        (input)="colorSecundario.set($any($event.target).value)"
+                      />
+                      <span class="color-valor">{{ colorSecundario() }}</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="marca-fields-col">
+                  <div class="paleta-field">
+                    <span class="campo-label">Paleta de colores</span>
+                    <div class="paleta-grid">
+                      @for (paleta of paletasPredefinidas; track paleta.nombre) {
+                        <button
+                          type="button"
+                          class="paleta-swatch"
+                          [class.paleta-swatch-activa]="colorPrimario() === paleta.primario && colorSecundario() === paleta.secundario"
+                          (click)="elegirPaleta(paleta)"
+                        >
+                          <span class="paleta-colores">
+                            <span class="paleta-mitad" [style.background]="paleta.primario"></span>
+                            <span class="paleta-mitad" [style.background]="paleta.secundario"></span>
+                          </span>
+                          <span class="paleta-nombre">{{ paleta.nombre }}</span>
+                          @if (colorPrimario() === paleta.primario && colorSecundario() === paleta.secundario) {
+                            <mat-icon class="paleta-check" inline>check_circle</mat-icon>
+                          }
+                        </button>
                       }
                     </div>
                   </div>
-                  @if (errorLogo()) {
-                    <p class="error-logo">{{ errorLogo() }}</p>
-                  } @else {
-                    <p class="campo-hint">PNG o JPG, hasta 500 KB.</p>
-                  }
-                </div>
-
-                <div class="paleta-field">
-                  <span class="campo-label">Paleta de colores</span>
-                  <div class="paleta-grid">
-                    @for (paleta of paletasPredefinidas; track paleta.nombre) {
-                      <button
-                        type="button"
-                        class="paleta-swatch"
-                        [class.paleta-swatch-activa]="colorPrimario() === paleta.primario && colorSecundario() === paleta.secundario"
-                        (click)="elegirPaleta(paleta)"
-                      >
-                        <span class="paleta-colores">
-                          <span class="paleta-mitad" [style.background]="paleta.primario"></span>
-                          <span class="paleta-mitad" [style.background]="paleta.secundario"></span>
-                        </span>
-                        <span class="paleta-nombre">{{ paleta.nombre }}</span>
-                        @if (colorPrimario() === paleta.primario && colorSecundario() === paleta.secundario) {
-                          <mat-icon class="paleta-check" inline>check_circle</mat-icon>
-                        }
-                      </button>
-                    }
-                  </div>
-                </div>
-
-                <div class="colores-fields">
-                  <label class="color-field">
-                    <span class="campo-label">Primario (a medida)</span>
-                    <input
-                      type="color"
-                      [value]="colorPrimario()"
-                      (input)="colorPrimario.set($any($event.target).value)"
-                    />
-                    <span class="color-valor">{{ colorPrimario() }}</span>
-                  </label>
-                  <label class="color-field">
-                    <span class="campo-label">Secundario (a medida)</span>
-                    <input
-                      type="color"
-                      [value]="colorSecundario()"
-                      (input)="colorSecundario.set($any($event.target).value)"
-                    />
-                    <span class="color-valor">{{ colorSecundario() }}</span>
-                  </label>
                 </div>
               </div>
 
@@ -569,15 +598,6 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
                 }
               </div>
 
-              <div class="resumen-pago-total">
-                <span>Costo de activación</span>
-                <strong>Gratis</strong>
-              </div>
-              <p class="campo-hint">
-                En el entorno local no se requiere pago. Tu espacio se creará sin costo para que
-                puedas probar el flujo completo.
-              </p>
-
               @if (errorCreacion()) {
                 <p class="error-creacion">
                   <mat-icon inline>error_outline</mat-icon>
@@ -622,9 +642,9 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
                   <h2>Empresa registrada</h2>
                   <p class="form-subtitle">
                     <strong>{{ form.controls.identificador.value }}</strong> quedó creada con estado
-                    <code>{{ resultado()?.estado }}</code>. El aprovisionamiento de la base de datos
-                    sigue en curso — intenta iniciar sesión en un momento con el identificador y la
-                    contraseña maestra que definiste.
+                    <code>{{ resultado()?.estado }}</code>. Hemos enviado tus credenciales de acceso
+                    (usuario y contraseña) al correo <strong>{{ form.controls.correo.value }}</strong>.
+                    Revisa tu bandeja de entrada, y la carpeta de spam por si acaso, en unos minutos.
                   </p>
                   <div class="subdominio-local">
                     <span class="subdominio-local-label">Tu espacio local</span>
@@ -660,43 +680,26 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
         background: radial-gradient(circle at 20% -10%, #1e293b 0%, #0f172a 55%, #0b1120 100%);
       }
 
-      .topbar {
+      .cabecera-fija {
         position: sticky;
         top: 0;
         z-index: 20;
+        background: rgba(15, 23, 42, 0.96);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+      }
+
+      .topbar {
         display: flex;
         align-items: center;
         justify-content: space-between;
         padding: 20px 32px;
-        background: rgba(15, 23, 42, 0.92);
-        backdrop-filter: blur(12px);
-        border-bottom: 1px solid rgba(148, 163, 184, 0.14);
       }
 
       .topbar-left {
         display: flex;
         align-items: center;
         gap: 28px;
-      }
-
-      .topbar-back {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        color: #cbd5e1;
-        font-size: 0.82rem;
-        font-weight: 600;
-        text-decoration: none;
-      }
-
-      .topbar-back:hover {
-        color: #fff;
-      }
-
-      .topbar-back mat-icon {
-        width: 17px;
-        height: 17px;
-        font-size: 17px;
       }
 
       .topbar-logo {
@@ -706,6 +709,12 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
         font-size: 18px;
         font-weight: 700;
         color: #f1f5f9;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .topbar-logo:hover {
+        color: #fff;
       }
 
       .topbar-logo-icon {
@@ -815,6 +824,10 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
         background: transparent;
         box-shadow: none;
         max-width: 640px;
+      }
+
+      .form-wrapper-ancho {
+        max-width: 860px;
       }
 
       .back-link {
@@ -1137,14 +1150,28 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
       }
 
       .marca-fields {
-        display: flex;
-        flex-direction: column;
-        gap: 18px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+        gap: 20px;
         background: white;
         border: 1px solid #e2e8f0;
         border-radius: 12px;
         padding: 16px;
         margin-bottom: 8px;
+      }
+
+      .marca-fields-col {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        min-width: 0;
+      }
+
+      @media (max-width: 640px) {
+        .marca-fields {
+          grid-template-columns: 1fr;
+        }
       }
 
       .campo-label {
@@ -1319,21 +1346,6 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
       .resumen-pago-precio {
         color: #16a34a;
         font-weight: 600;
-      }
-
-      .resumen-pago-total {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        padding: 12px 14px;
-        border-top: 2px solid #0f172a;
-        margin-bottom: 8px;
-        font-size: 1rem;
-      }
-
-      .resumen-pago-total strong {
-        font-size: 1.3rem;
-        color: #0f172a;
       }
 
       .resumen-logo {
@@ -1584,18 +1596,9 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
           padding: 16px 20px;
         }
 
+
         .topbar-left {
           gap: 14px;
-        }
-
-        .topbar-back {
-          font-size: 0;
-        }
-
-        .topbar-back mat-icon {
-          font-size: 20px;
-          width: 20px;
-          height: 20px;
         }
 
         .stepper {
@@ -1624,6 +1627,7 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
 })
 export class RegistroEmpresaComponent {
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
   private readonly snackBar = inject(MatSnackBar);
   private readonly adminService = inject(AdminService);
@@ -1681,7 +1685,89 @@ export class RegistroEmpresaComponent {
   });
 
   constructor() {
+    this.restaurarEstadoGuardado();
     this.cargarModulos();
+
+    this.form.valueChanges.subscribe(() => this.guardarEstado());
+    effect(() => {
+      // Se leen las señales relevantes para que el effect se reevalue cuando
+      // cambien (paso, modulos, logo, colores); el valor en si no se usa.
+      this.paso();
+      this.modulosSeleccionados();
+      this.logoDataUrl();
+      this.colorPrimario();
+      this.colorSecundario();
+      this.guardarEstado();
+    });
+
+    // Si el usuario abandona el registro (vuelve al inicio, va a login, etc.)
+    // en vez de completarlo, no tiene sentido dejarle el formulario a medias
+    // guardado para la proxima vez que entre -- se limpia y arranca en blanco.
+    this.destroyRef.onDestroy(() => this.limpiarEstadoGuardado());
+  }
+
+  private limpiarEstadoGuardado(): void {
+    try {
+      sessionStorage.removeItem(CLAVE_ESTADO_WIZARD);
+    } catch {
+      // No es critico si falla.
+    }
+  }
+
+  private guardarEstado(): void {
+    if (this.paso() === 6) {
+      // Ya se creo la empresa: no tiene sentido restaurar este wizard despues.
+      return;
+    }
+    const estado: EstadoWizardGuardado = {
+      paso: this.paso(),
+      identificadorTocadoManualmente: this.identificadorTocadoManualmente,
+      form: {
+        nombreLegal: this.form.controls.nombreLegal.value,
+        nombreRepresentanteLegal: this.form.controls.nombreRepresentanteLegal.value,
+        identificador: this.form.controls.identificador.value,
+        correo: this.form.controls.correo.value,
+        telefono: this.form.controls.telefono.value,
+      },
+      modulosSeleccionados: this.modulosSeleccionados(),
+      logoDataUrl: this.logoDataUrl(),
+      colorPrimario: this.colorPrimario(),
+      colorSecundario: this.colorSecundario(),
+    };
+    try {
+      sessionStorage.setItem(CLAVE_ESTADO_WIZARD, JSON.stringify(estado));
+    } catch {
+      // sessionStorage puede fallar (modo privado, cuotas); no es critico.
+    }
+  }
+
+  private restaurarEstadoGuardado(): void {
+    let crudo: string | null = null;
+    try {
+      crudo = sessionStorage.getItem(CLAVE_ESTADO_WIZARD);
+    } catch {
+      return;
+    }
+    if (!crudo) {
+      return;
+    }
+    try {
+      const estado = JSON.parse(crudo) as EstadoWizardGuardado;
+      this.form.patchValue(estado.form, { emitEvent: false });
+      this.identificadorTocadoManualmente = estado.identificadorTocadoManualmente;
+      this.modulosSeleccionados.set(estado.modulosSeleccionados ?? []);
+      this.logoDataUrl.set(estado.logoDataUrl ?? null);
+      this.colorPrimario.set(estado.colorPrimario ?? this.colorPrimario());
+      this.colorSecundario.set(estado.colorSecundario ?? this.colorSecundario());
+      // Si veniamos del paso de exito (6) no hay nada que restaurar; ademas
+      // nunca guardamos con paso 6 (ver guardarEstado), asi que esto es solo
+      // defensivo por si quedo un valor de una version anterior.
+      if (estado.paso >= 1 && estado.paso <= 5) {
+        this.paso.set(estado.paso);
+      }
+    } catch {
+      // Estado corrupto o de una version anterior incompatible: lo ignoramos.
+    }
   }
 
   private cargarModulos(): void {
@@ -1691,7 +1777,7 @@ export class RegistroEmpresaComponent {
         // con HTTP 200. En ese caso usamos el mismo respaldo que usamos
         // cuando el endpoint no está disponible, para que el wizard no quede
         // visualmente vacío.
-        const catalogo = modulos.length > 0 ? modulos : MODULOS_RESPALDO;
+        const catalogo = this.filtrarModulosEnVenta(modulos.length > 0 ? modulos : MODULOS_RESPALDO);
         this.modulos.set(catalogo);
         this.errorModulos.set(false);
         this.cargandoModulos.set(false);
@@ -1704,6 +1790,16 @@ export class RegistroEmpresaComponent {
         this.aplicarModuloPreseleccionado(MODULOS_RESPALDO);
       },
     });
+  }
+
+  // "usuarios" es un modulo base que toda empresa recibe por defecto, no uno
+  // en venta -- por ahora solo omnicanal y 3cx se ofrecen en este paso del
+  // wizard. Si el catalogo del backend llega a tener mas modulos en venta,
+  // ajustar este filtro.
+  private filtrarModulosEnVenta(modulos: Modulo[]): Modulo[] {
+    const codigosEnVenta = new Set(['omnicanal', '3cx']);
+    const filtrados = modulos.filter((m) => codigosEnVenta.has(m.codigo));
+    return filtrados.length > 0 ? filtrados : modulos;
   }
 
   private aplicarModuloPreseleccionado(modulos: Modulo[]): void {
@@ -1815,14 +1911,15 @@ export class RegistroEmpresaComponent {
           });
 
           // El correo y telefono capturados tampoco tienen donde ir todavia en
-          // el backend -- se guardan aparte para no perderlos (ver TODO en
-          // DatosContactoPendienteService).
+          // el backend -- se guardan aparte para no perderlos (ver nota
+          // pendiente en DatosContactoPendienteService).
           this.datosContactoPendiente.guardar(valores.identificador, {
             correo: valores.correo,
             telefono: valores.telefono,
           });
 
           this.paso.set(6);
+          this.limpiarEstadoGuardado();
         },
         error: (error: HttpErrorResponse) => {
           this.creando.set(false);

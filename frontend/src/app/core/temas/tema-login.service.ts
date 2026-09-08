@@ -8,7 +8,7 @@ const TEMA_POR_DEFECTO: TemaLogin = 'lateral';
 /**
  * Selector de diseño de login, puramente visual por ahora.
  *
- * TODO: cuando exista el campo `temaLogin` en el backend (identidad-visual),
+ * Pendiente: cuando exista el campo `temaLogin` en el backend (identidad-visual),
  * esto debe pasar a leerse/guardarse vía GET/PUT /marca de la empresa (igual
  * que colorPrimario, urlLogo, etc.) en vez de localStorage. Se deja aislado
  * en este servicio para que ese cambio no toque LoginComponent ni el

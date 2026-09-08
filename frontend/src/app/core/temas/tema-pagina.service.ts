@@ -7,8 +7,8 @@ const TEMA_POR_DEFECTO: TemaPagina = 'clasico';
 
 /**
  * Selector de estilo de las paginas generales (fuera del login), puramente
- * visual por ahora -- igual que TemaLoginService. TODO: hoy ninguna otra
- * pantalla lee este valor todavia; cuando se decida aplicarlo (por ejemplo
+ * visual por ahora -- igual que TemaLoginService. Pendiente: hoy ninguna
+ * otra pantalla lee este valor todavia; cuando se decida aplicarlo (por ejemplo
  * variando densidad/espaciado del layout base), hacerlo leyendo esta misma
  * senal en vez de duplicar el mecanismo de guardado.
  */
