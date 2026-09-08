@@ -41,6 +41,17 @@ services:
       SPRING_DATASOURCE_PASSWORD: guajiranet_owner
       # En cualquier ambiente real esto se sobreescribe con un secreto de verdad.
       JWT_SECRET: ${JWT_SECRET:-solo-para-desarrollo-local-cambiar-siempre}
+      # El pipeline de aprovisionamiento (modulo aprovisionamiento) abre conexiones
+      # propias -- fuera de las unidades JPA -- para crear/clonar bases de cliente
+      # y sembrar datos en ellas. Sus defaults apuntan a "localhost", que dentro de
+      # este contenedor es el contenedor mismo, no el de Postgres: sin esto, el
+      # aprovisionamiento se queda atascado reintentando ("Failed to obtain JDBC
+      # Connection") o -- peor -- funciona a medias por resolverse por accidente.
+      APROV_MANT_URL: jdbc:postgresql://postgres:5432/postgres
+      APROV_MANT_USER: guajiranet_owner
+      APROV_MANT_PASSWORD: guajiranet_owner
+      APROV_CLIENTE_HOST: postgres
+      APROV_CLIENTE_PUERTO: "5432"
     ports:
       - "8080:8080"
 

@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { HomeComponent } from './features/home/home.component';
 import { LoginComponent } from './features/auth/login/login.component';
+import { CambiarContrasenaComponent } from './features/auth/cambiar-contrasena/cambiar-contrasena.component';
 import { RegistroEmpresaComponent } from './features/auth/registro/registro-empresa.component';
 import { ListaTareas } from './features/tareas/pages/lista-tareas/lista-tareas';
 import { DetalleTarea } from './features/tareas/pages/detalle-tarea/detalle-tarea';
@@ -17,6 +18,7 @@ import { ShellComponent } from './layout/shell.component';
 export const routes: Routes = [
   { path: '', component: HomeComponent, pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
+  { path: 'cambiar-contrasena', component: CambiarContrasenaComponent },
   { path: 'registro', component: RegistroEmpresaComponent },
   { path: 'admin/modulos', component: ModulosAdminComponent },
   { path: 'modulos/omnicanal', component: OmnicanalDetalleComponent },

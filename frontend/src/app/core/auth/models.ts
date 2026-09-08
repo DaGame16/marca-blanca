@@ -10,6 +10,7 @@ export interface LoginResponse {
   usuarioId: string;
   token: string;
   refreshToken: string;
+  debeCambiarContrasena: boolean;
 }
 
 // Request para renovar token - coincide con backend RefreshRequest
@@ -25,6 +26,13 @@ export interface RefreshResponse {
   usuarioId: string;
   token: string;
   refreshToken: string;
+  debeCambiarContrasena: boolean;
+}
+
+// Request para cambiar contraseña - coincide con backend CambiarContrasenaRequest
+export interface CambiarContrasenaRequest {
+  contrasenaActual: string;
+  contrasenaNueva: string;
 }
 
 // Modelo de usuario para el frontend (derivado de la respuesta de login)

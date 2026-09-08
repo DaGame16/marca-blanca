@@ -483,7 +483,8 @@ export class LoginComponent {
     this.errorMessage.set(null);
 
     this.auth.login(this.form.getRawValue()).subscribe({
-      next: () => this.router.navigateByUrl('/tareas'),
+      next: () =>
+        this.router.navigateByUrl(this.auth.debeCambiarContrasena() ? '/cambiar-contrasena' : '/tareas'),
       error: () => {
         this.errorMessage.set('Email o contraseña incorrectos');
         this.loading.set(false);

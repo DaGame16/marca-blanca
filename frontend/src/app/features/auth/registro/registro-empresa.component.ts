@@ -1,32 +1,32 @@
-import { Component, DestroyRef, effect, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
+import { forkJoin } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { TemaLogin, TemaLoginService } from '../../../core/temas/tema-login.service';
 import { TemaPagina, TemaPaginaService } from '../../../core/temas/tema-pagina.service';
 import { AdminService } from '../../../core/admin/admin.service';
 import { Modulo } from '../../../core/admin/models';
-import { MarcaPendienteService } from '../../../core/identidad-visual/marca-pendiente.service';
-import { DatosContactoPendienteService } from '../../../core/identidad-visual/datos-contacto-pendiente.service';
 import { RegistroEmpresaService } from './registro-empresa.service';
-import { RegistrarEmpresaResponse } from './registro-empresa.models';
+import { FinalizarRegistroResponse, PersonalizacionRequest } from './registro-empresa.models';
 
-// Dominio base solo para el preview visual del identificador.
+// Dominio base solo para el preview visual del identificador (antes de que
+// la empresa exista, el backend todavia no ha dicho cual es el real).
 const DOMINIO_BASE = 'marca-blanca.com';
 
 const RANGO_DIACRITICOS = /[̀-ͯ]/g;
-const PATRON_IDENTIFICADOR = /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/;
 
-// Debe producir algo que cumpla PATRON_IDENTIFICADOR (igual que
-// RegistrarEmpresaRequest.identificador en el backend): minusculas, digitos
-// y guion bajo como separador, empezando por letra. Nada de guiones "-".
+// Genera solo una VISTA PREVIA del identificador -- el real lo asigna el
+// backend (AltaEmpresaController) a partir de nombreEmpresa y se recibe en
+// la respuesta de POST /api/v1/registro/empresas. Minusculas, digitos y
+// guion bajo como separador, empezando por letra. Nada de guiones "-".
 // Quita guiones bajos al final sin regex (evita el aviso de SonarQube sobre
 // backtracking super-lineal en patrones tipo /_+$/ combinados con otros
 // reemplazos en la misma cadena).
@@ -127,14 +127,18 @@ const CLAVE_ESTADO_WIZARD = 'registro-empresa-wizard-v1';
 
 interface EstadoWizardGuardado {
   paso: PasoWizard;
-  identificadorTocadoManualmente: boolean;
   form: {
     nombreLegal: string;
     nombreRepresentanteLegal: string;
-    identificador: string;
     correo: string;
     telefono: string;
+    sitioWeb: string;
   };
+  // Si el paso 1 ya se envio al backend en esta sesion, guardamos lo que
+  // devolvio para no crear una empresa duplicada si el usuario refresca.
+  empresaId: string | null;
+  identificadorReal: string;
+  dominioReal: string;
   modulosSeleccionados: string[];
   logoDataUrl: string | null;
   colorPrimario: string;
@@ -248,57 +252,54 @@ interface EstadoWizardGuardado {
                     <mat-icon matPrefix>call</mat-icon>
                   </mat-form-field>
                 </div>
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Sitio web de tu empresa</mat-label>
+                  <input
+                    matInput
+                    formControlName="sitioWeb"
+                    (input)="onEditarSitioWebManual()"
+                    placeholder="https://tuempresa.com"
+                    autocomplete="url"
+                  />
+                  <mat-icon matPrefix>language</mat-icon>
+                </mat-form-field>
                 <p class="campo-hint">
                   Los usamos para las notificaciones de tu cuenta y para contactarte si algo falla
                   en la creación de tu empresa.
                 </p>
 
                 <div class="slug-preview">
-                  @if (editandoIdentificador()) {
-                    <mat-form-field appearance="outline" class="full-width">
-                      <mat-label>Identificador</mat-label>
-                      <input matInput formControlName="identificador" (input)="onEditarIdentificadorManual()" />
-                      <mat-icon matPrefix>link</mat-icon>
-                    </mat-form-field>
-                  } @else {
-                    <div class="slug-linea">
-                      <span class="slug-texto">
-                        <strong>{{ form.controls.identificador.value || 'tu-empresa' }}</strong>.{{ dominioBase }}
-                      </span>
-                      <button
-                        mat-icon-button
-                        type="button"
-                        (click)="editandoIdentificador.set(true)"
-                        aria-label="Editar identificador"
-                      >
-                        <mat-icon>edit</mat-icon>
-                      </button>
-                    </div>
-                  }
+                  <div class="slug-linea">
+                    <span class="slug-texto">
+                      <strong>{{ identificadorPreview() || 'tu-empresa' }}</strong>.{{ dominioBase }}
+                    </span>
+                  </div>
                   <p class="slug-hint">
-                    Solo minúsculas, números y guion bajo, empezando por una letra (ej:
-                    <code>panaderia_23</code>).
+                    El identificador final de tu subdominio lo asigna el sistema a partir del
+                    nombre de tu empresa; esto es solo una vista previa.
                   </p>
                 </div>
 
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>Contraseña maestra</mat-label>
-                  <input matInput type="password" formControlName="contrasenaMaestra" />
-                  <mat-icon matPrefix>lock</mat-icon>
-                </mat-form-field>
-                <p class="campo-hint">
-                  Es la contraseña del primer usuario administrador de tu empresa (mínimo 8
-                  caracteres).
-                </p>
+                @if (errorCreacion()) {
+                  <p class="error-creacion">
+                    <mat-icon inline>error_outline</mat-icon>
+                    {{ errorCreacion() }}
+                  </p>
+                }
 
                 <button
                   mat-flat-button
                   color="primary"
                   class="full-width submit-btn"
                   type="submit"
-                  [disabled]="form.invalid"
+                  [disabled]="form.controls.nombreLegal.invalid || form.controls.nombreRepresentanteLegal.invalid || form.controls.correo.invalid || form.controls.telefono.invalid || form.controls.sitioWeb.invalid || creandoEmpresa()"
                 >
-                  Continuar
+                  @if (creandoEmpresa()) {
+                    <mat-spinner diameter="20" />
+                  } @else {
+                    Continuar
+                  }
                 </button>
               </form>
             }
@@ -339,14 +340,26 @@ interface EstadoWizardGuardado {
                 módulos".
               </p>
 
+              @if (errorCreacion()) {
+                <p class="error-creacion">
+                  <mat-icon inline>error_outline</mat-icon>
+                  {{ errorCreacion() }}
+                </p>
+              }
+
               <button
                 mat-flat-button
                 color="primary"
                 class="full-width submit-btn"
                 type="button"
-                (click)="paso.set(3)"
+                [disabled]="activandoModulos()"
+                (click)="irAPaso3()"
               >
-                Continuar
+                @if (activandoModulos()) {
+                  <mat-spinner diameter="20" />
+                } @else {
+                  Continuar
+                }
               </button>
             }
 
@@ -359,7 +372,7 @@ interface EstadoWizardGuardado {
               <h2>Diseño de inicio de sesión</h2>
               <p class="form-subtitle">
                 Así se va a ver la pantalla de login de
-                <strong>{{ form.controls.identificador.value }}.{{ dominioBase }}</strong>
+                <strong>{{ identificadorReal() }}.{{ dominioBase }}</strong>
               </p>
 
               <div class="temas-grid">
@@ -578,14 +591,26 @@ interface EstadoWizardGuardado {
                 }
               </div>
 
+              @if (errorCreacion()) {
+                <p class="error-creacion">
+                  <mat-icon inline>error_outline</mat-icon>
+                  {{ errorCreacion() }}
+                </p>
+              }
+
               <button
                 mat-flat-button
                 color="primary"
                 class="full-width submit-btn"
                 type="button"
-                (click)="paso.set(5)"
+                [disabled]="guardandoPersonalizacion()"
+                (click)="irAPaso5()"
               >
-                Continuar
+                @if (guardandoPersonalizacion()) {
+                  <mat-spinner diameter="20" />
+                } @else {
+                  Continuar
+                }
               </button>
             }
 
@@ -621,10 +646,10 @@ interface EstadoWizardGuardado {
                 color="primary"
                 class="full-width submit-btn"
                 type="button"
-                [disabled]="creando()"
-                (click)="crearEmpresa()"
+                [disabled]="finalizando()"
+                (click)="finalizarRegistro()"
               >
-                @if (creando()) {
+                @if (finalizando()) {
                   <mat-spinner diameter="20" />
                 } @else {
                   Crear empresa
@@ -642,7 +667,7 @@ interface EstadoWizardGuardado {
               <div class="exito-panel">
                 <p class="construyendo-texto">
                   Construyendo tu espacio para
-                  <strong>{{ form.controls.nombreLegal.value || form.controls.identificador.value }}</strong>
+                  <strong>{{ form.controls.nombreLegal.value || identificadorReal() }}</strong>
                 </p>
                 <div class="construyendo-barra">
                   <div class="construyendo-barra-relleno"></div>
@@ -652,8 +677,8 @@ interface EstadoWizardGuardado {
                   <mat-icon class="exito-icono">check_circle</mat-icon>
                   <h2>Empresa registrada</h2>
                   <p class="form-subtitle">
-                    <strong>{{ form.controls.identificador.value }}</strong> quedó creada con estado
-                    <code>{{ resultado()?.estado }}</code>. Hemos enviado tus credenciales de acceso
+                    <strong>{{ identificadorReal() }}</strong> quedó creada con estado
+                    <code>{{ resultadoFinal()?.estado }}</code>. Hemos enviado tus credenciales de acceso
                     (usuario y contraseña) al correo <strong>{{ form.controls.correo.value }}</strong>.
                     Revisa tu bandeja de entrada, y la carpeta de spam por si acaso, en unos minutos.
                   </p>
@@ -1640,11 +1665,8 @@ export class RegistroEmpresaComponent {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
-  private readonly snackBar = inject(MatSnackBar);
   private readonly adminService = inject(AdminService);
   private readonly registroService = inject(RegistroEmpresaService);
-  private readonly marcaPendiente = inject(MarcaPendienteService);
-  private readonly datosContactoPendiente = inject(DatosContactoPendienteService);
 
   // Codigo de modulo que llego por query param (ej: /registro?modulo=omnicanal),
   // usado desde el boton "Adquirir modulo" en el detalle de un modulo. Se
@@ -1655,7 +1677,6 @@ export class RegistroEmpresaComponent {
   protected readonly temaPagina = inject(TemaPaginaService);
 
   protected readonly dominioBase = DOMINIO_BASE;
-  protected readonly editandoIdentificador = signal(false);
   protected readonly paso = signal<PasoWizard>(1);
   protected readonly opcionesLogin = OPCIONES_TEMA_LOGIN;
   protected readonly opcionesPagina = OPCIONES_TEMA_PAGINA;
@@ -1671,28 +1692,37 @@ export class RegistroEmpresaComponent {
   protected readonly colorSecundario = signal('#1e3a5f');
   protected readonly paletasPredefinidas = PALETAS_PREDEFINIDAS;
 
-  protected readonly creando = signal(false);
-  protected readonly errorCreacion = signal<string | null>(null);
-  protected readonly resultado = signal<RegistrarEmpresaResponse | null>(null);
+  // Empresa ya creada en el backend (respuesta del paso 1). El identificador
+  // real del subdominio lo asigna el servidor a partir del nombre -- no se
+  // puede elegir a mano, por eso solo se muestra una vez que llega.
+  protected readonly empresaId = signal<string | null>(null);
+  protected readonly identificadorReal = signal<string>('');
+  protected readonly dominioReal = signal<string>('');
 
-  // Si el usuario edita el identificador a mano, dejamos de regenerarlo
-  // automaticamente a partir del nombre.
-  private identificadorTocadoManualmente = false;
+  protected readonly creandoEmpresa = signal(false);
+  protected readonly activandoModulos = signal(false);
+  protected readonly guardandoPersonalizacion = signal(false);
+  protected readonly finalizando = signal(false);
+  protected readonly errorCreacion = signal<string | null>(null);
+  protected readonly resultadoFinal = signal<FinalizarRegistroResponse | null>(null);
+
+  // Vista previa (solo visual, antes de crear la empresa) de como quedaria
+  // el identificador -- el valor real llega en la respuesta del paso 1.
+  protected readonly identificadorPreview = computed(() =>
+    this.empresaId() ? this.identificadorReal() : generarIdentificador(this.nombreLegalSignal()),
+  );
+  private readonly nombreLegalSignal = signal('');
+
+  // Si el usuario edita el sitio web a mano, dejamos de autocompletarlo a
+  // partir del nombre de la empresa.
+  private sitioWebTocadoManualmente = false;
 
   protected readonly form = this.fb.nonNullable.group({
     nombreLegal: ['', [Validators.required, Validators.maxLength(200)]],
     nombreRepresentanteLegal: ['', [Validators.required, Validators.maxLength(200)]],
-    identificador: [
-      '',
-      [Validators.required, Validators.minLength(3), Validators.maxLength(40), Validators.pattern(PATRON_IDENTIFICADOR)],
-    ],
-    // Correo y telefono del representante legal: el backend (RegistrarEmpresaRequest)
-    // todavia no los acepta -- se capturan aqui y se guardan aparte via
-    // DatosContactoPendienteService (igual que el logo/colores) para no perderlos,
-    // hasta que el equipo de backend amplie el contrato.
-    correo: ['', [Validators.required, Validators.email, Validators.maxLength(200)]],
-    telefono: ['', [Validators.required, Validators.maxLength(30)]],
-    contrasenaMaestra: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(100)]],
+    correo: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
+    telefono: ['', [Validators.required, Validators.maxLength(40)]],
+    sitioWeb: ['', [Validators.required, Validators.maxLength(255)]],
   });
 
   constructor() {
@@ -1732,14 +1762,16 @@ export class RegistroEmpresaComponent {
     }
     const estado: EstadoWizardGuardado = {
       paso: this.paso(),
-      identificadorTocadoManualmente: this.identificadorTocadoManualmente,
       form: {
         nombreLegal: this.form.controls.nombreLegal.value,
         nombreRepresentanteLegal: this.form.controls.nombreRepresentanteLegal.value,
-        identificador: this.form.controls.identificador.value,
         correo: this.form.controls.correo.value,
         telefono: this.form.controls.telefono.value,
+        sitioWeb: this.form.controls.sitioWeb.value,
       },
+      empresaId: this.empresaId(),
+      identificadorReal: this.identificadorReal(),
+      dominioReal: this.dominioReal(),
       modulosSeleccionados: this.modulosSeleccionados(),
       logoDataUrl: this.logoDataUrl(),
       colorPrimario: this.colorPrimario(),
@@ -1765,7 +1797,10 @@ export class RegistroEmpresaComponent {
     try {
       const estado = JSON.parse(crudo) as EstadoWizardGuardado;
       this.form.patchValue(estado.form, { emitEvent: false });
-      this.identificadorTocadoManualmente = estado.identificadorTocadoManualmente;
+      this.nombreLegalSignal.set(estado.form.nombreLegal ?? '');
+      this.empresaId.set(estado.empresaId ?? null);
+      this.identificadorReal.set(estado.identificadorReal ?? '');
+      this.dominioReal.set(estado.dominioReal ?? '');
       this.modulosSeleccionados.set(estado.modulosSeleccionados ?? []);
       this.logoDataUrl.set(estado.logoDataUrl ?? null);
       this.colorPrimario.set(estado.colorPrimario ?? this.colorPrimario());
@@ -1829,24 +1864,129 @@ export class RegistroEmpresaComponent {
   }
 
   onCambiarNombre(): void {
-    if (this.identificadorTocadoManualmente) {
+    this.nombreLegalSignal.set(this.form.controls.nombreLegal.value);
+    if (this.sitioWebTocadoManualmente) {
       return;
     }
-    const identificador = generarIdentificador(this.form.controls.nombreLegal.value);
-    this.form.controls.identificador.setValue(identificador, { emitEvent: false });
+    const slug = generarIdentificador(this.form.controls.nombreLegal.value);
+    this.form.controls.sitioWeb.setValue(slug ? `https://${slug}.${DOMINIO_BASE}` : '', { emitEvent: false });
   }
 
-  onEditarIdentificadorManual(): void {
-    this.identificadorTocadoManualmente = true;
-    const normalizado = generarIdentificador(this.form.controls.identificador.value);
-    this.form.controls.identificador.setValue(normalizado, { emitEvent: false });
+  onEditarSitioWebManual(): void {
+    this.sitioWebTocadoManualmente = true;
   }
 
+  // Paso 1: crea la empresa en el backend (estado "borrador") y guarda el
+  // identificador real que asigno el servidor antes de avanzar.
   irAPaso2(): void {
     if (this.form.invalid) {
       return;
     }
-    this.paso.set(2);
+    if (this.empresaId()) {
+      // Ya se creo en un intento anterior de esta misma sesion (ej. volvio
+      // del paso 2 con "Volver" y le dio Continuar de nuevo): no crear otra.
+      this.paso.set(2);
+      return;
+    }
+
+    this.creandoEmpresa.set(true);
+    this.errorCreacion.set(null);
+    const valores = this.form.getRawValue();
+
+    this.registroService
+      .registrar({
+        nombreEmpresa: valores.nombreLegal,
+        representanteLegal: valores.nombreRepresentanteLegal,
+        correo: valores.correo,
+        telefono: valores.telefono,
+        sitioWeb: valores.sitioWeb,
+      })
+      .subscribe({
+        next: (respuesta) => {
+          this.creandoEmpresa.set(false);
+          this.empresaId.set(respuesta.empresaId);
+          this.identificadorReal.set(respuesta.identificador);
+          this.dominioReal.set(respuesta.dominio);
+          this.paso.set(2);
+        },
+        error: (error: HttpErrorResponse) => {
+          this.creandoEmpresa.set(false);
+          this.errorCreacion.set(this.mensajeDeError(error));
+        },
+      });
+  }
+
+  // Paso 2: activa cada modulo seleccionado sobre la empresa recien creada.
+  irAPaso3(): void {
+    const empresaId = this.empresaId();
+    if (!empresaId) {
+      // No deberia pasar (el paso 1 siempre crea la empresa antes de
+      // llegar aqui), pero si pasa no hay nada que activar todavia.
+      this.paso.set(1);
+      return;
+    }
+    const codigos = this.modulosSeleccionados();
+    if (codigos.length === 0) {
+      this.paso.set(3);
+      return;
+    }
+
+    this.activandoModulos.set(true);
+    this.errorCreacion.set(null);
+    forkJoin(codigos.map((codigo) => this.registroService.activarModulo(empresaId, codigo))).subscribe({
+      next: () => {
+        this.activandoModulos.set(false);
+        this.paso.set(3);
+      },
+      error: (error: HttpErrorResponse) => {
+        this.activandoModulos.set(false);
+        this.errorCreacion.set(this.mensajeDeError(error));
+      },
+    });
+  }
+
+  // Pasos 3-4 -> 5: guarda colores, logo y variantes de UI elegidas. El
+  // logo no se envia si es un data: URL (base64) -- el backend todavia no
+  // soporta subir el archivo, solo guardar una URL, y una imagen en base64
+  // no cabe en la columna (VARCHAR 500) ni tiene sentido como "URL".
+  irAPaso5(): void {
+    const empresaId = this.empresaId();
+    if (!empresaId) {
+      this.paso.set(1);
+      return;
+    }
+
+    this.guardandoPersonalizacion.set(true);
+    this.errorCreacion.set(null);
+    const logo = this.logoDataUrl();
+    const request: PersonalizacionRequest = {
+      colorPrimario: this.colorPrimario(),
+      colorSecundario: this.colorSecundario(),
+      urlLogo: logo && !logo.startsWith('data:') ? logo : null,
+      tipoLogin: this.codigoTemaLogin(),
+      tipoPantallaPrincipal: this.codigoTemaPagina(),
+    };
+
+    this.registroService.personalizar(empresaId, request).subscribe({
+      next: () => {
+        this.guardandoPersonalizacion.set(false);
+        this.paso.set(5);
+      },
+      error: (error: HttpErrorResponse) => {
+        this.guardandoPersonalizacion.set(false);
+        this.errorCreacion.set(this.mensajeDeError(error));
+      },
+    });
+  }
+
+  private codigoTemaLogin(): number {
+    const indice = this.opcionesLogin.findIndex((o) => o.codigo === this.temaLogin.tema());
+    return indice >= 0 ? indice + 1 : 1;
+  }
+
+  private codigoTemaPagina(): number {
+    const indice = this.opcionesPagina.findIndex((o) => o.codigo === this.temaPagina.tema());
+    return indice >= 0 ? indice + 1 : 1;
   }
 
   estaSeleccionado(codigo: string): boolean {
@@ -1886,61 +2026,34 @@ export class RegistroEmpresaComponent {
     this.errorLogo.set(null);
   }
 
-  crearEmpresa(): void {
-    if (this.form.invalid) {
+  // Paso 6: dispara el aprovisionamiento real (clonar BD, activar modulos,
+  // enviar el correo con la contraseña temporal). Sin esto la empresa se
+  // queda en borrador para siempre.
+  finalizarRegistro(): void {
+    const empresaId = this.empresaId();
+    if (!empresaId) {
       this.paso.set(1);
       return;
     }
-    this.creando.set(true);
+    this.finalizando.set(true);
     this.errorCreacion.set(null);
 
-    const valores = this.form.getRawValue();
-    this.registroService
-      .registrar({
-        identificador: valores.identificador,
-        nombreLegal: valores.nombreLegal,
-        // El endpoint actual aún valida el DTO antiguo. Estos valores no se
-        // muestran en la UI y se mantienen nulos durante la migración.
-        nombreComercial: null,
-        dominio: null,
-        contrasenaMaestra: valores.contrasenaMaestra,
-        modulosSolicitados: this.modulosSeleccionados(),
-      })
-      .subscribe({
-        next: (respuesta: RegistrarEmpresaResponse) => {
-          this.creando.set(false);
-          this.resultado.set(respuesta);
-
-          // No hay JWT todavia (el aprovisionamiento es async), asi que el
-          // logo/colores quedan pendientes hasta el primer login exitoso
-          // (ver AuthService.aplicarMarcaPendienteSiExiste).
-          this.marcaPendiente.guardar(valores.identificador, {
-            urlLogo: this.logoDataUrl(),
-            colorPrimario: this.colorPrimario(),
-            colorSecundario: this.colorSecundario(),
-            dominioPropio: null,
-          });
-
-          // El correo y telefono capturados tampoco tienen donde ir todavia en
-          // el backend -- se guardan aparte para no perderlos (ver nota
-          // pendiente en DatosContactoPendienteService).
-          this.datosContactoPendiente.guardar(valores.identificador, {
-            correo: valores.correo,
-            telefono: valores.telefono,
-          });
-
-          this.paso.set(6);
-          this.limpiarEstadoGuardado();
-        },
-        error: (error: HttpErrorResponse) => {
-          this.creando.set(false);
-          this.errorCreacion.set(this.mensajeDeError(error));
-        },
-      });
+    this.registroService.finalizar(empresaId).subscribe({
+      next: (respuesta: FinalizarRegistroResponse) => {
+        this.finalizando.set(false);
+        this.resultadoFinal.set(respuesta);
+        this.paso.set(6);
+        this.limpiarEstadoGuardado();
+      },
+      error: (error: HttpErrorResponse) => {
+        this.finalizando.set(false);
+        this.errorCreacion.set(this.mensajeDeError(error));
+      },
+    });
   }
 
   protected subdominioLocal(): string {
-    const identificador = this.form.controls.identificador.value || 'tu-empresa';
+    const identificador = this.identificadorReal() || 'tu-empresa';
     const puerto = globalThis.location.port || '4200';
     return `${globalThis.location.protocol}//${identificador}.localhost:${puerto}/`;
   }
@@ -1951,11 +2064,11 @@ export class RegistroEmpresaComponent {
       return mensaje;
     }
     if (error.status === 409) {
-      return 'Ya existe una empresa con ese identificador.';
+      return 'Ya existe una empresa con esos datos.';
     }
     if (error.status === 0) {
       return 'No se pudo conectar con el servidor. Verifica tu conexión e intenta de nuevo.';
     }
-    return 'No se pudo crear la empresa. Intenta de nuevo.';
+    return 'No se pudo completar esta operación. Intenta de nuevo.';
   }
 }
