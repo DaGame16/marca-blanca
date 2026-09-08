@@ -27,6 +27,17 @@ const PATRON_IDENTIFICADOR = /^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/;
 // Debe producir algo que cumpla PATRON_IDENTIFICADOR (igual que
 // RegistrarEmpresaRequest.identificador en el backend): minusculas, digitos
 // y guion bajo como separador, empezando por letra. Nada de guiones "-".
+// Quita guiones bajos al final sin regex (evita el aviso de SonarQube sobre
+// backtracking super-lineal en patrones tipo /_+$/ combinados con otros
+// reemplazos en la misma cadena).
+function quitarGuionesBajosFinales(valor: string): string {
+  let fin = valor.length;
+  while (fin > 0 && valor[fin - 1] === '_') {
+    fin--;
+  }
+  return valor.slice(0, fin);
+}
+
 function generarIdentificador(nombre: string): string {
   let valor = nombre
     .normalize('NFD')
@@ -34,8 +45,8 @@ function generarIdentificador(nombre: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '_')
     .replace(/_+/g, '_')
-    .replace(/^_+/, '')
-    .replace(/_+$/, '');
+    .replace(/^_+/, '');
+  valor = quitarGuionesBajosFinales(valor);
 
   if (!valor) {
     valor = 'empresa';
@@ -43,7 +54,7 @@ function generarIdentificador(nombre: string): string {
   if (!/^[a-z]/.test(valor)) {
     valor = 'e' + valor;
   }
-  return valor.slice(0, 40).replace(/_+$/, '');
+  return quitarGuionesBajosFinales(valor.slice(0, 40));
 }
 
 // Catalogo de respaldo si GET /api/v1/admin/modulos falla (ver
