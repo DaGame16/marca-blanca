@@ -23,7 +23,6 @@ import { TemaPaginaService } from '../core/temas/tema-pagina.service';
         <nav class="sidebar-nav" aria-label="Navegación principal">
           <span class="nav-section">OPERACIÓN</span>
           <a routerLink="/mis-modulos" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"><mat-icon>apps</mat-icon><span>Mis módulos</span></a>
-          <a routerLink="/tareas" routerLinkActive="active"><mat-icon>checklist</mat-icon><span>Tareas</span></a>
           <a routerLink="/usuarios" routerLinkActive="active"><mat-icon>group</mat-icon><span>Usuarios y accesos</span></a>
           <span class="nav-section">CONFIGURACIÓN</span>
           <a routerLink="/mi-marca" routerLinkActive="active"><mat-icon>palette</mat-icon><span>Identidad de marca</span></a>
@@ -95,8 +94,11 @@ export class ShellComponent {
     if (path.includes('usuarios')) {
       return 'Usuarios y accesos';
     }
-    if (path.includes('tareas')) {
-      return 'Tareas';
+    if (path.includes('panel/omnicanal')) {
+      return 'Omnicanal';
+    }
+    if (path.includes('panel/pbx-3cx')) {
+      return 'PBX 3CX';
     }
     return 'Mis módulos';
   }

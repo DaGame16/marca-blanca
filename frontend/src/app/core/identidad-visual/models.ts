@@ -5,4 +5,8 @@ export interface MarcaDeEmpresa {
   colorPrimario: string | null;
   colorSecundario: string | null;
   dominioPropio: string | null;
+  // 1..3 -- que panel de login (lateral/centrado/fondo) y que densidad de
+  // pantalla (clasico/compacto/amplio) usa esta empresa.
+  tipoLogin: number | null;
+  tipoPantallaPrincipal: number | null;
 }

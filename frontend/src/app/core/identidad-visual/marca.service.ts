@@ -18,4 +18,11 @@ export class MarcaService {
   actualizar(marca: MarcaDeEmpresa): Observable<void> {
     return this.http.put<void>(this.baseUrl, marca);
   }
+
+  // Publico (sin JWT) -- lo usa la pantalla de login, que todavia no tiene
+  // sesion, para pintar el logo/colores/variante de la empresa del
+  // subdominio (ver MarcaPublicaController, backend).
+  obtenerPublica(identificadorEmpresa: string): Observable<MarcaDeEmpresa> {
+    return this.http.get<MarcaDeEmpresa>(`${environment.apiUrl}/empresas/${identificadorEmpresa}/marca`);
+  }
 }

@@ -25,6 +25,11 @@
             <artifactId>modulos-empresa-domain</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.marcablanca.platform</groupId>
+            <artifactId>empresas-application</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>

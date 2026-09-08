@@ -315,6 +315,11 @@ export class MiMarcaComponent implements OnInit {
       colorPrimario: valores.colorPrimario || null,
       colorSecundario: valores.colorSecundario || null,
       dominioPropio: valores.dominioPropio || null,
+      // null = "no tocar" (el backend conserva el valor que ya tenia
+      // guardado); esta pantalla no edita el tema de login/pagina, eso vive
+      // en "Experiencia de acceso".
+      tipoLogin: null,
+      tipoPantallaPrincipal: null,
     };
 
     this.guardando.set(true);

@@ -1,12 +1,17 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { TemaLogin, TemaLoginService } from '../../../../core/temas/tema-login.service';
+import { MarcaService } from '../../../../core/identidad-visual/marca.service';
+import type { MarcaDeEmpresa } from '../../../../core/identidad-visual/models';
+
+type CodigoTema = 'lateral' | 'centrado' | 'fondo';
 
 interface OpcionTema {
-  codigo: TemaLogin;
+  codigo: CodigoTema;
+  numero: number;
   nombre: string;
   descripcion: string;
 }
@@ -14,16 +19,19 @@ interface OpcionTema {
 const OPCIONES: OpcionTema[] = [
   {
     codigo: 'lateral',
+    numero: 1,
     nombre: 'Panel lateral',
     descripcion: 'Panel de marca a un lado y el formulario al otro. El diseño actual.',
   },
   {
     codigo: 'centrado',
+    numero: 2,
     nombre: 'Centrado',
     descripcion: 'Tarjeta centrada con el logo arriba, sin panel lateral. Minimalista.',
   },
   {
     codigo: 'fondo',
+    numero: 3,
     nombre: 'Fondo completo',
     descripcion: 'Fondo degradado a pantalla completa con el formulario flotando en el centro.',
   },
@@ -32,20 +40,26 @@ const OPCIONES: OpcionTema[] = [
 @Component({
   selector: 'app-selector-tema-login',
   standalone: true,
-  imports: [RouterLink, MatIconModule, MatButtonModule, MatSnackBarModule],
+  imports: [RouterLink, MatIconModule, MatButtonModule, MatProgressSpinnerModule, MatSnackBarModule],
   template: `
     <div class="temas-page">
       <header class="temas-header">
         <h1>Diseño de inicio de sesión</h1>
         <p>
-          Elige cómo se ve la pantalla de login de tu empresa. Es un ajuste solo visual por ahora
-          (se guarda en este navegador).
+          Elige cómo se ve la pantalla de login de tu empresa. Se guarda en el servidor: todos los
+          que inicien sesión en tu empresa lo van a ver así.
         </p>
       </header>
 
+      @if (cargando()) {
+        <div class="estado-carga">
+          <mat-spinner diameter="32"></mat-spinner>
+        </div>
+      }
+
       <div class="temas-grid">
         @for (opcion of opciones; track opcion.codigo) {
-          <div class="tema-card" [class.tema-card-activa]="temaLogin.tema() === opcion.codigo">
+          <div class="tema-card" [class.tema-card-activa]="codigoActivo() === opcion.codigo">
             <div class="preview" [class]="'preview-' + opcion.codigo">
               @switch (opcion.codigo) {
                 @case ('lateral') {
@@ -85,13 +99,13 @@ const OPCIONES: OpcionTema[] = [
             <h3>{{ opcion.nombre }}</h3>
             <p class="tema-desc">{{ opcion.descripcion }}</p>
 
-            @if (temaLogin.tema() === opcion.codigo) {
+            @if (codigoActivo() === opcion.codigo) {
               <button mat-flat-button disabled class="btn-activo">
                 <mat-icon>check_circle</mat-icon>
                 En uso
               </button>
             } @else {
-              <button mat-stroked-button (click)="elegir(opcion)">Usar este diseño</button>
+              <button mat-stroked-button [disabled]="guardando()" (click)="elegir(opcion)">Usar este diseño</button>
             }
           </div>
         }
@@ -261,16 +275,58 @@ const OPCIONES: OpcionTema[] = [
     .ver-login-link:hover {
       text-decoration: underline;
     }
+
+    .estado-carga {
+      display: flex;
+      justify-content: center;
+      padding: 40px 0;
+    }
   `],
 })
-export class SelectorTemaLoginComponent {
-  protected readonly temaLogin = inject(TemaLoginService);
+export class SelectorTemaLoginComponent implements OnInit {
+  private readonly marcaService = inject(MarcaService);
   private readonly snackBar = inject(MatSnackBar);
 
   protected readonly opciones = OPCIONES;
+  protected readonly cargando = signal(true);
+  protected readonly guardando = signal(false);
+  private marcaActual: MarcaDeEmpresa | null = null;
+
+  protected readonly codigoActivo = signal<CodigoTema>('lateral');
+
+  ngOnInit(): void {
+    this.marcaService.obtener().subscribe({
+      next: (marca) => {
+        this.marcaActual = marca;
+        const opcion = OPCIONES.find((o) => o.numero === marca.tipoLogin);
+        this.codigoActivo.set(opcion?.codigo ?? 'lateral');
+        this.cargando.set(false);
+      },
+      error: () => this.cargando.set(false),
+    });
+  }
 
   elegir(opcion: OpcionTema): void {
-    this.temaLogin.elegir(opcion.codigo);
-    this.snackBar.open(`Diseño "${opcion.nombre}" activado`, 'Cerrar', { duration: 2500 });
+    this.guardando.set(true);
+    const marca: MarcaDeEmpresa = {
+      urlLogo: this.marcaActual?.urlLogo ?? null,
+      colorPrimario: this.marcaActual?.colorPrimario ?? null,
+      colorSecundario: this.marcaActual?.colorSecundario ?? null,
+      dominioPropio: this.marcaActual?.dominioPropio ?? null,
+      tipoLogin: opcion.numero,
+      tipoPantallaPrincipal: this.marcaActual?.tipoPantallaPrincipal ?? null,
+    };
+    this.marcaService.actualizar(marca).subscribe({
+      next: () => {
+        this.marcaActual = marca;
+        this.codigoActivo.set(opcion.codigo);
+        this.guardando.set(false);
+        this.snackBar.open(`Diseño "${opcion.nombre}" activado`, 'Cerrar', { duration: 2500 });
+      },
+      error: () => {
+        this.guardando.set(false);
+        this.snackBar.open('No se pudo guardar el diseño. Intenta de nuevo.', 'Cerrar', { duration: 4000 });
+      },
+    });
   }
 }

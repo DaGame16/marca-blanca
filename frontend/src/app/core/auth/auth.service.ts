@@ -51,6 +51,16 @@ export class AuthService {
       .pipe(tap((res: RefreshResponse) => this.storeSession(res, identificadorEmpresa)));
   }
 
+  // Para que el login no pida el identificador de la empresa: el backend
+  // busca en que empresa activa existe ese correo (ver AuthController /
+  // ResolverEmpresaPorCorreoJdbc). 404 significa que no se encontro (o que
+  // el correo existe en mas de una empresa -- por seguridad se trata igual).
+  resolverIdentificadorEmpresa(correo: string): Observable<{ identificadorEmpresa: string }> {
+    return this.http.get<{ identificadorEmpresa: string }>(`${environment.apiUrl}/auth/identificador-empresa`, {
+      params: { correo },
+    });
+  }
+
   cambiarContrasena(request: CambiarContrasenaRequest): Observable<void> {
     return this.http
       .post<void>(`${environment.apiUrl}/auth/cambiar-contrasena`, request)

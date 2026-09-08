@@ -1,15 +1,39 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { of, switchMap } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../core/auth/auth.service';
-import { TemaLoginService } from '../../../core/temas/tema-login.service';
-import { environment } from '../../../../environments/environment';
+import { MarcaService } from '../../../core/identidad-visual/marca.service';
+import { MarcaDeEmpresa } from '../../../core/identidad-visual/models';
+
+type TemaVisual = 'lateral' | 'centrado' | 'fondo';
+
+// Cada empresa vive en su propio subdominio (<identificador>.localhost en
+// dev, <identificador>.marca-blanca.com en prod) -- de ahi se saca a que
+// empresa preguntarle el logo/colores/variante antes de que haya sesion.
+// En el dominio raiz (sin subdominio, ej. la landing) no hay ninguna
+// empresa que preguntar.
+function identificadorDesdeSubdominio(): string | null {
+  const partes = globalThis.location.hostname.split('.');
+  return partes.length > 1 ? partes[0] : null;
+}
+
+function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
+  if (codigo === 2) {
+    return 'centrado';
+  }
+  if (codigo === 3) {
+    return 'fondo';
+  }
+  return 'lateral';
+}
 
 @Component({
   selector: 'app-login',
@@ -30,13 +54,6 @@ import { environment } from '../../../../environments/environment';
          ngTemplateOutlet para no triplicar los bindings del form. -->
     <ng-template #formularioTpl>
       <form [formGroup]="form" (ngSubmit)="submit()">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Empresa</mat-label>
-          <input matInput formControlName="identificadorEmpresa" autocomplete="organization" />
-          <mat-icon matPrefix>apartment</mat-icon>
-          <mat-hint>El identificador que te dio tu administrador</mat-hint>
-        </mat-form-field>
-
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Correo electrónico</mat-label>
           <input matInput type="email" formControlName="correo" autocomplete="email" />
@@ -91,12 +108,27 @@ import { environment } from '../../../../environments/environment';
       </form>
     </ng-template>
 
-    @switch (temaLogin.tema()) {
+    <!-- El logo real de la empresa (si lo configuro) reemplaza el icono
+         generico -- ver MarcaPublicaController (backend) y marcaPublica()
+         aca abajo. -->
+    <ng-template #logoTpl>
+      @if (marcaPublica()?.urlLogo; as logo) {
+        <img [src]="logo" alt="" class="brand-logo-img" />
+      } @else {
+        <mat-icon class="brand-logo-icon">hub</mat-icon>
+      }
+    </ng-template>
+
+    @switch (temaVisual()) {
       @case ('centrado') {
-        <div class="login-page tema-centrado">
+        <div
+          class="login-page tema-centrado"
+          [style.--brand-light]="colorPrimario()"
+          [style.--brand-dark]="colorSecundario()"
+        >
           <div class="tarjeta-centrada">
             <div class="logo-centrado">
-              <mat-icon class="brand-logo-icon">hub</mat-icon>
+              <ng-container [ngTemplateOutlet]="logoTpl"></ng-container>
               <span>Marca Blanca</span>
             </div>
             <h2>Iniciar sesión</h2>
@@ -106,11 +138,15 @@ import { environment } from '../../../../environments/environment';
         </div>
       }
       @case ('fondo') {
-        <div class="login-page tema-fondo">
+        <div
+          class="login-page tema-fondo"
+          [style.--brand-light]="colorPrimario()"
+          [style.--brand-dark]="colorSecundario()"
+        >
           <div class="fondo-overlay"></div>
           <div class="tarjeta-flotante">
             <div class="logo-centrado">
-              <mat-icon class="brand-logo-icon">hub</mat-icon>
+              <ng-container [ngTemplateOutlet]="logoTpl"></ng-container>
               <span>Marca Blanca</span>
             </div>
             <h2>Iniciar sesión</h2>
@@ -120,20 +156,24 @@ import { environment } from '../../../../environments/environment';
         </div>
       }
       @default {
-        <div class="login-page tema-lateral">
+        <div
+          class="login-page tema-lateral"
+          [style.--brand-light]="colorPrimario()"
+          [style.--brand-dark]="colorSecundario()"
+        >
           <section class="brand-panel">
             <div class="brand-shape shape-a"></div>
             <div class="brand-shape shape-b"></div>
 
             <div class="brand-content">
               <div class="brand-logo">
-                <mat-icon class="brand-logo-icon">hub</mat-icon>
+                <ng-container [ngTemplateOutlet]="logoTpl"></ng-container>
                 <span>Marca Blanca</span>
               </div>
 
               <h1>Gestiona tu empresa desde un solo lugar</h1>
               <p class="brand-tagline">
-                Usuarios, empresas, tareas y comunicación omnicanal en una sola plataforma.
+                Usuarios, módulos y comunicación omnicanal en una sola plataforma.
               </p>
 
               <ul class="brand-highlights">
@@ -456,6 +496,12 @@ import { environment } from '../../../../environments/environment';
       .tarjeta-flotante .form-subtitle {
         text-align: center;
       }
+
+      .brand-logo-img {
+        max-height: 32px;
+        max-width: 140px;
+        object-fit: contain;
+      }
     `,
   ],
 })
@@ -463,18 +509,44 @@ export class LoginComponent {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
-  protected readonly temaLogin = inject(TemaLoginService);
+  private readonly marcaService = inject(MarcaService);
 
   protected readonly loading = signal(false);
   protected readonly hidePassword = signal(true);
   protected readonly errorMessage = signal<string | null>(null);
 
+  // Logo/colores/variante reales de la empresa del subdominio -- lo que se
+  // eligio en "Experiencia de acceso" ya con la empresa activa. Si no hay
+  // subdominio (ej. dominio raiz) o la empresa no ha configurado nada
+  // todavia, se ve el diseno generico de siempre.
+  protected readonly marcaPublica = signal<MarcaDeEmpresa | null>(null);
+  protected readonly temaVisual = computed(() => temaVisualDesdeCodigo(this.marcaPublica()?.tipoLogin));
+  protected readonly colorPrimario = computed(() => this.marcaPublica()?.colorPrimario || undefined);
+  protected readonly colorSecundario = computed(() => this.marcaPublica()?.colorSecundario || undefined);
+
   protected readonly form = this.fb.nonNullable.group({
     correo: ['', [Validators.required, Validators.email]],
     contrasena: ['', [Validators.required]],
-    identificadorEmpresa: [environment.identificadorEmpresaPorDefecto, [Validators.required]],
   });
 
+  constructor() {
+    const identificador = identificadorDesdeSubdominio();
+    if (identificador) {
+      this.marcaService.obtenerPublica(identificador).subscribe({
+        next: (marca) => this.marcaPublica.set(marca),
+        // Sin marca configurada (empresa nueva) o el identificador no existe
+        // todavia -- se queda con el diseno generico, no es un error visible.
+        error: () => this.marcaPublica.set(null),
+      });
+    }
+  }
+
+  // El usuario ya no escribe a que empresa pertenece. Si esta entrando desde
+  // el subdominio de una empresa (el caso normal: cada empresa vive en el
+  // suyo), esa es la empresa -- ni falta preguntarle al backend. Solo se usa
+  // el resolver por correo (que puede fallar si el mismo correo existe en
+  // mas de una empresa activa, caso ambiguo) cuando no hay subdominio, ej.
+  // una pantalla de login generica en el dominio raiz.
   submit(): void {
     if (this.form.invalid) {
       return;
@@ -482,14 +554,38 @@ export class LoginComponent {
     this.loading.set(true);
     this.errorMessage.set(null);
 
-    this.auth.login(this.form.getRawValue()).subscribe({
-      next: () =>
-        this.router.navigateByUrl(this.auth.debeCambiarContrasena() ? '/cambiar-contrasena' : '/tareas'),
-      error: () => {
-        this.errorMessage.set('Email o contraseña incorrectos');
-        this.loading.set(false);
-      },
-      complete: () => this.loading.set(false),
-    });
+    const { correo, contrasena } = this.form.getRawValue();
+    const identificadorDelSubdominio = identificadorDesdeSubdominio();
+    const identificadorEmpresa$ = identificadorDelSubdominio
+      ? of({ identificadorEmpresa: identificadorDelSubdominio })
+      : this.auth.resolverIdentificadorEmpresa(correo);
+
+    identificadorEmpresa$
+      .pipe(
+        switchMap(({ identificadorEmpresa }) => this.auth.login({ correo, contrasena, identificadorEmpresa })),
+      )
+      .subscribe({
+        next: () =>
+          this.router.navigateByUrl(this.auth.debeCambiarContrasena() ? '/cambiar-contrasena' : '/mis-modulos'),
+        error: (error: HttpErrorResponse) => {
+          this.errorMessage.set(this.mensajeDeError(error));
+          this.loading.set(false);
+        },
+        complete: () => this.loading.set(false),
+      });
+  }
+
+  // Antes se mostraba siempre el mismo texto generico sin importar la causa
+  // real (contraseña incorrecta, cuenta bloqueada por intentos fallidos,
+  // correo no encontrado...) -- eso hacia imposible diagnosticar un login
+  // que falla sin abrir las herramientas de desarrollador. El backend ya
+  // manda un mensaje especifico (ErrorResponse.mensaje); se muestra tal
+  // cual cuando existe, y solo se cae al generico si de verdad no vino nada.
+  private mensajeDeError(error: HttpErrorResponse): string {
+    if (error.status === 404) {
+      return 'No encontramos una cuenta con ese correo.';
+    }
+    const mensaje = (error.error as { mensaje?: string } | null)?.mensaje;
+    return mensaje || 'Correo o contraseña incorrectos';
   }
 }

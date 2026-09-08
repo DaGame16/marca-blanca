@@ -47,7 +47,9 @@ public class MarcaController {
                 body.urlLogo(),
                 body.colorPrimario() != null ? new ColorHex(body.colorPrimario()) : null,
                 body.colorSecundario() != null ? new ColorHex(body.colorSecundario()) : null,
-                body.dominioPropio()
+                body.dominioPropio(),
+                body.tipoLogin(),
+                body.tipoPantallaPrincipal()
         );
         actualizarMarcaDeEmpresa.ejecutar(empresaDelToken(request), marca);
         return ResponseEntity.noContent().build();
@@ -67,7 +69,9 @@ public class MarcaController {
                 marca.urlLogo(),
                 marca.colorPrimario() != null ? marca.colorPrimario().valor() : null,
                 marca.colorSecundario() != null ? marca.colorSecundario().valor() : null,
-                marca.dominioPropio()
+                marca.dominioPropio(),
+                marca.tipoLogin(),
+                marca.tipoPantallaPrincipal()
         );
     }
 }
