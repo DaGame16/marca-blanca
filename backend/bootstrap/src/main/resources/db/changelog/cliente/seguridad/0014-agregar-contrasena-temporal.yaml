@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: seguridad-0014-agregar-contrasena-temporal
+      author: leidi
+      comment: Marca si la contrasena es temporal (generada en el alta). En el primer login el backend obliga a cambiarla antes de dejar hacer nada mas.
+      changes:
+        - addColumn:
+            schemaName: seguridad
+            tableName: tbl_usuarios
+            columns:
+              - column:
+                  name: es_contrasena_temporal
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropColumn:
+            schemaName: seguridad
+            tableName: tbl_usuarios
+            columnName: es_contrasena_temporal

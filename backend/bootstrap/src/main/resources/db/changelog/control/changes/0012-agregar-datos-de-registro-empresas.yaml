@@ -1,0 +1,38 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0012-agregar-datos-de-registro-empresas
+      author: leidi
+      comment: Datos que se piden en el paso 1 del onboarding publico. Nullable a nivel BD; el endpoint de registro los exige.
+      changes:
+        - addColumn:
+            schemaName: plataforma
+            tableName: tbl_empresas
+            columns:
+              - column:
+                  name: representante_legal
+                  type: VARCHAR(200)
+              - column:
+                  name: correo_contacto
+                  type: VARCHAR(254)
+              - column:
+                  name: telefono
+                  type: VARCHAR(40)
+              - column:
+                  name: sitio_web
+                  type: VARCHAR(255)
+        - createIndex:
+            schemaName: plataforma
+            tableName: tbl_empresas
+            indexName: idx_empresas_correo_contacto
+            columns:
+              - column:
+                  name: correo_contacto
+      rollback:
+        - dropIndex:
+            schemaName: plataforma
+            tableName: tbl_empresas
+            indexName: idx_empresas_correo_contacto
+        - dropColumn: {schemaName: plataforma, tableName: tbl_empresas, columnName: representante_legal}
+        - dropColumn: {schemaName: plataforma, tableName: tbl_empresas, columnName: correo_contacto}
+        - dropColumn: {schemaName: plataforma, tableName: tbl_empresas, columnName: telefono}
+        - dropColumn: {schemaName: plataforma, tableName: tbl_empresas, columnName: sitio_web}

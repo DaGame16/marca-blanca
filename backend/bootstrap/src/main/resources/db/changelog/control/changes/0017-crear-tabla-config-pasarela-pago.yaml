@@ -1,0 +1,70 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0017-crear-tabla-config-pasarela-pago
+      author: leidi
+      comment: Config de la pasarela de pagos de la plataforma marca blanca (cobro del onboarding). Sirve para Wompi/PayU/MercadoPago/ePayco/Davivienda; cada uno usa el subconjunto de campos que le aplica. Los secretos van al vault via *_ref, nunca en claro.
+      changes:
+        - createTable:
+            schemaName: plataforma
+            tableName: tbl_config_pasarela_pago
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints: {primaryKey: true, primaryKeyName: pk_config_pasarela_pago}
+              - column:
+                  name: uuid
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints: {nullable: false, unique: true, uniqueConstraintName: uq_config_pasarela_pago_uuid}
+              - column:
+                  name: proveedor
+                  type: VARCHAR(40)
+                  constraints: {nullable: false}
+              - column:
+                  name: entorno
+                  type: VARCHAR(20)
+                  defaultValue: sandbox
+                  constraints: {nullable: false}
+              - column: {name: clave_publica, type: VARCHAR(300)}            
+              - column: {name: comercio_id, type: VARCHAR(120)}              
+              - column: {name: secreto_api_ref, type: VARCHAR(400)}         
+              - column: {name: secreto_integridad_ref, type: VARCHAR(400)}   
+              - column: {name: secreto_eventos_ref, type: VARCHAR(400)}      
+              - column: {name: url_base, type: VARCHAR(300)}
+              - column:
+                  name: moneda
+                  type: VARCHAR(3)
+                  defaultValue: COP
+                  constraints: {nullable: false}
+              - column:
+                  name: es_activa
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints: {nullable: false}
+              - column: {name: config_extra, type: JSONB}                   
+              - column:
+                  name: creado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints: {nullable: false}
+              - column:
+                  name: actualizado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints: {nullable: false}
+        - sql:
+            sql: >
+              ALTER TABLE plataforma.tbl_config_pasarela_pago
+              ADD CONSTRAINT ck_config_pasarela_pago_entorno
+              CHECK (entorno IN ('sandbox', 'produccion'))
+        - sql:
+            comment: Como maximo una config activa por entorno.
+            sql: >
+              CREATE UNIQUE INDEX uq_config_pasarela_pago_activa_entorno
+              ON plataforma.tbl_config_pasarela_pago (entorno) WHERE es_activa
+      rollback:
+        - dropTable:
+            schemaName: plataforma
+            tableName: tbl_config_pasarela_pago

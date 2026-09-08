@@ -35,3 +35,18 @@ databaseChangeLog:
   - include:
       file: changes/0011-poblar-catalogo-modulos.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changes/0012-agregar-datos-de-registro-empresas.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/0013-ampliar-estados-empresa.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/0014-agregar-precio-modulos.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/0015-agregar-variantes-ui-marca.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/0016-crear-tablas-ordenes-de-pago.yaml
+      relativeToChangelogFile: true
