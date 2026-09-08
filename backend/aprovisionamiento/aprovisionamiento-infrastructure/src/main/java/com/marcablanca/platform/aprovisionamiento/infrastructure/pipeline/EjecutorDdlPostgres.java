@@ -3,6 +3,7 @@ package com.marcablanca.platform.aprovisionamiento.infrastructure.pipeline;
 import com.marcablanca.platform.aprovisionamiento.application.port.out.ActivadorDeModulosDeEmpresa;
 import com.marcablanca.platform.aprovisionamiento.application.port.out.PasosDeAprovisionamiento;
 import com.marcablanca.platform.aprovisionamiento.domain.Empresa;
+import com.marcablanca.platform.correo.application.port.in.EnviarCorreoDeBienvenida;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -10,15 +11,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
 import java.security.SecureRandom;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 
 /**
@@ -43,32 +41,32 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
     private final JdbcTemplate mantenimiento;
     private final JdbcTemplate control;
     private final ActivadorDeModulosDeEmpresa activadorModulos;
+    private final EnviarCorreoDeBienvenida enviarCorreoDeBienvenida;
     private final BCryptPasswordEncoder cifrador = new BCryptPasswordEncoder();
     private final String plantilla;
     private final String hostCliente;
     private final int puertoCliente;
     private final String ownerUsuario;
     private final String ownerClave;
-    private final String smtpClave;
 
     EjecutorDdlPostgres(DataSource dataSourceMantenimiento,
                         @Qualifier("controlDataSource") DataSource controlDataSource,
                         ActivadorDeModulosDeEmpresa activadorModulos,
+                        EnviarCorreoDeBienvenida enviarCorreoDeBienvenida,
                         @Value("${app.aprovisionamiento.plantilla:db_plantilla_maestra}") String plantilla,
                         @Value("${app.aprovisionamiento.cliente-host:localhost}") String hostCliente,
                         @Value("${app.aprovisionamiento.cliente-puerto:5432}") int puertoCliente,
                         @Value("${app.aprovisionamiento.mantenimiento.username:guajiranet_owner}") String ownerUsuario,
-                        @Value("${app.aprovisionamiento.mantenimiento.password:guajiranet_owner}") String ownerClave,
-                        @Value("${app.aprovisionamiento.smtp-password:}") String smtpClave) {
+                        @Value("${app.aprovisionamiento.mantenimiento.password:guajiranet_owner}") String ownerClave) {
         this.mantenimiento = new JdbcTemplate(dataSourceMantenimiento);
         this.control = new JdbcTemplate(controlDataSource);
         this.activadorModulos = activadorModulos;
+        this.enviarCorreoDeBienvenida = enviarCorreoDeBienvenida;
         this.plantilla = plantilla;
         this.hostCliente = hostCliente;
         this.puertoCliente = puertoCliente;
         this.ownerUsuario = ownerUsuario;
         this.ownerClave = ownerClave;
-        this.smtpClave = smtpClave;
     }
 
     @Override
@@ -169,19 +167,12 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
         String contrasenaTemporal = generarContrasenaTemporal();
         sembrarUsuarioAdmin(empresa, correo, contrasenaTemporal);
 
+        String nombreEmpresa = empresa.getNombreComercial() != null
+                ? empresa.getNombreComercial() : empresa.getNombreLegal();
         String url = "https://" + empresa.getDominio();
-        String cuerpo = """
-                Bienvenido a la plataforma.
 
-                Tu plataforma ya esta lista: %s
-
-                Datos de acceso:
-                  Usuario: %s
-                  Contrasena temporal: %s
-
-                Por seguridad, se te pedira cambiar la contrasena en el primer inicio de sesion."""
-                .formatted(url, correo, contrasenaTemporal);
-        enviarCorreo(correo, "Tu plataforma ya esta lista", cuerpo);
+        enviarCorreoDeBienvenida.ejecutar(new EnviarCorreoDeBienvenida.ComandoBienvenida(
+                correo, empresa.getRepresentanteLegal(), nombreEmpresa, url, contrasenaTemporal));
 
         control.update("""
                 update plataforma.tbl_empresas
@@ -231,46 +222,6 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
         List<Long> ids = cliente.queryForList(
                 "select id from seguridad.tbl_usuarios where correo = ?", Long.class, correo);
         return ids.isEmpty() ? null : ids.get(0);
-    }
-
-    private void enviarCorreo(String para, String asunto, String cuerpo) {
-        var cfg = control.query("""
-                select remitente_nombre, remitente_correo, host, puerto, usuario, seguridad
-                from plataforma.tbl_config_correo where es_activa limit 1""",
-                rs -> rs.next() ? new String[] {
-                        rs.getString(1), rs.getString(2), rs.getString(3),
-                        String.valueOf(rs.getInt(4)), rs.getString(5), rs.getString(6)
-                } : null);
-
-        if (cfg == null || smtpClave == null || smtpClave.isBlank()) {
-            log.warn("Sin config SMTP activa (o sin app.aprovisionamiento.smtp-password). Correo de "
-                    + "bienvenida NO enviado. Para={} asunto={} cuerpo=[{}]", para, asunto, cuerpo);
-            return;
-        }
-
-        JavaMailSenderImpl sender = new JavaMailSenderImpl();
-        sender.setHost(cfg[2]);
-        sender.setPort(Integer.parseInt(cfg[3]));
-        if (cfg[4] != null) {
-            sender.setUsername(cfg[4]);
-            sender.setPassword(smtpClave);
-        }
-        Properties props = sender.getJavaMailProperties();
-        props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.auth", String.valueOf(cfg[4] != null));
-        if ("starttls".equalsIgnoreCase(cfg[5])) {
-            props.put("mail.smtp.starttls.enable", "true");
-        } else if ("ssl".equalsIgnoreCase(cfg[5])) {
-            props.put("mail.smtp.ssl.enable", "true");
-        }
-
-        SimpleMailMessage msg = new SimpleMailMessage();
-        msg.setFrom(cfg[0] != null ? cfg[0] + " <" + cfg[1] + ">" : cfg[1]);
-        msg.setTo(para);
-        msg.setSubject(asunto);
-        msg.setText(cuerpo);
-        sender.send(msg);
-        log.info("Correo de bienvenida enviado a {}", para);
     }
 
     private static String generarContrasenaTemporal() {
