@@ -1,11 +1,11 @@
-import { Service, inject } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Tarea } from '../models/tarea.model';
 
 type FiltrosTarea = Record<string, string>;
 
-@Service()
+@Injectable({ providedIn: 'root' })
 export class TareaService {
   private readonly http = inject(HttpClient);
 

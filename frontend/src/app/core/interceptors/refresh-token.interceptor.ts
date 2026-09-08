@@ -59,7 +59,7 @@ export const refreshTokenInterceptor: HttpInterceptorFn = (req, next) => {
           });
           return next(clonedReq);
         }),
-        catchError((refreshError) => {
+        catchError((refreshError: unknown) => {
           // Si falla la renovación, hacer logout
           authService.logout();
           return throwError(() => refreshError);

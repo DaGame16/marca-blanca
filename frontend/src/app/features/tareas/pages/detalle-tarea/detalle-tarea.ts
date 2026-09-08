@@ -19,7 +19,7 @@ export class DetalleTarea {
   constructor() {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this.tareaService.obtenerPorId(id).subscribe((datos) => {
+      this.tareaService.obtenerPorId(id).subscribe((datos: Tarea) => {
         this.tarea.set(datos);
         this.cargando.set(false);
       });

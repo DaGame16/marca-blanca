@@ -31,6 +31,10 @@ const APARIENCIA_DEFECTO = { icono: 'extension', color: '#64748b' };
             <mat-icon inline>palette</mat-icon>
             Personalizar mi marca
           </a>
+          <a routerLink="/tema-login" class="marca-link">
+            <mat-icon inline>login</mat-icon>
+            Diseño de inicio de sesión
+          </a>
           <a routerLink="/usuarios" class="marca-link">
             <mat-icon inline>group</mat-icon>
             Gestionar usuarios
@@ -380,7 +384,7 @@ export class MisModulosComponent implements OnInit {
     this.error.set(null);
 
     this.adminService.getModulosDeEmpresa(this.empresaId).subscribe({
-      next: (modulos) => {
+      next: (modulos: ModuloDeEmpresa[]) => {
         this.modulos.set(modulos);
         this.cargando.set(false);
       },

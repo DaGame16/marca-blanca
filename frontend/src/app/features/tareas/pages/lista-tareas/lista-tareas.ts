@@ -23,7 +23,7 @@ export class ListaTareas {
   cargar(): void {
     this.cargando.set(true);
     this.tareaService.listar().subscribe({
-      next: (datos) => {
+      next: (datos: Tarea[]) => {
         this.tareas.set(datos);
         this.cargando.set(false);
       },
