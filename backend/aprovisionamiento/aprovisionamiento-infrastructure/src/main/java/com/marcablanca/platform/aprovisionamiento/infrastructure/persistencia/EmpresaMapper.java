@@ -17,9 +17,12 @@ final class EmpresaMapper {
                 e.getNombreLegal(),
                 e.getNombreComercial(),
                 e.getDominio(),
+                e.getRepresentanteLegal(),
+                e.getCorreoContacto(),
+                e.getTelefono(),
+                e.getSitioWeb(),
                 e.getHashContrasenaMaestra() == null ? null : new HashContrasenaMaestra(e.getHashContrasenaMaestra()),
-                EstadoEmpresa.valueOf(e.getEstado().toUpperCase())
-        );
+                EstadoEmpresa.valueOf(e.getEstado().toUpperCase()));
     }
 
     /** Vuelca el estado del agregado sobre la entidad (misma entidad si ya existia -> UPDATE). */
@@ -29,6 +32,10 @@ final class EmpresaMapper {
         e.setNombreLegal(d.getNombreLegal());
         e.setNombreComercial(d.getNombreComercial());
         e.setDominio(d.getDominio());
+        e.setRepresentanteLegal(d.getRepresentanteLegal());
+        e.setCorreoContacto(d.getCorreo());
+        e.setTelefono(d.getTelefono());
+        e.setSitioWeb(d.getSitioWeb());
         e.setHashContrasenaMaestra(
                 d.getHashContrasenaMaestra() == null ? null : d.getHashContrasenaMaestra().valor());
         e.setEstado(d.getEstado().name().toLowerCase());

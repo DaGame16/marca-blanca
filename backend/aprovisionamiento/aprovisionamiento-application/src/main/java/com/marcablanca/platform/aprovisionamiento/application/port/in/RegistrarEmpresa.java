@@ -1,10 +1,9 @@
 package com.marcablanca.platform.aprovisionamiento.application.port.in;
 
 import com.marcablanca.platform.aprovisionamiento.application.ComandoRegistrarEmpresa;
+import com.marcablanca.platform.aprovisionamiento.application.ResultadoRegistroEmpresa;
 
-import java.util.UUID;
-
-/** Capa 1: da de alta la empresa y solicita su aprovisionamiento. Devuelve el uuid de la empresa. */
+/** Paso 1: registra la empresa como borrador. El aprovisionamiento se dispara despues. */
 public interface RegistrarEmpresa {
-    UUID ejecutar(ComandoRegistrarEmpresa comando);
+    ResultadoRegistroEmpresa ejecutar(ComandoRegistrarEmpresa comando);
 }

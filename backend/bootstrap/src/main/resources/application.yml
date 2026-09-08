@@ -17,6 +17,7 @@ app:
   aprovisionamiento:
     sondeo-ms: ${APROV_SONDEO_MS:5000}
     plantilla: ${APROV_PLANTILLA:db_plantilla_maestra}
+    sufijo-dominio: ${APROV_SUFIJO_DOMINIO:mb}
     cliente-host: ${APROV_CLIENTE_HOST:localhost}
     cliente-puerto: ${APROV_CLIENTE_PUERTO:5432}
     mantenimiento:

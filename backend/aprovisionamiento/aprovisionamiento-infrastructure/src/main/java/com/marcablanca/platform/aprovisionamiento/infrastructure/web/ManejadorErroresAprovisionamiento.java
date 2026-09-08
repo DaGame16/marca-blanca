@@ -1,6 +1,8 @@
 package com.marcablanca.platform.aprovisionamiento.infrastructure.web;
 
 import com.marcablanca.platform.aprovisionamiento.domain.EmpresaNoActivableException;
+import com.marcablanca.platform.aprovisionamiento.domain.EmpresaNoEncontradaException;
+import com.marcablanca.platform.aprovisionamiento.domain.EmpresaNoModificableException;
 import com.marcablanca.platform.aprovisionamiento.domain.EmpresaYaExisteException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -12,12 +14,22 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.Instant;
 import java.util.stream.Collectors;
 
-/** Acotado a este controller: el handler de IllegalArgumentException es amplio y no debe pisar a otros modulos. */
-@RestControllerAdvice(assignableTypes = AltaEmpresaController.class)
+/** Acotado a estos controllers: el handler de IllegalArgumentException es amplio y no debe pisar a otros modulos. */
+@RestControllerAdvice(assignableTypes = { AltaEmpresaController.class, RegistroModulosController.class })
 class ManejadorErroresAprovisionamiento {
 
     @ExceptionHandler(EmpresaYaExisteException.class)
     ResponseEntity<ErrorResponse> yaExiste(EmpresaYaExisteException ex, HttpServletRequest req) {
+        return construir(HttpStatus.CONFLICT, ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(EmpresaNoEncontradaException.class)
+    ResponseEntity<ErrorResponse> noEncontrada(EmpresaNoEncontradaException ex, HttpServletRequest req) {
+        return construir(HttpStatus.NOT_FOUND, ex.getMessage(), req);
+    }
+
+    @ExceptionHandler(EmpresaNoModificableException.class)
+    ResponseEntity<ErrorResponse> noModificable(EmpresaNoModificableException ex, HttpServletRequest req) {
         return construir(HttpStatus.CONFLICT, ex.getMessage(), req);
     }
 

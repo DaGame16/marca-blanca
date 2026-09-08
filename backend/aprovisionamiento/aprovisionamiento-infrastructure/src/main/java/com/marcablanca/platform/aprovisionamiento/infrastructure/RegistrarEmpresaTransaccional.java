@@ -2,15 +2,13 @@ package com.marcablanca.platform.aprovisionamiento.infrastructure;
 
 import com.marcablanca.platform.aprovisionamiento.application.ComandoRegistrarEmpresa;
 import com.marcablanca.platform.aprovisionamiento.application.RegistrarEmpresaService;
+import com.marcablanca.platform.aprovisionamiento.application.ResultadoRegistroEmpresa;
 import com.marcablanca.platform.aprovisionamiento.application.port.in.RegistrarEmpresa;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
-
 /**
- * Decorador transaccional de la Capa 1. La capa de aplicacion queda libre de
- * Spring; aca se abre la transaccion que hace atomico "guardar empresa + escribir
- * el outbox". Usa el transactionManager @Primary (unidad de persistencia "control").
+ * Decorador transaccional del paso 1. La capa de aplicacion queda libre de Spring;
+ * aca se abre la transaccion. Usa el transactionManager @Primary (unidad "control").
  */
 class RegistrarEmpresaTransaccional implements RegistrarEmpresa {
 
@@ -22,7 +20,7 @@ class RegistrarEmpresaTransaccional implements RegistrarEmpresa {
 
     @Override
     @Transactional
-    public UUID ejecutar(ComandoRegistrarEmpresa comando) {
+    public ResultadoRegistroEmpresa ejecutar(ComandoRegistrarEmpresa comando) {
         return delegado.ejecutar(comando);
     }
 }

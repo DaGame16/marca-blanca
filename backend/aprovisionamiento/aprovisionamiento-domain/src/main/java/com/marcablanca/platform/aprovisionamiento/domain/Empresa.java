@@ -1,83 +1,80 @@
 package com.marcablanca.platform.aprovisionamiento.domain;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 /**
  * Agregado raiz del contexto de aprovisionamiento: concentra las reglas del alta
  * y del ciclo de vida de una empresa cliente.
  *
- * La identidad estable es el uuid (exposicion externa); el id serial de la tabla
- * es un detalle de persistencia y no vive en este objeto.
- *
- * Nota: existe otra clase 'Empresa' en el modulo 'empresas' (un record de solo
- * lectura para el ruteo multi-tenant). Son bounded contexts distintos; no se
- * comparten ni se importan entre si.
+ * La identidad estable es el uuid; el id serial de la tabla es un detalle de
+ * persistencia y no vive en este objeto.
  */
 public class Empresa {
 
     private final UUID id;
     private final Identificador identificador;
     private String nombreLegal;
-    private String nombreComercial;                      // opcional
-    private String dominio;                              // opcional
-    private HashContrasenaMaestra hashContrasenaMaestra; // opcional al registrar
+    private String nombreComercial;                      // se define en personalizacion
+    private String dominio;
+    private String representanteLegal;
+    private String correo;                               // contacto + usuario de login
+    private String telefono;
+    private String sitioWeb;
+    private HashContrasenaMaestra hashContrasenaMaestra; // se genera al enviar el correo de bienvenida
     private EstadoEmpresa estado;
 
     private final List<EventoDeDominio> eventos = new ArrayList<>();
 
     /** Constructor de reconstruccion: lo usa el adaptador de persistencia al leer de la base. */
     public Empresa(UUID id, Identificador identificador, String nombreLegal, String nombreComercial,
-                   String dominio, HashContrasenaMaestra hashContrasenaMaestra, EstadoEmpresa estado) {
+                   String dominio, String representanteLegal, String correo, String telefono, String sitioWeb,
+                   HashContrasenaMaestra hashContrasenaMaestra, EstadoEmpresa estado) {
         this.id = id;
         this.identificador = identificador;
         this.nombreLegal = nombreLegal;
         this.nombreComercial = nombreComercial;
         this.dominio = dominio;
+        this.representanteLegal = representanteLegal;
+        this.correo = correo;
+        this.telefono = telefono;
+        this.sitioWeb = sitioWeb;
         this.hashContrasenaMaestra = hashContrasenaMaestra;
         this.estado = estado;
     }
 
-    /** Alta de una empresa nueva: queda PENDIENTE_APROVISIONAMIENTO y levanta EmpresaRegistrada. */
+    /** Paso 1 del registro: la empresa queda en BORRADOR. Sin contrasena, sin modulos, sin evento. */
     public static Empresa registrar(Identificador identificador,
-                                    String nombreLegal,
-                                    String nombreComercial,
                                     String dominio,
-                                    HashContrasenaMaestra hashContrasenaMaestra,
-                                    Set<String> modulosSolicitados) {
-        if (identificador == null) {
-            throw new IllegalArgumentException("El identificador es obligatorio.");
-        }
-        if (nombreLegal == null || nombreLegal.isBlank()) {
-            throw new IllegalArgumentException("El nombre legal es obligatorio.");
-        }
+                                    String nombreEmpresa,
+                                    String representanteLegal,
+                                    String correo,
+                                    String telefono,
+                                    String sitioWeb) {
+        exigir(identificador != null, "El identificador es obligatorio.");
+        exigirTexto(dominio, "El dominio es obligatorio.");
+        exigirTexto(nombreEmpresa, "El nombre de la empresa es obligatorio.");
+        exigirTexto(representanteLegal, "El representante legal es obligatorio.");
+        exigirTexto(correo, "El correo es obligatorio.");
+        exigirTexto(telefono, "El telefono es obligatorio.");
+        exigirTexto(sitioWeb, "El sitio web es obligatorio.");
 
-        Empresa empresa = new Empresa(
+        return new Empresa(
                 UUID.randomUUID(),
                 identificador,
-                nombreLegal.trim(),
-                normalizar(nombreComercial),
-                normalizar(dominio),
-                hashContrasenaMaestra,
-                EstadoEmpresa.PENDIENTE_APROVISIONAMIENTO
-        );
-
-        empresa.eventos.add(new EmpresaRegistrada(
-                empresa.id,
-                identificador.valor(),
-                empresa.nombreLegal,
-                empresa.nombreComercial,
-                empresa.dominio,
-                modulosSolicitados == null ? Set.of() : Set.copyOf(modulosSolicitados),
-                Instant.now()
-        ));
-        return empresa;
+                nombreEmpresa.trim(),
+                null,
+                dominio.trim(),
+                representanteLegal.trim(),
+                correo.trim().toLowerCase(),
+                telefono.trim(),
+                sitioWeb.trim(),
+                null,
+                EstadoEmpresa.BORRADOR);
     }
 
-    /** Paso 8 del aprovisionamiento: la base quedo lista y la empresa entra en operacion. */
+    /** La base quedo lista y la empresa entra en operacion. */
     public void activar() {
         if (estado != EstadoEmpresa.PENDIENTE_APROVISIONAMIENTO) {
             throw new EmpresaNoActivableException(estado);
@@ -93,12 +90,16 @@ public class Empresa {
         eventos.clear();
     }
 
-    private static String normalizar(String texto) {
-        if (texto == null) {
-            return null;
+    private static void exigir(boolean condicion, String mensaje) {
+        if (!condicion) {
+            throw new IllegalArgumentException(mensaje);
         }
-        String limpio = texto.trim();
-        return limpio.isBlank() ? null : limpio;
+    }
+
+    private static void exigirTexto(String valor, String mensaje) {
+        if (valor == null || valor.isBlank()) {
+            throw new IllegalArgumentException(mensaje);
+        }
     }
 
     public UUID getId() { return id; }
@@ -106,6 +107,10 @@ public class Empresa {
     public String getNombreLegal() { return nombreLegal; }
     public String getNombreComercial() { return nombreComercial; }
     public String getDominio() { return dominio; }
+    public String getRepresentanteLegal() { return representanteLegal; }
+    public String getCorreo() { return correo; }
+    public String getTelefono() { return telefono; }
+    public String getSitioWeb() { return sitioWeb; }
     public HashContrasenaMaestra getHashContrasenaMaestra() { return hashContrasenaMaestra; }
     public EstadoEmpresa getEstado() { return estado; }
 }

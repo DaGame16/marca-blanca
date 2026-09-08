@@ -1,71 +1,53 @@
 package com.marcablanca.platform.aprovisionamiento.application;
 
 import com.marcablanca.platform.aprovisionamiento.application.port.in.RegistrarEmpresa;
-import com.marcablanca.platform.aprovisionamiento.application.port.out.CifradorDeContrasenaMaestra;
-import com.marcablanca.platform.aprovisionamiento.application.port.out.RegistroDeEventos;
 import com.marcablanca.platform.aprovisionamiento.application.port.out.RepositorioEmpresas;
 import com.marcablanca.platform.aprovisionamiento.domain.Empresa;
 import com.marcablanca.platform.aprovisionamiento.domain.EmpresaYaExisteException;
-import com.marcablanca.platform.aprovisionamiento.domain.HashContrasenaMaestra;
 import com.marcablanca.platform.aprovisionamiento.domain.Identificador;
 
-import java.util.UUID;
-
 /**
- * Capa 1. Orquesta el alta: valida unicidad, cifra la contrasena maestra,
- * crea el agregado y lo persiste JUNTO con el evento de outbox.
- *
- * La atomicidad (guardar empresa + evento en una transaccion) la garantiza el
- * decorador @Transactional de infraestructura que envuelve este servicio.
+ * Paso 1 del registro: crea la empresa en estado BORRADOR. Deriva el identificador
+ * y el dominio del sitio web. No hay contrasena ni modulos todavia, y el evento de
+ * aprovisionamiento se levanta recien cuando el registro se finaliza.
  */
 public class RegistrarEmpresaService implements RegistrarEmpresa {
 
     private final RepositorioEmpresas repositorioEmpresas;
-    private final RegistroDeEventos registroDeEventos;
-    private final CifradorDeContrasenaMaestra cifrador;
+    private final String sufijoDominio;
 
-    public RegistrarEmpresaService(RepositorioEmpresas repositorioEmpresas,
-                                   RegistroDeEventos registroDeEventos,
-                                   CifradorDeContrasenaMaestra cifrador) {
+    public RegistrarEmpresaService(RepositorioEmpresas repositorioEmpresas, String sufijoDominio) {
         this.repositorioEmpresas = repositorioEmpresas;
-        this.registroDeEventos = registroDeEventos;
-        this.cifrador = cifrador;
+        this.sufijoDominio = sufijoDominio;
     }
 
     @Override
-    public UUID ejecutar(ComandoRegistrarEmpresa comando) {
-        Identificador identificador = new Identificador(comando.identificador());
+    public ResultadoRegistroEmpresa ejecutar(ComandoRegistrarEmpresa comando) {
+        Identificador identificador = Identificador.desde(comando.sitioWeb());
+        String dominio = identificador.valor() + "." + sufijoDominio;
 
         if (repositorioEmpresas.existePorIdentificador(identificador)) {
             throw new EmpresaYaExisteException("el identificador '" + identificador.valor() + "'");
         }
-        String dominio = normalizar(comando.dominio());
-        if (dominio != null && repositorioEmpresas.existePorDominio(dominio)) {
+        if (repositorioEmpresas.existePorDominio(dominio)) {
             throw new EmpresaYaExisteException("el dominio '" + dominio + "'");
         }
 
-        HashContrasenaMaestra hash = cifrador.cifrar(comando.contrasenaMaestra());
-
         Empresa empresa = Empresa.registrar(
                 identificador,
-                comando.nombreLegal(),
-                comando.nombreComercial(),
                 dominio,
-                hash,
-                comando.modulosSolicitados());
+                comando.nombreEmpresa(),
+                comando.representanteLegal(),
+                comando.correo(),
+                comando.telefono(),
+                comando.sitioWeb());
 
         repositorioEmpresas.guardar(empresa);
-        registroDeEventos.publicar(empresa.eventosPendientes());
-        empresa.limpiarEventos();
 
-        return empresa.getId();
-    }
-
-    private static String normalizar(String texto) {
-        if (texto == null) {
-            return null;
-        }
-        String limpio = texto.trim();
-        return limpio.isBlank() ? null : limpio;
+        return new ResultadoRegistroEmpresa(
+                empresa.getId(),
+                identificador.valor(),
+                dominio,
+                empresa.getEstado().name().toLowerCase());
     }
 }

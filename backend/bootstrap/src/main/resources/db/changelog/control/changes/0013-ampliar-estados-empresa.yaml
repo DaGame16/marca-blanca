@@ -10,7 +10,7 @@ databaseChangeLog:
             sql: >
               ALTER TABLE plataforma.tbl_empresas
               ADD CONSTRAINT ck_empresas_estado
-              CHECK (estado IN ('borrador', 'pendiente_pago', 'pendiente_aprovisionamiento',
+              CHECK (estado IN ('borrador', 'pendiente_aprovisionamiento',
               'activa', 'suspendida', 'inactiva'))
       rollback:
         - sql:

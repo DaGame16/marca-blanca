@@ -48,5 +48,5 @@ databaseChangeLog:
       file: changes/0015-agregar-variantes-ui-marca.yaml
       relativeToChangelogFile: true
   - include:
-      file: changes/0016-crear-tablas-ordenes-de-pago.yaml
+      file: changes/0016-crear-tabla-config-correo.yaml
       relativeToChangelogFile: true
