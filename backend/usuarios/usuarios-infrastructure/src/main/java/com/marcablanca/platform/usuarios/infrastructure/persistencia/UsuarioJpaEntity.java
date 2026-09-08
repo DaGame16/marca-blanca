@@ -25,6 +25,9 @@ public class UsuarioJpaEntity {
     @Column(name = "nombre_completo", nullable = false)
     private String nombreCompleto;
 
+    @Column(name = "es_contrasena_temporal", nullable = false)
+    private boolean esContrasenaTemporal;
+
     @Embedded
     private EstadoCuentaEmbeddable estadoCuenta;
 
@@ -37,13 +40,15 @@ public class UsuarioJpaEntity {
     protected UsuarioJpaEntity() {}
 
     public UsuarioJpaEntity(Long id, UUID uuid, String correo, String hashContrasena,
-                             String nombreCompleto, EstadoCuentaEmbeddable estadoCuenta) {
+                             String nombreCompleto, EstadoCuentaEmbeddable estadoCuenta,
+                             boolean esContrasenaTemporal) {
         this.id = id;
         this.uuid = uuid;
         this.correo = correo;
         this.hashContrasena = hashContrasena;
         this.nombreCompleto = nombreCompleto;
         this.estadoCuenta = estadoCuenta;
+        this.esContrasenaTemporal = esContrasenaTemporal;
     }
 
     @PrePersist
@@ -63,6 +68,7 @@ public class UsuarioJpaEntity {
     public String getCorreo() { return correo; }
     public String getHashContrasena() { return hashContrasena; }
     public String getNombreCompleto() { return nombreCompleto; }
+    public boolean isEsContrasenaTemporal() { return esContrasenaTemporal; }
     public boolean isActivo() { return estadoCuenta.isActivo(); }
     public int getIntentosFallidos() { return estadoCuenta.getIntentosFallidos(); }
     public OffsetDateTime getBloqueadoHasta() { return estadoCuenta.getBloqueadoHasta(); }

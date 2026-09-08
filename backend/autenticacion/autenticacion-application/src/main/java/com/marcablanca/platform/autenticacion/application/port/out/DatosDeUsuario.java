@@ -8,5 +8,5 @@ import java.util.UUID;
  * sale de verificar un JWT (usuario + empresa); este es lo que entra para
  * generar uno.
  */
-public record DatosDeUsuario(UUID id, String correo) {
+public record DatosDeUsuario(UUID id, String correo, boolean debeCambiarContrasena) {
 }
