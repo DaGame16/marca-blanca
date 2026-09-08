@@ -124,9 +124,15 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
   template: `
     <div class="registro-page">
       <header class="topbar">
-        <div class="topbar-logo">
+        <div class="topbar-left">
+          <a routerLink="/" class="topbar-back">
+            <mat-icon inline>arrow_back</mat-icon>
+            Volver al inicio
+          </a>
+          <div class="topbar-logo">
           <mat-icon class="topbar-logo-icon">hub</mat-icon>
           <span>Marca Blanca</span>
+          </div>
         </div>
         <a routerLink="/login" class="topbar-link">Ya tengo cuenta</a>
       </header>
@@ -187,13 +193,13 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
                   <mat-icon matPrefix>apartment</mat-icon>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>Nombre comercial (opcional)</mat-label>
-                  <input matInput formControlName="nombreComercial" />
-                  <mat-icon matPrefix>storefront</mat-icon>
-                </mat-form-field>
-
                 <div class="campos-fila">
+                  <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Nombre del representante legal</mat-label>
+                    <input matInput formControlName="nombreRepresentanteLegal" autocomplete="name" />
+                    <mat-icon matPrefix>badge</mat-icon>
+                  </mat-form-field>
+
                   <mat-form-field appearance="outline" class="full-width">
                     <mat-label>Correo del representante</mat-label>
                     <input matInput type="email" formControlName="correo" autocomplete="email" />
@@ -240,12 +246,6 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
                 </div>
 
                 <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>Dominio propio (opcional)</mat-label>
-                  <input matInput formControlName="dominio" placeholder="www.tuempresa.com" />
-                  <mat-icon matPrefix>public</mat-icon>
-                </mat-form-field>
-
-                <mat-form-field appearance="outline" class="full-width">
                   <mat-label>Contraseña maestra</mat-label>
                   <input matInput type="password" formControlName="contrasenaMaestra" />
                   <mat-icon matPrefix>lock</mat-icon>
@@ -282,12 +282,6 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
                   <span>Cargando catálogo de módulos…</span>
                 </div>
               } @else {
-                @if (errorModulos()) {
-                  <p class="aviso-respaldo">
-                    <mat-icon inline>info_outline</mat-icon>
-                    No pudimos cargar el catálogo del servidor, mostrando los módulos conocidos.
-                  </p>
-                }
                 <div class="modulos-lista">
                   @for (modulo of modulos(); track modulo.codigo) {
                     <label class="modulo-item" [class.modulo-item-activo]="estaSeleccionado(modulo.codigo)">
@@ -502,7 +496,7 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
                 <span class="resumen-texto">Logo y colores elegidos en el paso anterior</span>
               </div>
 
-              <div class="temas-pagina-lista">
+              <div class="temas-pagina-grid">
                 @for (opcion of opcionesPagina; track opcion.codigo) {
                   <button
                     type="button"
@@ -510,11 +504,33 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
                     [class.tema-pagina-item-activo]="temaPagina.tema() === opcion.codigo"
                     (click)="temaPagina.elegir(opcion.codigo)"
                   >
-                    <mat-icon>{{ opcion.icono }}</mat-icon>
-                    <span class="tema-pagina-texto">
-                      <strong>{{ opcion.nombre }}</strong>
-                      <span>{{ opcion.descripcion }}</span>
-                    </span>
+                    <div class="pagina-preview" [class]="'pagina-preview-' + opcion.codigo">
+                      @switch (opcion.codigo) {
+                        @case ('clasico') {
+                          <div class="pagina-window">
+                            <div class="pagina-sidebar" [style.background]="colorSecundario()"></div>
+                            <div class="pagina-content"><span class="pagina-barra" [style.background]="colorPrimario()"></span><span class="pagina-linea ancha"></span><span class="pagina-linea"></span><div class="pagina-cards"><i></i><i></i><i></i></div></div>
+                          </div>
+                        }
+                        @case ('compacto') {
+                          <div class="pagina-window pagina-window-compacto">
+                            <div class="pagina-topbar" [style.background]="colorPrimario()"></div>
+                            <div class="pagina-content"><span class="pagina-linea ancha"></span><div class="pagina-lista-lineas"><i></i><i></i><i></i><i></i></div></div>
+                          </div>
+                        }
+                        @case ('amplio') {
+                          <div class="pagina-window pagina-window-amplio">
+                            <div class="pagina-topbar" [style.background]="colorSecundario()"></div>
+                            <div class="pagina-content"><span class="pagina-barra grande" [style.background]="colorPrimario()"></span><span class="pagina-linea ancha"></span><div class="pagina-cards grandes"><i></i><i></i></div></div>
+                          </div>
+                        }
+                      }
+                    </div>
+                    <div class="pagina-item-heading"><mat-icon>{{ opcion.icono }}</mat-icon><span class="tema-pagina-texto">
+                        <strong>{{ opcion.nombre }}</strong>
+                        <span>{{ opcion.descripcion }}</span>
+                      </span>
+                    </div>
                     @if (temaPagina.tema() === opcion.codigo) {
                       <mat-icon class="tema-pagina-check">check_circle</mat-icon>
                     }
@@ -539,8 +555,8 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
                 Volver
               </button>
 
-              <h2>Resumen y pago</h2>
-              <p class="form-subtitle">Revisa lo que vas a activar antes de crear tu empresa</p>
+              <h2>Resumen de configuración</h2>
+              <p class="form-subtitle">Revisa tu espacio antes de crear la empresa</p>
 
               <div class="resumen-pago-lista">
                 @for (codigo of modulosSeleccionados(); track codigo) {
@@ -554,12 +570,12 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
               </div>
 
               <div class="resumen-pago-total">
-                <span>Total a pagar hoy</span>
-                <strong>$0</strong>
+                <span>Costo de activación</span>
+                <strong>Gratis</strong>
               </div>
               <p class="campo-hint">
-                La pasarela de pago todavía no está activa — por ahora la creación de tu empresa es
-                gratuita. Cuando esté lista, este paso te pedirá el pago antes de continuar.
+                En el entorno local no se requiere pago. Tu espacio se creará sin costo para que
+                puedas probar el flujo completo.
               </p>
 
               @if (errorCreacion()) {
@@ -580,7 +596,7 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
                 @if (creando()) {
                   <mat-spinner diameter="20" />
                 } @else {
-                  Pagar y crear empresa
+                  Crear empresa
                 }
               </button>
 
@@ -595,7 +611,7 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
               <div class="exito-panel">
                 <p class="construyendo-texto">
                   Construyendo tu espacio para
-                  <strong>{{ form.controls.nombreComercial.value || form.controls.nombreLegal.value || form.controls.identificador.value }}</strong>
+                  <strong>{{ form.controls.nombreLegal.value || form.controls.identificador.value }}</strong>
                 </p>
                 <div class="construyendo-barra">
                   <div class="construyendo-barra-relleno"></div>
@@ -610,7 +626,15 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
                     sigue en curso — intenta iniciar sesión en un momento con el identificador y la
                     contraseña maestra que definiste.
                   </p>
-                  <a mat-flat-button color="primary" routerLink="/login" class="full-width submit-btn">
+                  <div class="subdominio-local">
+                    <span class="subdominio-local-label">Tu espacio local</span>
+                    <code>{{ subdominioLocal() }}</code>
+                    <a mat-stroked-button [href]="subdominioLocal()" target="_blank" rel="noopener">
+                      Abrir plataforma
+                      <mat-icon>open_in_new</mat-icon>
+                    </a>
+                  </div>
+                  <a mat-flat-button color="primary" [href]="subdominioLocal() + 'login'" class="full-width submit-btn">
                     Ir a iniciar sesión
                   </a>
                 </div>
@@ -637,10 +661,42 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
       }
 
       .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
         display: flex;
         align-items: center;
         justify-content: space-between;
         padding: 20px 32px;
+        background: rgba(15, 23, 42, 0.92);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+      }
+
+      .topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+      }
+
+      .topbar-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        color: #cbd5e1;
+        font-size: 0.82rem;
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .topbar-back:hover {
+        color: #fff;
+      }
+
+      .topbar-back mat-icon {
+        width: 17px;
+        height: 17px;
+        font-size: 17px;
       }
 
       .topbar-logo {
@@ -942,7 +998,7 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
       /* ---------- Paso 3: temas de login + marca ---------- */
       .temas-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        grid-template-columns: repeat(3, 1fr);
         gap: 12px;
         margin-bottom: 24px;
       }
@@ -970,7 +1026,7 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
       }
 
       .preview {
-        height: 70px;
+        height: 128px;
         border-radius: 8px;
         overflow: hidden;
         margin-bottom: 10px;
@@ -1013,7 +1069,7 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
       }
 
       .preview-tarjeta {
-        width: 70%;
+        width: 72%;
         background: white;
         border-radius: 6px;
         padding: 8px;
@@ -1059,7 +1115,7 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
       }
 
       .tema-card p {
-        font-size: 0.72rem;
+        font-size: 0.76rem;
         color: #64748b;
         line-height: 1.3;
         margin: 0;
@@ -1073,6 +1129,11 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
         font-size: 0.72rem;
         font-weight: 600;
         color: #16a34a;
+      }
+
+      @media (max-width: 560px) {
+        .temas-grid { grid-template-columns: 1fr; }
+        .preview { height: 150px; }
       }
 
       .marca-fields {
@@ -1303,22 +1364,23 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
         margin-left: 4px;
       }
 
-      .temas-pagina-lista {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
+      .temas-pagina-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
         margin-bottom: 24px;
       }
 
       .tema-pagina-item {
+        position: relative;
         display: flex;
-        align-items: center;
-        gap: 12px;
+        flex-direction: column;
+        gap: 10px;
         text-align: left;
         background: white;
         border: 1px solid #e2e8f0;
         border-radius: 10px;
-        padding: 12px 14px;
+        padding: 10px;
         cursor: pointer;
         font: inherit;
         color: #0f172a;
@@ -1332,6 +1394,43 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
         border-color: var(--brand-light);
         box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
       }
+
+      .pagina-preview {
+        height: 112px;
+        overflow: hidden;
+        border-radius: 7px;
+        background: #eef2f7;
+        border: 1px solid #e5eaf2;
+        padding: 8px;
+      }
+
+      .pagina-window {
+        height: 100%;
+        display: flex;
+        overflow: hidden;
+        border-radius: 4px;
+        background: #fff;
+        box-shadow: 0 3px 10px rgba(15, 23, 42, .10);
+      }
+
+      .pagina-sidebar { width: 22%; }
+      .pagina-topbar { height: 13px; width: 100%; border-radius: 3px 3px 0 0; }
+      .pagina-content { flex: 1; padding: 9px; min-width: 0; }
+      .pagina-barra { display: block; width: 34%; height: 5px; border-radius: 3px; margin-bottom: 8px; }
+      .pagina-barra.grande { width: 55%; height: 8px; margin-bottom: 11px; }
+      .pagina-linea { display: block; width: 62%; height: 4px; border-radius: 3px; background: #d9e0ea; margin: 5px 0; }
+      .pagina-linea.ancha { width: 82%; height: 6px; background: #aebbd0; }
+      .pagina-cards { display: flex; gap: 5px; margin-top: 10px; }
+      .pagina-cards i { flex: 1; height: 26px; border-radius: 3px; background: #e8edf4; }
+      .pagina-cards i:first-child { border-top: 4px solid #7aa8ef; }
+      .pagina-cards i:nth-child(2) { border-top: 4px solid #9cc6b0; }
+      .pagina-cards i:last-child { border-top: 4px solid #e9bd83; }
+      .pagina-lista-lineas { margin-top: 10px; display: flex; flex-direction: column; gap: 5px; }
+      .pagina-lista-lineas i { display: block; height: 7px; border-radius: 3px; background: #e5eaf2; }
+      .pagina-lista-lineas i:nth-child(2n) { width: 78%; }
+      .pagina-cards.grandes i { height: 35px; }
+      .pagina-item-heading { display: flex; align-items: flex-start; gap: 8px; }
+      .pagina-item-heading > mat-icon { color: var(--brand-light); font-size: 19px; width: 19px; height: 19px; }
 
       .tema-pagina-texto {
         display: flex;
@@ -1347,8 +1446,17 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
       }
 
       .tema-pagina-check {
-        margin-left: auto;
+        position: absolute;
+        top: 5px;
+        right: 5px;
         color: #16a34a;
+        background: #fff;
+        border-radius: 50%;
+      }
+
+      @media (max-width: 560px) {
+        .temas-pagina-grid { grid-template-columns: 1fr; }
+        .pagina-preview { height: 132px; }
       }
 
       .error-creacion {
@@ -1430,9 +1538,64 @@ type PasoWizard = 1 | 2 | 3 | 4 | 5 | 6;
         padding: 1px 6px;
       }
 
+      .subdominio-local {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        margin: 18px 0 8px;
+        padding: 14px;
+        text-align: left;
+        border: 1px solid #dbe7fb;
+        border-radius: 10px;
+        background: #f5f9ff;
+      }
+
+      .subdominio-local-label {
+        color: #64748b;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .subdominio-local code {
+        display: block;
+        overflow: hidden;
+        color: #1558b0;
+        font-size: 0.88rem;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .subdominio-local a {
+        align-self: flex-start;
+        color: #2468d9;
+      }
+
+      .subdominio-local a mat-icon {
+        margin-left: 6px;
+        font-size: 16px;
+        vertical-align: middle;
+      }
+
       @media (max-width: 900px) {
         .topbar {
           padding: 16px 20px;
+        }
+
+        .topbar-left {
+          gap: 14px;
+        }
+
+        .topbar-back {
+          font-size: 0;
+        }
+
+        .topbar-back mat-icon {
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
         }
 
         .stepper {
@@ -1503,7 +1666,7 @@ export class RegistroEmpresaComponent {
 
   protected readonly form = this.fb.nonNullable.group({
     nombreLegal: ['', [Validators.required, Validators.maxLength(200)]],
-    nombreComercial: ['', [Validators.maxLength(200)]],
+    nombreRepresentanteLegal: ['', [Validators.required, Validators.maxLength(200)]],
     identificador: [
       '',
       [Validators.required, Validators.minLength(3), Validators.maxLength(40), Validators.pattern(PATRON_IDENTIFICADOR)],
@@ -1514,7 +1677,6 @@ export class RegistroEmpresaComponent {
     // hasta que el equipo de backend amplie el contrato.
     correo: ['', [Validators.required, Validators.email, Validators.maxLength(200)]],
     telefono: ['', [Validators.required, Validators.maxLength(30)]],
-    dominio: ['', [Validators.maxLength(191)]],
     contrasenaMaestra: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(100)]],
   });
 
@@ -1524,14 +1686,20 @@ export class RegistroEmpresaComponent {
 
   private cargarModulos(): void {
     this.adminService.getModulos().subscribe({
-      next: (modulos) => {
-        this.modulos.set(modulos);
+      next: (modulos: Modulo[]) => {
+        // Algunos entornos tienen el catálogo aún sin poblar y responden []
+        // con HTTP 200. En ese caso usamos el mismo respaldo que usamos
+        // cuando el endpoint no está disponible, para que el wizard no quede
+        // visualmente vacío.
+        const catalogo = modulos.length > 0 ? modulos : MODULOS_RESPALDO;
+        this.modulos.set(catalogo);
+        this.errorModulos.set(false);
         this.cargandoModulos.set(false);
-        this.aplicarModuloPreseleccionado(modulos);
+        this.aplicarModuloPreseleccionado(catalogo);
       },
       error: () => {
         this.modulos.set(MODULOS_RESPALDO);
-        this.errorModulos.set(true);
+        this.errorModulos.set(false);
         this.cargandoModulos.set(false);
         this.aplicarModuloPreseleccionado(MODULOS_RESPALDO);
       },
@@ -1624,13 +1792,15 @@ export class RegistroEmpresaComponent {
       .registrar({
         identificador: valores.identificador,
         nombreLegal: valores.nombreLegal,
-        nombreComercial: valores.nombreComercial || null,
-        dominio: valores.dominio || null,
+        // El endpoint actual aún valida el DTO antiguo. Estos valores no se
+        // muestran en la UI y se mantienen nulos durante la migración.
+        nombreComercial: null,
+        dominio: null,
         contrasenaMaestra: valores.contrasenaMaestra,
         modulosSolicitados: this.modulosSeleccionados(),
       })
       .subscribe({
-        next: (respuesta) => {
+        next: (respuesta: RegistrarEmpresaResponse) => {
           this.creando.set(false);
           this.resultado.set(respuesta);
 
@@ -1659,6 +1829,12 @@ export class RegistroEmpresaComponent {
           this.errorCreacion.set(this.mensajeDeError(error));
         },
       });
+  }
+
+  protected subdominioLocal(): string {
+    const identificador = this.form.controls.identificador.value || 'tu-empresa';
+    const puerto = globalThis.location.port || '4200';
+    return `${globalThis.location.protocol}//${identificador}.localhost:${puerto}/`;
   }
 
   private mensajeDeError(error: HttpErrorResponse): string {

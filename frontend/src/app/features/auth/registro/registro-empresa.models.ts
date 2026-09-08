@@ -3,6 +3,8 @@
 export interface RegistrarEmpresaRequest {
   identificador: string;
   nombreLegal: string;
+  // Campos que el DTO backend actual todavía conserva. La interfaz ya no los
+  // muestra, pero se envían como null hasta que el contrato sea migrado.
   nombreComercial: string | null;
   dominio: string | null;
   contrasenaMaestra: string;
