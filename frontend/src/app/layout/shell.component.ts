@@ -3,25 +3,23 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../core/auth/auth.service';
-
+import { TemaPaginaService } from '../core/temas/tema-pagina.service';
 @Component({
   selector: 'app-shell',
   standalone: true,
   imports: [RouterOutlet, RouterLink, RouterLinkActive, MatIconModule, MatButtonModule],
   template: `
-    <div class="app-shell">
+    <div class="app-shell tema-{{ temaPagina.tema() }}">
       <aside class="sidebar">
         <div class="sidebar-brand">
           <div class="brand-mark"><mat-icon>hub</mat-icon></div>
           <div><strong>Marca Blanca</strong><span>Business platform</span></div>
         </div>
-
         <div class="workspace-card">
           <span class="workspace-label">ESPACIO DE TRABAJO</span>
           <div class="workspace-name"><span class="workspace-dot"></span>{{ empresa() }}</div>
           <span class="workspace-status"><mat-icon>verified</mat-icon> Cuenta activa</span>
         </div>
-
         <nav class="sidebar-nav" aria-label="Navegación principal">
           <span class="nav-section">OPERACIÓN</span>
           <a routerLink="/mis-modulos" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"><mat-icon>apps</mat-icon><span>Mis módulos</span></a>
@@ -31,11 +29,9 @@ import { AuthService } from '../core/auth/auth.service';
           <a routerLink="/mi-marca" routerLinkActive="active"><mat-icon>palette</mat-icon><span>Identidad de marca</span></a>
           <a routerLink="/tema-login" routerLinkActive="active"><mat-icon>dashboard_customize</mat-icon><span>Experiencia de acceso</span></a>
         </nav>
-
         <div class="sidebar-help"><mat-icon>support</mat-icon><div><strong>¿Necesitas ayuda?</strong><span>Consulta con soporte</span></div></div>
         <button class="logout-button" type="button" (click)="auth.logout()"><mat-icon>logout</mat-icon><span>Cerrar sesión</span></button>
       </aside>
-
       <div class="main-shell">
         <header class="topbar">
           <div class="breadcrumb"><span>Workspace</span><mat-icon>chevron_right</mat-icon><strong>{{ title() }}</strong></div>
@@ -59,19 +55,27 @@ import { AuthService } from '../core/auth/auth.service';
     .sidebar-nav { display:flex; flex-direction:column; gap:4px; }.nav-section { margin: 0 12px 7px; }.nav-section:not(:first-child) { margin-top: 22px; }.sidebar-nav a { display:flex; align-items:center; gap:12px; color:#9daac0; text-decoration:none; border-radius:9px; padding:11px 12px; font-size:13px; transition: background .18s ease,color .18s ease,transform .18s ease; }.sidebar-nav a mat-icon { width:19px; height:19px; font-size:19px; }.sidebar-nav a:hover { background:#1b2b47; color:#fff; transform:translateX(2px); }.sidebar-nav a.active { background:#2468d9; color:#fff; box-shadow:0 6px 16px rgba(36,104,217,.22); }
     .sidebar-help { margin-top:auto; display:flex; gap:10px; align-items:center; border-top:1px solid #273650; padding:18px 8px; color:#9daac0; }.sidebar-help mat-icon { color:#6ea7ff; }.sidebar-help strong,.sidebar-help span { display:block; }.sidebar-help strong { color:#d7deeb; font-size:12px; }.sidebar-help span { font-size:11px; margin-top:3px; }.logout-button { display:flex; align-items:center; gap:11px; border:0; border-top:1px solid #273650; padding:15px 10px 0; margin:0; background:none; color:#9daac0; cursor:pointer; font:inherit; font-size:13px; text-align:left; }.logout-button:hover { color:#fff; }.logout-button mat-icon { font-size:19px; }
     .main-shell { flex:1; min-width:0; }.topbar { height:72px; box-sizing:border-box; background:#fff; border-bottom:1px solid #e6eaf1; display:flex; align-items:center; justify-content:space-between; padding:0 34px; }.breadcrumb { display:flex; align-items:center; gap:7px; color:#8b97aa; font-size:13px; }.breadcrumb mat-icon { width:17px; height:17px; font-size:17px; }.breadcrumb strong { color:#26334a; font-weight:600; }.topbar-actions { display:flex; align-items:center; gap:18px; }.topbar-actions button { position:relative; color:#66748a; }.notification-dot { position:absolute; top:8px; right:8px; width:6px; height:6px; border-radius:50%; background:#ef6b5f; border:2px solid white; }.profile { display:flex; align-items:center; gap:9px; }.avatar { width:34px; height:34px; border-radius:10px; background:#e6efff; color:#2468d9; display:grid; place-items:center; font-size:12px; font-weight:800; }.profile strong,.profile span { display:block; }.profile strong { font-size:12px; color:#27344a; }.profile span { font-size:11px; color:#8b97aa; margin-top:2px; }.profile > mat-icon { color:#8b97aa; font-size:18px; }.page-content { padding: 30px 34px 48px; max-width: 1500px; margin:0 auto; box-sizing:border-box; }
+    .app-shell.tema-compacto .sidebar { width: 210px; flex-basis: 210px; padding: 16px 12px 14px; }
+    .app-shell.tema-compacto .page-content { padding: 18px 22px 30px; }
+    .app-shell.tema-compacto .topbar { height: 58px; padding: 0 22px; }
+    .app-shell.tema-compacto .sidebar-nav a { padding: 8px 10px; font-size: 12.5px; }
+    .app-shell.tema-amplio .sidebar { width: 288px; flex-basis: 288px; padding: 32px 22px 24px; }
+    .app-shell.tema-amplio .page-content { padding: 44px 52px 60px; max-width: 1650px; }
+    .app-shell.tema-amplio .topbar { height: 84px; padding: 0 44px; }
+    .app-shell.tema-amplio .sidebar-nav a { padding: 14px 14px; font-size: 13.5px; }
+    .app-shell.tema-amplio .workspace-card { padding: 18px; }
     @media (max-width: 800px) { .sidebar { width:70px; flex-basis:70px; padding:20px 10px; }.sidebar-brand { padding:0 8px 28px; }.sidebar-brand > div:last-child,.workspace-card,.sidebar-nav span,.sidebar-help div,.logout-button span { display:none; }.sidebar-nav a { justify-content:center; padding:12px; }.sidebar-help { justify-content:center; padding:18px 0; }.logout-button { justify-content:center; padding-left:0; padding-right:0; }.topbar { padding:0 18px; }.breadcrumb span,.breadcrumb mat-icon { display:none; }.profile > div:last-of-type,.profile > mat-icon { display:none; }.page-content { padding:22px 16px 36px; } }
   `],
 })
 export class ShellComponent {
   protected readonly auth = inject(AuthService);
+  protected readonly temaPagina = inject(TemaPaginaService);
   protected empresa(): string {
     return localStorage.getItem('mp_identificador_empresa') || 'Mi empresa';
   }
-
   protected userName(): string {
     return this.auth.currentUser()?.usuarioId || 'Administrador';
   }
-
   protected initials(): string {
     return this.userName()
       .split(' ')
@@ -82,23 +86,18 @@ export class ShellComponent {
   }
   protected title(): string {
     const path = globalThis.location.pathname;
-
     if (path.includes('mi-marca')) {
       return 'Identidad de marca';
     }
-
     if (path.includes('tema-login')) {
       return 'Experiencia de acceso';
     }
-
     if (path.includes('usuarios')) {
       return 'Usuarios y accesos';
     }
-
     if (path.includes('tareas')) {
       return 'Tareas';
     }
-
     return 'Mis módulos';
   }
 }
