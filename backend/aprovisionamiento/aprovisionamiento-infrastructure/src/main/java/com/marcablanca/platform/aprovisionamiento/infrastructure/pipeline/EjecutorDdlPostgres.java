@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
 import java.security.SecureRandom;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -74,12 +75,14 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
     public void crearBaseDeDatos(Empresa empresa) {
         String nombreBd = empresa.getIdentificador().nombreBaseDeDatos();
         exigirNombreSeguro(nombreBd);
-        Integer existe = mantenimiento.queryForObject(
-                "select count(*) from pg_database where datname = ?", Integer.class, nombreBd);
-        if (existe != null && existe > 0) {
+        if (existe(mantenimiento, "select exists(select 1 from pg_database where datname = ?)", nombreBd)) {
             log.info("La base {} ya existe; no se clona de nuevo.", nombreBd);
             return;
         }
+        // CREATE DATABASE no admite parametros para los identificadores. Ambos nombres
+        // se validan contra SLUG_SEGURO antes de interpolarse: nombreBd deriva del
+        // Identificador (ya validado en el dominio) y plantilla es config de confianza.
+        exigirNombreSeguro(plantilla);
         log.info("Clonando {} desde la plantilla {}", nombreBd, plantilla);
         mantenimiento.execute("create database " + nombreBd + " template " + plantilla);
     }
@@ -89,11 +92,10 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
         // El usuario admin se crea en enviarBienvenida (con la contrasena temporal).
         // Aca solo el rol ADMIN, idempotente.
         JdbcTemplate cliente = jdbcCliente(empresa.getIdentificador().nombreBaseDeDatos());
-        Integer existe = cliente.queryForObject(
-                "select count(*) from seguridad.tbl_roles where nombre = 'ADMIN'", Integer.class);
-        if (existe == null || existe == 0) {
-            cliente.update("insert into seguridad.tbl_roles (nombre, descripcion, es_del_sistema) "
-                    + "values ('ADMIN', 'Administrador de la empresa', true)");
+        if (!existe(cliente, "select exists(select 1 from seguridad.tbl_roles where nombre = 'ADMIN')")) {
+            cliente.update("""
+                    insert into seguridad.tbl_roles (nombre, descripcion, es_del_sistema)
+                    values ('ADMIN', 'Administrador de la empresa', true)""");
         }
     }
 
@@ -108,31 +110,35 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
     @Override
     public void registrarConexion(Empresa empresa) {
         String nombreBd = empresa.getIdentificador().nombreBaseDeDatos();
-        Integer existe = control.queryForObject(
-                "select count(*) from plataforma.tbl_empresa_conexiones c "
-                        + "join plataforma.tbl_empresas e on e.id = c.empresa_id where e.uuid = ?",
-                Integer.class, empresa.getId());
-        if (existe != null && existe > 0) {
+        boolean yaRegistrada = existe(control, """
+                select exists(
+                    select 1 from plataforma.tbl_empresa_conexiones c
+                    join plataforma.tbl_empresas e on e.id = c.empresa_id
+                    where e.uuid = ?)""", empresa.getId());
+        if (yaRegistrada) {
             return;
         }
-        control.update(
-                "insert into plataforma.tbl_empresa_conexiones (empresa_id, host, puerto, nombre_bd, secreto_ref, es_activa) "
-                        + "select e.id, ?, ?, ?, 'dev-local', true from plataforma.tbl_empresas e where e.uuid = ?",
+        control.update("""
+                insert into plataforma.tbl_empresa_conexiones
+                    (empresa_id, host, puerto, nombre_bd, secreto_ref, es_activa)
+                select e.id, ?, ?, ?, 'dev-local', true
+                from plataforma.tbl_empresas e where e.uuid = ?""",
                 hostCliente, puertoCliente, nombreBd, empresa.getId());
     }
 
     @Override
     public void registrarVersionDeEsquema(Empresa empresa) {
-        Integer existe = control.queryForObject(
-                "select count(*) from plataforma.tbl_empresa_esquema_version v "
-                        + "join plataforma.tbl_empresas e on e.id = v.empresa_id where e.uuid = ?",
-                Integer.class, empresa.getId());
-        if (existe != null && existe > 0) {
+        boolean yaRegistrada = existe(control, """
+                select exists(
+                    select 1 from plataforma.tbl_empresa_esquema_version v
+                    join plataforma.tbl_empresas e on e.id = v.empresa_id
+                    where e.uuid = ?)""", empresa.getId());
+        if (yaRegistrada) {
             return;
         }
-        control.update(
-                "insert into plataforma.tbl_empresa_esquema_version (empresa_id, ultima_migracion_aplicada) "
-                        + "select e.id, ? from plataforma.tbl_empresas e where e.uuid = ?",
+        control.update("""
+                insert into plataforma.tbl_empresa_esquema_version (empresa_id, ultima_migracion_aplicada)
+                select e.id, ? from plataforma.tbl_empresas e where e.uuid = ?""",
                 ultimaMigracionDe(empresa.getIdentificador().nombreBaseDeDatos()), empresa.getId());
     }
 
@@ -151,10 +157,11 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
 
     @Override
     public void enviarBienvenida(Empresa empresa) {
-        Integer yaEnviada = control.queryForObject(
-                "select count(*) from plataforma.tbl_empresas where uuid = ? and bienvenida_enviada_en is not null",
-                Integer.class, empresa.getId());
-        if (yaEnviada != null && yaEnviada > 0) {
+        boolean yaEnviada = existe(control, """
+                select exists(
+                    select 1 from plataforma.tbl_empresas
+                    where uuid = ? and bienvenida_enviada_en is not null)""", empresa.getId());
+        if (yaEnviada) {
             return;
         }
 
@@ -163,17 +170,23 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
         sembrarUsuarioAdmin(empresa, correo, contrasenaTemporal);
 
         String url = "https://" + empresa.getDominio();
-        String cuerpo = "Bienvenido a la plataforma.\n\n"
-                + "Tu plataforma ya esta lista: " + url + "\n\n"
-                + "Datos de acceso:\n"
-                + "  Usuario: " + correo + "\n"
-                + "  Contrasena temporal: " + contrasenaTemporal + "\n\n"
-                + "Por seguridad, se te pedira cambiar la contrasena en el primer inicio de sesion.";
+        String cuerpo = """
+                Bienvenido a la plataforma.
+
+                Tu plataforma ya esta lista: %s
+
+                Datos de acceso:
+                  Usuario: %s
+                  Contrasena temporal: %s
+
+                Por seguridad, se te pedira cambiar la contrasena en el primer inicio de sesion."""
+                .formatted(url, correo, contrasenaTemporal);
         enviarCorreo(correo, "Tu plataforma ya esta lista", cuerpo);
 
-        control.update(
-                "update plataforma.tbl_empresas set bienvenida_enviada_en = now(), actualizado_en = now() where uuid = ?",
-                empresa.getId());
+        control.update("""
+                update plataforma.tbl_empresas
+                set bienvenida_enviada_en = now(), actualizado_en = now()
+                where uuid = ?""", empresa.getId());
     }
 
     private void sembrarUsuarioAdmin(Empresa empresa, String correo, String contrasenaTemporal) {
@@ -184,47 +197,54 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
         Long rolId = cliente.queryForObject(
                 "select id from seguridad.tbl_roles where nombre = 'ADMIN'", Long.class);
 
-        Long usuarioId = cliente.query(
-                "select id from seguridad.tbl_usuarios where correo = ?",
-                rs -> rs.next() ? rs.getLong(1) : null, correo);
+        Long usuarioId = idUsuarioPorCorreo(cliente, correo);
         String hash = cifrador.encode(contrasenaTemporal);
         if (usuarioId == null) {
-            cliente.update(
-                    "insert into seguridad.tbl_usuarios "
-                            + "(correo, hash_contrasena, nombre_completo, es_activo, es_contrasena_temporal) "
-                            + "values (?, ?, ?, true, true)",
+            cliente.update("""
+                    insert into seguridad.tbl_usuarios
+                        (correo, hash_contrasena, nombre_completo, es_activo, es_contrasena_temporal)
+                    values (?, ?, ?, true, true)""",
                     correo, hash, "Administrador " + nombre);
             usuarioId = cliente.queryForObject(
                     "select id from seguridad.tbl_usuarios where correo = ?", Long.class, correo);
         } else {
-            cliente.update(
-                    "update seguridad.tbl_usuarios set hash_contrasena = ?, es_contrasena_temporal = true, "
-                            + "actualizado_en = now() where id = ?",
+            cliente.update("""
+                    update seguridad.tbl_usuarios
+                    set hash_contrasena = ?, es_contrasena_temporal = true, actualizado_en = now()
+                    where id = ?""",
                     hash, usuarioId);
         }
 
-        Integer yaAsignado = cliente.queryForObject(
-                "select count(*) from seguridad.tbl_usuarios_roles where usuario_id = ? and rol_id = ?",
-                Integer.class, usuarioId, rolId);
-        if (yaAsignado == null || yaAsignado == 0) {
+        boolean yaAsignado = existe(cliente, """
+                select exists(
+                    select 1 from seguridad.tbl_usuarios_roles
+                    where usuario_id = ? and rol_id = ?)""", usuarioId, rolId);
+        if (!yaAsignado) {
             cliente.update("insert into seguridad.tbl_usuarios_roles (usuario_id, rol_id) values (?, ?)",
                     usuarioId, rolId);
         }
         log.info("Usuario admin sembrado en {}: {}", empresa.getIdentificador().nombreBaseDeDatos(), correo);
     }
 
+    /** id del usuario con ese correo, o null si aun no existe (semilla idempotente). */
+    private static Long idUsuarioPorCorreo(JdbcTemplate cliente, String correo) {
+        List<Long> ids = cliente.queryForList(
+                "select id from seguridad.tbl_usuarios where correo = ?", Long.class, correo);
+        return ids.isEmpty() ? null : ids.get(0);
+    }
+
     private void enviarCorreo(String para, String asunto, String cuerpo) {
-        var cfg = control.query(
-                "select remitente_nombre, remitente_correo, host, puerto, usuario, seguridad "
-                        + "from plataforma.tbl_config_correo where es_activa limit 1",
+        var cfg = control.query("""
+                select remitente_nombre, remitente_correo, host, puerto, usuario, seguridad
+                from plataforma.tbl_config_correo where es_activa limit 1""",
                 rs -> rs.next() ? new String[] {
                         rs.getString(1), rs.getString(2), rs.getString(3),
                         String.valueOf(rs.getInt(4)), rs.getString(5), rs.getString(6)
                 } : null);
 
         if (cfg == null || smtpClave == null || smtpClave.isBlank()) {
-            log.warn("Sin config SMTP activa (o sin app.aprovisionamiento.smtp-password). "
-                    + "Correo de bienvenida NO enviado; contenido:\n--- Para: {} | {} ---\n{}", para, asunto, cuerpo);
+            log.warn("Sin config SMTP activa (o sin app.aprovisionamiento.smtp-password). Correo de "
+                    + "bienvenida NO enviado. Para={} asunto={} cuerpo=[{}]", para, asunto, cuerpo);
             return;
         }
 
@@ -267,7 +287,7 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
                     "select id from public.databasechangelog order by dateexecuted desc, orderexecuted desc limit 1",
                     String.class);
             return id != null ? id : "desconocida";
-        } catch (EmptyResultDataAccessException e) {
+        } catch (EmptyResultDataAccessException _) {
             return "sin-changelog";
         } catch (RuntimeException e) {
             log.warn("No se pudo leer databasechangelog de {}: {}", nombreBd, e.getMessage());
@@ -276,6 +296,11 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
     }
 
     private void crearRolSiFalta(String rol, String grupo) {
+        // CREATE ROLE / GRANT no admiten parametros para el nombre del rol. rol deriva
+        // del slug ya validado y grupo es una constante del codigo; se revalidan aca
+        // contra SLUG_SEGURO para dejar la interpolacion demostrablemente segura.
+        exigirNombreSeguro(rol);
+        exigirNombreSeguro(grupo);
         mantenimiento.execute(
                 "do $$ begin "
                         + "if not exists (select from pg_roles where rolname = '" + rol + "') then "
@@ -290,6 +315,15 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
                 ownerUsuario, ownerClave);
         ds.setDriverClassName("org.postgresql.Driver");
         return new JdbcTemplate(ds);
+    }
+
+    /**
+     * Evalua un `select exists(...)`. Devuelve boolean primitivo para que el llamador
+     * no tenga que comprobar null: `select exists` siempre devuelve exactamente una
+     * fila con un booleano no nulo.
+     */
+    private static boolean existe(JdbcTemplate jt, String sqlExists, Object... args) {
+        return Boolean.TRUE.equals(jt.queryForObject(sqlExists, Boolean.class, args));
     }
 
     private static void exigirNombreSeguro(String identificador) {

@@ -23,26 +23,39 @@ public class TareaDeAprovisionamiento {
     private String ultimoError;
     private Instant disponibleEn;
 
-    public TareaDeAprovisionamiento(UUID id, UUID empresaId, String nombreBd, PasoDeAprovisionamiento paso,
-                                    EstadoTarea estado, int intentos, int maxIntentos,
-                                    String ultimoError, Instant disponibleEn) {
-        this.id = id;
-        this.empresaId = empresaId;
-        this.nombreBd = nombreBd;
-        this.paso = paso;
-        this.estado = estado;
-        this.intentos = intentos;
-        this.maxIntentos = maxIntentos;
-        this.ultimoError = ultimoError;
-        this.disponibleEn = disponibleEn;
+    /**
+     * Estado completo de una tarea tal como se rehidrata desde la persistencia.
+     * Se agrupa en un record para no arrastrar un constructor de 9 parametros
+     * (Sonar java:S107).
+     */
+    public record Instantanea(UUID id, UUID empresaId, String nombreBd, PasoDeAprovisionamiento paso,
+                              EstadoTarea estado, int intentos, int maxIntentos,
+                              String ultimoError, Instant disponibleEn) {
+    }
+
+    private TareaDeAprovisionamiento(Instantanea datos) {
+        this.id = datos.id();
+        this.empresaId = datos.empresaId();
+        this.nombreBd = datos.nombreBd();
+        this.paso = datos.paso();
+        this.estado = datos.estado();
+        this.intentos = datos.intentos();
+        this.maxIntentos = datos.maxIntentos();
+        this.ultimoError = datos.ultimoError();
+        this.disponibleEn = datos.disponibleEn();
+    }
+
+    /** Rehidrata una tarea desde su estado persistido. */
+    public static TareaDeAprovisionamiento reconstituir(Instantanea datos) {
+        return new TareaDeAprovisionamiento(datos);
     }
 
     /** Primera vez que se aprovisiona esta empresa. */
     public static TareaDeAprovisionamiento iniciar(UUID empresaId, String nombreBd) {
-        return new TareaDeAprovisionamiento(
+        return new TareaDeAprovisionamiento(new Instantanea(
                 UUID.randomUUID(), empresaId, nombreBd,
                 PasoDeAprovisionamiento.NO_INICIADO, EstadoTarea.EN_PROGRESO,
-                0, MAX_INTENTOS_POR_DEFECTO, null, Instant.now());
+                0, MAX_INTENTOS_POR_DEFECTO, null, Instant.now()));
     }
 
     /** Un paso se completo bien: se guarda el checkpoint y se limpia el ultimo error. */

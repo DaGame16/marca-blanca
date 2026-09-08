@@ -79,20 +79,22 @@ class SondeadorDeEventos {
             } else {
                 log.warn("Tipo de evento no reconocido en el outbox: {}", fila.tipoEvento());
             }
-            control.update(
-                    "update plataforma.tbl_eventos_salientes set estado = 'procesado', "
-                            + "procesado_en = now(), actualizado_en = now() where id = ?",
-                    fila.id());
+            control.update("""
+                    update plataforma.tbl_eventos_salientes
+                    set estado = 'procesado', procesado_en = now(), actualizado_en = now()
+                    where id = ?""", fila.id());
         } catch (RuntimeException e) {
             int intentos = fila.intentos() + 1;
             boolean agotado = intentos >= fila.maxIntentos();
             long espera = Math.min(BACKOFF_TOPE_SEGUNDOS, (long) Math.pow(2, intentos) * 10);
             log.warn("Fallo el evento {} (intento {}/{}): {}",
                     fila.id(), intentos, fila.maxIntentos(), e.getMessage());
-            control.update(
-                    "update plataforma.tbl_eventos_salientes set estado = ?, intentos = ?, ultimo_error = ?, "
-                            + "disponible_en = now() + make_interval(secs => ?), "
-                            + "bloqueado_en = null, bloqueado_por = null, actualizado_en = now() where id = ?",
+            control.update("""
+                    update plataforma.tbl_eventos_salientes
+                    set estado = ?, intentos = ?, ultimo_error = ?,
+                        disponible_en = now() + make_interval(secs => ?),
+                        bloqueado_en = null, bloqueado_por = null, actualizado_en = now()
+                    where id = ?""",
                     agotado ? "fallido" : "pendiente", intentos, e.getMessage(), (double) espera, fila.id());
         }
     }
