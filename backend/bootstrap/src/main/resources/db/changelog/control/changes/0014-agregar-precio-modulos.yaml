@@ -1,0 +1,31 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0014-agregar-precio-modulos
+      author: leidi
+      comment: Precio por modulo para el resumen de pago del onboarding. Moneda unica por ahora (COP).
+      changes:
+        - addColumn:
+            schemaName: plataforma
+            tableName: tbl_modulos
+            columns:
+              - column:
+                  name: precio
+                  type: NUMERIC(12, 2)
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: moneda
+                  type: VARCHAR(3)
+                  defaultValue: COP
+                  constraints:
+                    nullable: false
+        - sql:
+            comment: Valores de ejemplo para pruebas. Ajustar con negocio.
+            sql: >
+              UPDATE plataforma.tbl_modulos SET precio = 90000  WHERE codigo = 'usuarios';
+              UPDATE plataforma.tbl_modulos SET precio = 150000 WHERE codigo = 'omnicanal';
+              UPDATE plataforma.tbl_modulos SET precio = 120000 WHERE codigo = '3cx';
+      rollback:
+        - dropColumn: {schemaName: plataforma, tableName: tbl_modulos, columnName: precio}
+        - dropColumn: {schemaName: plataforma, tableName: tbl_modulos, columnName: moneda}

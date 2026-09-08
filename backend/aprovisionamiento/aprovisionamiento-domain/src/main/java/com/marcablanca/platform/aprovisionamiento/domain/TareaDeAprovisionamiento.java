@@ -49,7 +49,7 @@ public class TareaDeAprovisionamiento {
     public void avanzarA(PasoDeAprovisionamiento pasoCompletado) {
         this.paso = pasoCompletado;
         this.ultimoError = null;
-        this.estado = pasoCompletado == PasoDeAprovisionamiento.EMPRESA_ACTIVADA
+        this.estado = pasoCompletado == PasoDeAprovisionamiento.BIENVENIDA_ENVIADA
                 ? EstadoTarea.COMPLETADO
                 : EstadoTarea.EN_PROGRESO;
     }

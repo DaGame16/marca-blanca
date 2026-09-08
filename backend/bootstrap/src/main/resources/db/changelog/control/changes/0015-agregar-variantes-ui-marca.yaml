@@ -1,0 +1,33 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0015-agregar-variantes-ui-marca
+      author: leidi
+      comment: Paso 4 del onboarding. 1 de 3 tipos de login y 1 de 3 pantallas principales. El backend es la fuente de verdad; el front pinta la variante.
+      changes:
+        - addColumn:
+            schemaName: plataforma
+            tableName: tbl_empresas_marca
+            columns:
+              - column:
+                  name: tipo_login
+                  type: SMALLINT
+                  defaultValueNumeric: 1
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tipo_pantalla_principal
+                  type: SMALLINT
+                  defaultValueNumeric: 1
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: >
+              ALTER TABLE plataforma.tbl_empresas_marca
+              ADD CONSTRAINT ck_empresas_marca_tipo_login CHECK (tipo_login BETWEEN 1 AND 3)
+        - sql:
+            sql: >
+              ALTER TABLE plataforma.tbl_empresas_marca
+              ADD CONSTRAINT ck_empresas_marca_tipo_pantalla CHECK (tipo_pantalla_principal BETWEEN 1 AND 3)
+      rollback:
+        - dropColumn: {schemaName: plataforma, tableName: tbl_empresas_marca, columnName: tipo_login}
+        - dropColumn: {schemaName: plataforma, tableName: tbl_empresas_marca, columnName: tipo_pantalla_principal}

@@ -10,17 +10,22 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
+import java.security.SecureRandom;
+import java.util.Properties;
 import java.util.Set;
 
 /**
  * Unica pieza que ejecuta DDL. crearBaseDeDatos y crearRolesDeTenant usan la
- * conexion de mantenimiento (owner @ 'postgres', autocommit -- CREATE DATABASE no
- * admite transaccion). aplicarSemilla y registrarVersionDeEsquema abren una
- * conexion a la base recien clonada. registrarConexion escribe en la base de
- * control. poblarModulos delega en modulos-empresa via un puerto ACL.
+ * conexion de mantenimiento (owner @ 'postgres', autocommit). aplicarSemilla,
+ * registrarVersionDeEsquema y enviarBienvenida abren una conexion a la base del
+ * cliente. registrarConexion escribe en la base de control. poblarModulos delega
+ * en modulos-empresa via un puerto ACL.
  *
  * Cada metodo es idempotente: comprueba antes de actuar, para poder reanudar el
  * pipeline desde cualquier checkpoint sin duplicar efectos.
@@ -30,15 +35,20 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
 
     private static final Logger log = LoggerFactory.getLogger(EjecutorDdlPostgres.class);
     private static final String SLUG_SEGURO = "[a-z][a-z0-9_]*";
+    private static final char[] ALFABETO_CONTRASENA =
+            "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789".toCharArray();
+    private static final SecureRandom ALEATORIO = new SecureRandom();
 
     private final JdbcTemplate mantenimiento;
     private final JdbcTemplate control;
     private final ActivadorDeModulosDeEmpresa activadorModulos;
+    private final BCryptPasswordEncoder cifrador = new BCryptPasswordEncoder();
     private final String plantilla;
     private final String hostCliente;
     private final int puertoCliente;
     private final String ownerUsuario;
     private final String ownerClave;
+    private final String smtpClave;
 
     EjecutorDdlPostgres(DataSource dataSourceMantenimiento,
                         @Qualifier("controlDataSource") DataSource controlDataSource,
@@ -47,7 +57,8 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
                         @Value("${app.aprovisionamiento.cliente-host:localhost}") String hostCliente,
                         @Value("${app.aprovisionamiento.cliente-puerto:5432}") int puertoCliente,
                         @Value("${app.aprovisionamiento.mantenimiento.username:guajiranet_owner}") String ownerUsuario,
-                        @Value("${app.aprovisionamiento.mantenimiento.password:guajiranet_owner}") String ownerClave) {
+                        @Value("${app.aprovisionamiento.mantenimiento.password:guajiranet_owner}") String ownerClave,
+                        @Value("${app.aprovisionamiento.smtp-password:}") String smtpClave) {
         this.mantenimiento = new JdbcTemplate(dataSourceMantenimiento);
         this.control = new JdbcTemplate(controlDataSource);
         this.activadorModulos = activadorModulos;
@@ -56,6 +67,7 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
         this.puertoCliente = puertoCliente;
         this.ownerUsuario = ownerUsuario;
         this.ownerClave = ownerClave;
+        this.smtpClave = smtpClave;
     }
 
     @Override
@@ -74,51 +86,15 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
 
     @Override
     public void aplicarSemilla(Empresa empresa) {
-        if (empresa.getHashContrasenaMaestra() == null) {
-            log.warn("La empresa {} no tiene hash de contrasena maestra; se omite el usuario semilla.",
-                    empresa.getIdentificador().valor());
-            return;
-        }
-        String nombreBd = empresa.getIdentificador().nombreBaseDeDatos();
-        JdbcTemplate cliente = jdbcCliente(nombreBd);
-
-        String correoAdmin = "admin@" + (empresa.getDominio() != null
-                ? empresa.getDominio()
-                : empresa.getIdentificador().valor() + ".local");
-        String nombreComercial = empresa.getNombreComercial() != null
-                ? empresa.getNombreComercial()
-                : empresa.getNombreLegal();
-
-        Long rolId = cliente.query(
-                "select id from seguridad.tbl_roles where nombre = 'ADMIN'",
-                rs -> rs.next() ? rs.getLong(1) : null);
-        if (rolId == null) {
+        // El usuario admin se crea en enviarBienvenida (con la contrasena temporal).
+        // Aca solo el rol ADMIN, idempotente.
+        JdbcTemplate cliente = jdbcCliente(empresa.getIdentificador().nombreBaseDeDatos());
+        Integer existe = cliente.queryForObject(
+                "select count(*) from seguridad.tbl_roles where nombre = 'ADMIN'", Integer.class);
+        if (existe == null || existe == 0) {
             cliente.update("insert into seguridad.tbl_roles (nombre, descripcion, es_del_sistema) "
                     + "values ('ADMIN', 'Administrador de la empresa', true)");
-            rolId = cliente.queryForObject("select id from seguridad.tbl_roles where nombre = 'ADMIN'", Long.class);
         }
-
-        Long usuarioId = cliente.query(
-                "select id from seguridad.tbl_usuarios where correo = ?",
-                rs -> rs.next() ? rs.getLong(1) : null, correoAdmin);
-        if (usuarioId == null) {
-            cliente.update(
-                    "insert into seguridad.tbl_usuarios (correo, hash_contrasena, nombre_completo, es_activo) "
-                            + "values (?, ?, ?, true)",
-                    correoAdmin, empresa.getHashContrasenaMaestra().valor(), "Administrador " + nombreComercial);
-            usuarioId = cliente.queryForObject(
-                    "select id from seguridad.tbl_usuarios where correo = ?", Long.class, correoAdmin);
-        }
-
-        Integer yaAsignado = cliente.queryForObject(
-                "select count(*) from seguridad.tbl_usuarios_roles where usuario_id = ? and rol_id = ?",
-                Integer.class, usuarioId, rolId);
-        if (yaAsignado == null || yaAsignado == 0) {
-            cliente.update("insert into seguridad.tbl_usuarios_roles (usuario_id, rol_id) values (?, ?)",
-                    usuarioId, rolId);
-        }
-
-        log.info("Semilla aplicada en {}: usuario maestro {} con rol ADMIN", nombreBd, correoAdmin);
     }
 
     @Override
@@ -167,11 +143,122 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
                 activadorModulos.activar(empresa.getId(), codigo);
                 log.info("Modulo '{}' activado para {}", codigo, empresa.getIdentificador().valor());
             } catch (RuntimeException e) {
-                // Un codigo de modulo invalido no debe bloquear la activacion de la empresa.
                 log.warn("No se pudo activar el modulo '{}' para {}: {}",
                         codigo, empresa.getIdentificador().valor(), e.getMessage());
             }
         }
+    }
+
+    @Override
+    public void enviarBienvenida(Empresa empresa) {
+        Integer yaEnviada = control.queryForObject(
+                "select count(*) from plataforma.tbl_empresas where uuid = ? and bienvenida_enviada_en is not null",
+                Integer.class, empresa.getId());
+        if (yaEnviada != null && yaEnviada > 0) {
+            return;
+        }
+
+        String correo = empresa.getCorreo();
+        String contrasenaTemporal = generarContrasenaTemporal();
+        sembrarUsuarioAdmin(empresa, correo, contrasenaTemporal);
+
+        String url = "https://" + empresa.getDominio();
+        String cuerpo = "Bienvenido a la plataforma.\n\n"
+                + "Tu plataforma ya esta lista: " + url + "\n\n"
+                + "Datos de acceso:\n"
+                + "  Usuario: " + correo + "\n"
+                + "  Contrasena temporal: " + contrasenaTemporal + "\n\n"
+                + "Por seguridad, se te pedira cambiar la contrasena en el primer inicio de sesion.";
+        enviarCorreo(correo, "Tu plataforma ya esta lista", cuerpo);
+
+        control.update(
+                "update plataforma.tbl_empresas set bienvenida_enviada_en = now(), actualizado_en = now() where uuid = ?",
+                empresa.getId());
+    }
+
+    private void sembrarUsuarioAdmin(Empresa empresa, String correo, String contrasenaTemporal) {
+        JdbcTemplate cliente = jdbcCliente(empresa.getIdentificador().nombreBaseDeDatos());
+        String nombre = empresa.getNombreComercial() != null
+                ? empresa.getNombreComercial() : empresa.getNombreLegal();
+
+        Long rolId = cliente.queryForObject(
+                "select id from seguridad.tbl_roles where nombre = 'ADMIN'", Long.class);
+
+        Long usuarioId = cliente.query(
+                "select id from seguridad.tbl_usuarios where correo = ?",
+                rs -> rs.next() ? rs.getLong(1) : null, correo);
+        String hash = cifrador.encode(contrasenaTemporal);
+        if (usuarioId == null) {
+            cliente.update(
+                    "insert into seguridad.tbl_usuarios "
+                            + "(correo, hash_contrasena, nombre_completo, es_activo, es_contrasena_temporal) "
+                            + "values (?, ?, ?, true, true)",
+                    correo, hash, "Administrador " + nombre);
+            usuarioId = cliente.queryForObject(
+                    "select id from seguridad.tbl_usuarios where correo = ?", Long.class, correo);
+        } else {
+            cliente.update(
+                    "update seguridad.tbl_usuarios set hash_contrasena = ?, es_contrasena_temporal = true, "
+                            + "actualizado_en = now() where id = ?",
+                    hash, usuarioId);
+        }
+
+        Integer yaAsignado = cliente.queryForObject(
+                "select count(*) from seguridad.tbl_usuarios_roles where usuario_id = ? and rol_id = ?",
+                Integer.class, usuarioId, rolId);
+        if (yaAsignado == null || yaAsignado == 0) {
+            cliente.update("insert into seguridad.tbl_usuarios_roles (usuario_id, rol_id) values (?, ?)",
+                    usuarioId, rolId);
+        }
+        log.info("Usuario admin sembrado en {}: {}", empresa.getIdentificador().nombreBaseDeDatos(), correo);
+    }
+
+    private void enviarCorreo(String para, String asunto, String cuerpo) {
+        var cfg = control.query(
+                "select remitente_nombre, remitente_correo, host, puerto, usuario, seguridad "
+                        + "from plataforma.tbl_config_correo where es_activa limit 1",
+                rs -> rs.next() ? new String[] {
+                        rs.getString(1), rs.getString(2), rs.getString(3),
+                        String.valueOf(rs.getInt(4)), rs.getString(5), rs.getString(6)
+                } : null);
+
+        if (cfg == null || smtpClave == null || smtpClave.isBlank()) {
+            log.warn("Sin config SMTP activa (o sin app.aprovisionamiento.smtp-password). "
+                    + "Correo de bienvenida NO enviado; contenido:\n--- Para: {} | {} ---\n{}", para, asunto, cuerpo);
+            return;
+        }
+
+        JavaMailSenderImpl sender = new JavaMailSenderImpl();
+        sender.setHost(cfg[2]);
+        sender.setPort(Integer.parseInt(cfg[3]));
+        if (cfg[4] != null) {
+            sender.setUsername(cfg[4]);
+            sender.setPassword(smtpClave);
+        }
+        Properties props = sender.getJavaMailProperties();
+        props.put("mail.transport.protocol", "smtp");
+        props.put("mail.smtp.auth", String.valueOf(cfg[4] != null));
+        if ("starttls".equalsIgnoreCase(cfg[5])) {
+            props.put("mail.smtp.starttls.enable", "true");
+        } else if ("ssl".equalsIgnoreCase(cfg[5])) {
+            props.put("mail.smtp.ssl.enable", "true");
+        }
+
+        SimpleMailMessage msg = new SimpleMailMessage();
+        msg.setFrom(cfg[0] != null ? cfg[0] + " <" + cfg[1] + ">" : cfg[1]);
+        msg.setTo(para);
+        msg.setSubject(asunto);
+        msg.setText(cuerpo);
+        sender.send(msg);
+        log.info("Correo de bienvenida enviado a {}", para);
+    }
+
+    private static String generarContrasenaTemporal() {
+        StringBuilder sb = new StringBuilder(12);
+        for (int i = 0; i < 12; i++) {
+            sb.append(ALFABETO_CONTRASENA[ALEATORIO.nextInt(ALFABETO_CONTRASENA.length)]);
+        }
+        return sb.toString();
     }
 
     private String ultimaMigracionDe(String nombreBd) {
@@ -189,8 +276,6 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
     }
 
     private void crearRolSiFalta(String rol, String grupo) {
-        // Password = nombre del rol: convencion SOLO-DEV (igual que 0000-crear-roles-motor).
-        // En QA/PROD la genera el aprovisionador y la guarda en el vault (ver ADR 0004).
         mantenimiento.execute(
                 "do $$ begin "
                         + "if not exists (select from pg_roles where rolname = '" + rol + "') then "

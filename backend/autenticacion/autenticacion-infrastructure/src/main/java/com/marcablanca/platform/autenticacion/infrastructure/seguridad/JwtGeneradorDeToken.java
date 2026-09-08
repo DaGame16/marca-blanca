@@ -32,6 +32,7 @@ public class JwtGeneradorDeToken implements GeneradorDeToken {
                 .subject(usuario.id().toString())
                 .claim("correo", usuario.correo())
                 .claim("empresa", identificadorEmpresa)
+                .claim("pwd_temp", usuario.debeCambiarContrasena())
                 .issuedAt(Date.from(ahora)) //NOSONAR jjwt 0.12.6 solo acepta java.util.Date en su API
                 .expiration(Date.from(ahora.plus(minutosExpiracion, ChronoUnit.MINUTES))) //NOSONAR idem
                 .signWith(claveFirma)

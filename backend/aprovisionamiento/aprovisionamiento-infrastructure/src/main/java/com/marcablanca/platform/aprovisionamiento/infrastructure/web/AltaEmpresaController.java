@@ -1,9 +1,9 @@
 package com.marcablanca.platform.aprovisionamiento.infrastructure.web;
 
 import com.marcablanca.platform.aprovisionamiento.application.ComandoRegistrarEmpresa;
+import com.marcablanca.platform.aprovisionamiento.application.ResultadoRegistroEmpresa;
 import com.marcablanca.platform.aprovisionamiento.application.port.in.RegistrarEmpresa;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,16 +11,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
-import java.util.Set;
-import java.util.UUID;
 
 /**
- * Capa 1: registra la empresa y dispara su aprovisionamiento. Responde 202
- * Accepted -- la fila queda creada de inmediato, pero la base de datos del
- * cliente se aprovisiona de forma asincrona (estado pendiente_aprovisionamiento).
+ * Paso 1 del registro de empresa. Endpoint PUBLICO (sin JWT ni X-Admin-Key): un
+ * prospecto entra a la plataforma y se registra solo. Crea la empresa en estado
+ * 'borrador'; los pasos siguientes (modulos, marca, variantes) la completan.
  */
 @RestController
-@RequestMapping("/api/v1/admin/empresas")
+@RequestMapping("/api/v1/registro/empresas")
 public class AltaEmpresaController {
 
     private final RegistrarEmpresa registrarEmpresa;
@@ -31,18 +29,15 @@ public class AltaEmpresaController {
 
     @PostMapping
     public ResponseEntity<RegistrarEmpresaResponse> registrar(@Valid @RequestBody RegistrarEmpresaRequest request) {
-        UUID empresaId = registrarEmpresa.ejecutar(new ComandoRegistrarEmpresa(
-                request.identificador(),
-                request.nombreLegal(),
-                request.nombreComercial(),
-                request.dominio(),
-                request.contrasenaMaestra(),
-                request.modulosSolicitados() == null ? Set.of() : request.modulosSolicitados()
-        ));
+        ResultadoRegistroEmpresa r = registrarEmpresa.ejecutar(new ComandoRegistrarEmpresa(
+                request.nombreEmpresa(),
+                request.representanteLegal(),
+                request.correo(),
+                request.telefono(),
+                request.sitioWeb()));
 
         return ResponseEntity
-                .status(HttpStatus.ACCEPTED)
-                .location(URI.create("/api/v1/admin/empresas/" + empresaId))
-                .body(new RegistrarEmpresaResponse(empresaId, "pendiente_aprovisionamiento"));
+                .created(URI.create("/api/v1/registro/empresas/" + r.empresaId()))
+                .body(new RegistrarEmpresaResponse(r.empresaId(), r.identificador(), r.dominio(), r.estado()));
     }
 }

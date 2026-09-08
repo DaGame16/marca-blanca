@@ -60,7 +60,9 @@ public class EjecutarAprovisionamientoService implements EjecutarAprovisionamien
                 new PasoEjecutable(PasoDeAprovisionamiento.MODULOS_POBLADOS,
                         () -> pasos.poblarModulos(empresa, evento.modulosSolicitados())),
                 new PasoEjecutable(PasoDeAprovisionamiento.EMPRESA_ACTIVADA,
-                        () -> { empresa.activar(); repositorioEmpresas.guardar(empresa); })
+                        () -> { empresa.activar(); repositorioEmpresas.guardar(empresa); }),
+                new PasoEjecutable(PasoDeAprovisionamiento.BIENVENIDA_ENVIADA,
+                        () -> pasos.enviarBienvenida(empresa))
         );
 
         try {

@@ -35,6 +35,7 @@ public class SecurityConfig {
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(auth -> auth
                             .requestMatchers("/api/v1/auth/**").permitAll()
+                            .requestMatchers("/api/v1/registro/**").permitAll()
                             // /api/v1/admin/** NO usa JWT -- se protege con clave compartida
                             // (ClaveAdminInterceptor, modulo empresas). Ver ADR del modulo de
                             // modulos-por-empresa para el porque de esta decision interina.

@@ -32,7 +32,8 @@ public class JwtVerificadorDeToken implements VerificadorDeToken {
                     .getPayload();
             UUID usuarioId = UUID.fromString(claims.getSubject());
             String identificadorEmpresa = claims.get("empresa", String.class);
-            return Optional.of(new UsuarioAutenticado(usuarioId, identificadorEmpresa));
+            boolean debeCambiarContrasena = Boolean.TRUE.equals(claims.get("pwd_temp", Boolean.class));
+            return Optional.of(new UsuarioAutenticado(usuarioId, identificadorEmpresa, debeCambiarContrasena));
         } catch (JwtException | IllegalArgumentException _) {
             // Firma invalida, token vencido, o formato incorrecto - todos tratados igual: no autenticado.
             return Optional.empty();

@@ -18,7 +18,8 @@ public final class UsuarioMapper {
                 new Correo(entidad.getCorreo()),
                 new HashContrasena(entidad.getHashContrasena()),
                 entidad.getNombreCompleto(),
-                new EstadoCuenta(entidad.isActivo(), entidad.getIntentosFallidos(), entidad.getBloqueadoHasta()));
+                new EstadoCuenta(entidad.isActivo(), entidad.getIntentosFallidos(), entidad.getBloqueadoHasta()),
+                entidad.isEsContrasenaTemporal());
     }
 
     public static UsuarioJpaEntity aEntidad(Usuario dominio) {
@@ -29,6 +30,7 @@ public final class UsuarioMapper {
                 dominio.getHashContrasena().valor(),
                 dominio.getNombreCompleto(),
                 new EstadoCuentaEmbeddable(dominio.isActivo(), dominio.getIntentosFallidos(),
-                        dominio.getBloqueadoHasta()));
+                        dominio.getBloqueadoHasta()),
+                dominio.esContrasenaTemporal());
     }
 }

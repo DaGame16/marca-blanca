@@ -46,6 +46,6 @@ public class AutenticarUsuarioService implements AutenticarUsuario {
         OffsetDateTime expiraEn = OffsetDateTime.now().plusDays(REFRESCO_DIAS_VALIDEZ);
         almacenDeTokensDeRefresco.guardar(usuario.id(), refrescoHash, expiraEn, null);
 
-        return new ResultadoAutenticacion(usuario.id(), token, refrescoValor);
+        return new ResultadoAutenticacion(usuario.id(), token, refrescoValor, usuario.debeCambiarContrasena());
     }
 }

@@ -2,5 +2,6 @@ package com.marcablanca.platform.autenticacion.application;
 
 import java.util.UUID;
 
-public record ResultadoAutenticacion(UUID usuarioId, String token, String refreshToken) {
+public record ResultadoAutenticacion(UUID usuarioId, String token, String refreshToken,
+                                     boolean debeCambiarContrasena) {
 }

@@ -13,7 +13,7 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
- * Mapeo de escritura de plataforma.tbl_empresas para el ciclo de alta/activacion.
+ * Mapeo de escritura de plataforma.tbl_empresas para el ciclo de registro/activacion.
  *
  * name explicito en @Entity: ya existen otros mapeos de esta misma tabla en los
  * modulos empresas / identidad-visual / modulos-empresa. Sin un nombre de entidad
@@ -41,6 +41,17 @@ class EmpresaDeAprovisionamientoEntity {
 
     @Column(unique = true)
     private String dominio;
+
+    @Column(name = "representante_legal")
+    private String representanteLegal;
+
+    @Column(name = "correo_contacto")
+    private String correoContacto;
+
+    private String telefono;
+
+    @Column(name = "sitio_web")
+    private String sitioWeb;
 
     @Column(name = "hash_contrasena_maestra")
     private String hashContrasenaMaestra;
@@ -78,6 +89,10 @@ class EmpresaDeAprovisionamientoEntity {
     String getNombreLegal() { return nombreLegal; }
     String getNombreComercial() { return nombreComercial; }
     String getDominio() { return dominio; }
+    String getRepresentanteLegal() { return representanteLegal; }
+    String getCorreoContacto() { return correoContacto; }
+    String getTelefono() { return telefono; }
+    String getSitioWeb() { return sitioWeb; }
     String getHashContrasenaMaestra() { return hashContrasenaMaestra; }
     String getEstado() { return estado; }
 
@@ -86,6 +101,10 @@ class EmpresaDeAprovisionamientoEntity {
     void setNombreLegal(String nombreLegal) { this.nombreLegal = nombreLegal; }
     void setNombreComercial(String nombreComercial) { this.nombreComercial = nombreComercial; }
     void setDominio(String dominio) { this.dominio = dominio; }
+    void setRepresentanteLegal(String v) { this.representanteLegal = v; }
+    void setCorreoContacto(String v) { this.correoContacto = v; }
+    void setTelefono(String v) { this.telefono = v; }
+    void setSitioWeb(String v) { this.sitioWeb = v; }
     void setHashContrasenaMaestra(String hash) { this.hashContrasenaMaestra = hash; }
     void setEstado(String estado) { this.estado = estado; }
 }

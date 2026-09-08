@@ -52,6 +52,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(autenticacion);
                 request.setAttribute(ATRIBUTO_EMPRESA, datos.identificadorEmpresa());
 
+                // Contrasena temporal: hasta cambiarla, el token solo sirve para /api/v1/auth/**
+                // (cambiar-contrasena, logout). Cualquier otro endpoint se rechaza con 403.
+                if (datos.debeCambiarContrasena() && !request.getRequestURI().startsWith("/api/v1/auth/")) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json");
+                    response.getWriter().write(
+                            "{\"codigo\":403,\"mensaje\":\"Debes cambiar tu contrasena temporal antes de continuar.\"}");
+                    return;
+                }
+
                 ContextoEmpresaActual.establecer(datos.identificadorEmpresa());
                 try {
                     filterChain.doFilter(request, response);

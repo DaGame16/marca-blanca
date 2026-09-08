@@ -52,6 +52,7 @@ public class RenovarTokenService implements RenovarToken {
         OffsetDateTime expiraEn = OffsetDateTime.now().plusDays(REFRESCO_DIAS_VALIDEZ);
         almacenDeTokensDeRefresco.guardar(usuario.id(), nuevoRefrescoHash, expiraEn, null);
 
-        return new ResultadoAutenticacion(usuario.id(), nuevoToken, nuevoRefrescoValor);
+        return new ResultadoAutenticacion(usuario.id(), nuevoToken, nuevoRefrescoValor,
+                usuario.debeCambiarContrasena());
     }
 }

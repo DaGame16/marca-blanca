@@ -28,4 +28,11 @@ public interface PasosDeAprovisionamiento {
 
     /** UPSERT en plataforma.tbl_empresa_modulos segun el plan contratado. */
     void poblarModulos(Empresa empresa, Set<String> modulosSolicitados);
+
+    /**
+     * Ultimo paso: genera la contrasena temporal, siembra el usuario admin en la
+     * base del cliente (es_contrasena_temporal = true) y envia el correo de
+     * bienvenida con credenciales y URL. Idempotente via tbl_empresas.bienvenida_enviada_en.
+     */
+    void enviarBienvenida(Empresa empresa);
 }

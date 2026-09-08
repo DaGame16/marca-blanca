@@ -14,4 +14,11 @@ public interface VerificadorDeUsuarios {
     DatosDeUsuario verificarCredenciales(String correo, String contrasenaPlano);
 
     Optional<DatosDeUsuario> buscarPorId(UUID usuarioId);
+
+    /**
+     * Cambia la contrasena de un usuario ya autenticado. Verifica la actual y,
+     * si es correcta, guarda la nueva y limpia la marca de contrasena temporal.
+     * Lanza CredencialesInvalidasException si la actual no coincide.
+     */
+    void cambiarContrasena(UUID usuarioId, String contrasenaActual, String contrasenaNueva);
 }

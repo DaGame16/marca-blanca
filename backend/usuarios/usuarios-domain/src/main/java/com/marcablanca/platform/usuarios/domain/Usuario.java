@@ -16,15 +16,22 @@ public class Usuario {
     private HashContrasena hashContrasena;
     private String nombreCompleto;
     private EstadoCuenta estadoCuenta;
+    private boolean esContrasenaTemporal;
 
     public Usuario(Long id, UUID uuid, Correo correo, HashContrasena hashContrasena,
             String nombreCompleto, EstadoCuenta estadoCuenta) {
+        this(id, uuid, correo, hashContrasena, nombreCompleto, estadoCuenta, false);
+    }
+
+    public Usuario(Long id, UUID uuid, Correo correo, HashContrasena hashContrasena,
+            String nombreCompleto, EstadoCuenta estadoCuenta, boolean esContrasenaTemporal) {
         this.id = id;
         this.uuid = uuid;
         this.correo = correo;
         this.hashContrasena = hashContrasena;
         this.nombreCompleto = nombreCompleto;
         this.estadoCuenta = estadoCuenta;
+        this.esContrasenaTemporal = esContrasenaTemporal;
     }
 
     public static Usuario nuevo(Correo correo, HashContrasena hashContrasena, String nombreCompleto) {
@@ -68,6 +75,11 @@ public class Usuario {
 
     public void cambiarContrasena(HashContrasena nuevoHash) {
         this.hashContrasena = nuevoHash;
+        this.esContrasenaTemporal = false;
+    }
+
+    public boolean esContrasenaTemporal() {
+        return esContrasenaTemporal;
     }
 
     public void activar() {

@@ -6,6 +6,7 @@ import com.marcablanca.platform.autenticacion.domain.CredencialesInvalidasExcept
 import com.marcablanca.platform.autenticacion.domain.UsuarioNoDisponibleException;
 import com.marcablanca.platform.usuarios.domain.Contrasena;
 import com.marcablanca.platform.usuarios.domain.Correo;
+import com.marcablanca.platform.usuarios.domain.HashContrasena;
 import com.marcablanca.platform.usuarios.domain.Usuario;
 import com.marcablanca.platform.usuarios.application.port.out.CifradorDeContrasenas;
 import com.marcablanca.platform.usuarios.application.port.out.RepositorioUsuarios;
@@ -50,12 +51,27 @@ public class AdaptadorVerificadorDeUsuarios implements VerificadorDeUsuarios {
             throw new UsuarioNoDisponibleException(e.getMessage());
         }
 
-        return new DatosDeUsuario(usuario.getUuid(), usuario.getCorreo().valor());
+        return new DatosDeUsuario(usuario.getUuid(), usuario.getCorreo().valor(), usuario.esContrasenaTemporal());
     }
 
     @Override
     public Optional<DatosDeUsuario> buscarPorId(UUID usuarioId) {
         return repositorioUsuarios.buscarPorUuid(usuarioId)
-                .map(u -> new DatosDeUsuario(u.getUuid(), u.getCorreo().valor()));
+                .map(u -> new DatosDeUsuario(u.getUuid(), u.getCorreo().valor(), u.esContrasenaTemporal()));
+    }
+
+    @Override
+    public void cambiarContrasena(UUID usuarioId, String contrasenaActual, String contrasenaNueva) {
+        Usuario usuario = repositorioUsuarios.buscarPorUuid(usuarioId)
+                .orElseThrow(CredencialesInvalidasException::new);
+
+        Contrasena actual = new Contrasena(contrasenaActual);
+        if (!cifradorDeContrasenas.verificar(actual, usuario.getHashContrasena())) {
+            throw new CredencialesInvalidasException();
+        }
+
+        HashContrasena nuevoHash = cifradorDeContrasenas.cifrar(new Contrasena(contrasenaNueva));
+        usuario.cambiarContrasena(nuevoHash);
+        repositorioUsuarios.guardar(usuario);
     }
 }

@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0017-preparar-correo-de-bienvenida
+      author: leidi
+      comment: Paso nuevo del pipeline (bienvenida_enviada) + marca de idempotencia en tbl_empresas para no reenviar el correo de bienvenida.
+      changes:
+        - sql:
+            sql: ALTER TABLE plataforma.tbl_aprovisionamiento_tareas DROP CONSTRAINT ck_aprovisionamiento_tareas_paso
+        - sql:
+            sql: >
+              ALTER TABLE plataforma.tbl_aprovisionamiento_tareas
+              ADD CONSTRAINT ck_aprovisionamiento_tareas_paso
+              CHECK (paso_actual IN ('no_iniciado', 'base_creada', 'semilla_aplicada',
+              'roles_creados', 'conexion_registrada', 'version_registrada',
+              'modulos_poblados', 'empresa_activada', 'bienvenida_enviada'))
+        - addColumn:
+            schemaName: plataforma
+            tableName: tbl_empresas
+            columns:
+              - column:
+                  name: bienvenida_enviada_en
+                  type: TIMESTAMP WITH TIME ZONE
+      rollback:
+        - dropColumn:
+            schemaName: plataforma
+            tableName: tbl_empresas
+            columnName: bienvenida_enviada_en
+        - sql:
+            sql: ALTER TABLE plataforma.tbl_aprovisionamiento_tareas DROP CONSTRAINT ck_aprovisionamiento_tareas_paso
+        - sql:
+            sql: >
+              ALTER TABLE plataforma.tbl_aprovisionamiento_tareas
+              ADD CONSTRAINT ck_aprovisionamiento_tareas_paso
+              CHECK (paso_actual IN ('no_iniciado', 'base_creada', 'semilla_aplicada',
+              'roles_creados', 'conexion_registrada', 'version_registrada',
+              'modulos_poblados', 'empresa_activada'))
