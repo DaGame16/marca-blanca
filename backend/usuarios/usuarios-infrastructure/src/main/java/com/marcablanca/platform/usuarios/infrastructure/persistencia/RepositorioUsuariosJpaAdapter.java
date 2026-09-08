@@ -2,7 +2,7 @@ package com.marcablanca.platform.usuarios.infrastructure.persistencia;
 
 import com.marcablanca.platform.usuarios.domain.Correo;
 import com.marcablanca.platform.usuarios.domain.Usuario;
-import com.marcablanca.platform.usuarios.domain.port.out.RepositorioUsuarios;
+import com.marcablanca.platform.usuarios.application.port.out.RepositorioUsuarios;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

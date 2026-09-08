@@ -2,7 +2,7 @@ package com.marcablanca.platform.usuarios.infrastructure.seguridad;
 
 import com.marcablanca.platform.usuarios.domain.Contrasena;
 import com.marcablanca.platform.usuarios.domain.HashContrasena;
-import com.marcablanca.platform.usuarios.domain.port.out.CifradorDeContrasenas;
+import com.marcablanca.platform.usuarios.application.port.out.CifradorDeContrasenas;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
