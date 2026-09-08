@@ -34,6 +34,14 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Solo el puerto de entrada de correo, para mandar el de bienvenida
+             al terminar el pipeline. No se toca su modelo interno. -->
+        <dependency>
+            <groupId>com.marcablanca.platform</groupId>
+            <artifactId>correo-application</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -49,10 +57,6 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-crypto</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
     </dependencies>
 </project>
