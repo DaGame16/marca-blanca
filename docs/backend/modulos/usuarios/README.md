@@ -50,3 +50,4 @@ usuarios/
 
 - 2026-09-05 — Carlos — CRUD completo, reconciliado con `autenticacion`.
 - 2026-09-07 — Carlos — Puertos movidos de `domain` a `application` (ADR 0003).
+- 2026-09-08 — Leidi — `Usuario` gana `esContrasenaTemporal` (mapeado a `seguridad.tbl_usuarios.es_contrasena_temporal`); `cambiarContrasena(...)` lo limpia. Lo usa el flujo de primer login — ver [ADR 0007 de aprovisionamiento](../aprovisionamiento/decisiones/2026-09-08-0007-contrasena-temporal-y-primer-login.md).

@@ -101,3 +101,4 @@ mvn -f backend/pom.xml install -DskipTests -pl autenticacion/autenticacion-domai
 - **2026-09-04** — Luis — Documentación inicial, refresh token completo.
 - **2026-09-04** — Luis — JWT lleva la empresa como claim; corregido el bug crítico de `ContextoEmpresaActual`.
 - **2026-09-05** — Luis — Anti-Corruption Layer contra `usuarios` (ADR 0006): ya no depende de su dominio en absoluto.
+- **2026-09-08** — Leidi — Contraseña temporal en el primer login: `login`/`refresh` devuelven `debeCambiarContrasena`, el JWT lleva el claim `pwd_temp`, `JwtAuthFilter` bloquea todo salvo `/api/v1/auth/**` mientras esté activo, y nuevo `POST /api/v1/auth/cambiar-contrasena`. Ver [flujo de onboarding](../../flujos/onboarding-de-empresas.md#8-paso-8--primer-login-con-contrase%C3%B1a-temporal) y [ADR 0007 de aprovisionamiento](../aprovisionamiento/decisiones/2026-09-08-0007-contrasena-temporal-y-primer-login.md).
