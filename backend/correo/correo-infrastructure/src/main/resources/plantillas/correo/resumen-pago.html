@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; color: #222;">
+  <h2>Resumen de tu pago</h2>
+  <p>Hola {{nombreContacto}},</p>
+  <p>Confirmamos el pago de <strong>{{nombreEmpresa}}</strong>, factura <strong>{{numeroFactura}}</strong>.</p>
+  <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+    <thead>
+      <tr><th>Modulo</th><th>Valor mensual</th></tr>
+    </thead>
+    <tbody>
+      {{filasLineas}}
+    </tbody>
+  </table>
+  <p><strong>Total: ${{total}}</strong></p>
+  <p>Gracias por confiar en Marca Blanca.</p>
+</body>
+</html>

@@ -1,0 +1,46 @@
+app:
+  admin:
+    # En cualquier ambiente real esto viene de la variable de entorno ADMIN_CLAVE.
+    # Proteccion interina por clave compartida (ver ADR del modulo de modulos-por-empresa).
+    clave: ${ADMIN_CLAVE:solo-para-desarrollo-local-cambiar-siempre}
+  jwt:
+    # En cualquier ambiente real esto viene de la variable de entorno JWT_SECRET.
+    # El valor de acá abajo es SOLO para que la app levante en una maquina local sin configurar nada -
+    # nunca usar este valor en DEV compartido, QA o PROD.
+    secret: ${JWT_SECRET:solo-para-desarrollo-local-cambiar-siempre}
+    expiracion-minutos: 15
+  cors:
+    # Separado por comas si hay mas de uno. En cualquier ambiente real
+    # (QA, PROD) viene de la variable de entorno CORS_ORIGENES, con el
+    # dominio real del frontend desplegado -- nunca localhost.
+    origenes-permitidos: ${CORS_ORIGENES:http://localhost:4200}
+  omnicanal:
+    # Llave de la PLATAFORMA (no por empresa -- decision confirmada: marca-blanca
+    # provee el analisis de IA como parte del servicio). En cualquier ambiente
+    # real viene de OPENAI_API_KEY.
+    openai-api-key: ${OPENAI_API_KEY:}
+    openai-modelo: ${OPENAI_MODELO:gpt-4.1-mini}
+    # Apagado por defecto -- se prende explicito por ambiente cuando se
+    # confirme el modelo/costo, mismo criterio que tenia el pipeline anterior.
+    ia-habilitada: ${OMNICANAL_IA_HABILITADA:false}
+spring:
+  application:
+    name: marca-blanca-backend
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/db_portal_guajiranet_control}
+    username: ${SPRING_DATASOURCE_USERNAME:guajiranet_owner}
+    password: ${SPRING_DATASOURCE_PASSWORD:guajiranet_owner}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  liquibase:
+    change-log: classpath:db/changelog/control/db.changelog-master.yaml
+
+  docker:
+    compose:
+      lifecycle-management: start-and-stop
