@@ -1,7 +1,9 @@
 package com.marcablanca.platform.aprovisionamiento.domain;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -72,6 +74,26 @@ public class Empresa {
                 sitioWeb.trim(),
                 null,
                 EstadoEmpresa.BORRADOR);
+    }
+
+    /**
+     * Paso 6 del wizard: termina el registro. La empresa pasa de BORRADOR a
+     * PENDIENTE_APROVISIONAMIENTO y levanta EmpresaRegistrada para que el pipeline
+     * (Capa 2) la aprovisione.
+     */
+    public void finalizarRegistro(Set<String> modulosSeleccionados) {
+        if (estado != EstadoEmpresa.BORRADOR) {
+            throw new EmpresaNoModificableException(estado);
+        }
+        estado = EstadoEmpresa.PENDIENTE_APROVISIONAMIENTO;
+        eventos.add(new EmpresaRegistrada(
+                id,
+                identificador.valor(),
+                nombreLegal,
+                nombreComercial,
+                dominio,
+                modulosSeleccionados == null ? Set.of() : Set.copyOf(modulosSeleccionados),
+                Instant.now()));
     }
 
     /** La base quedo lista y la empresa entra en operacion. */

@@ -1,12 +1,15 @@
 package com.marcablanca.platform.aprovisionamiento.infrastructure;
 
+import com.marcablanca.platform.aprovisionamiento.application.FinalizarRegistroService;
 import com.marcablanca.platform.aprovisionamiento.application.PersonalizarEmpresaService;
 import com.marcablanca.platform.aprovisionamiento.application.RegistrarEmpresaService;
 import com.marcablanca.platform.aprovisionamiento.application.SeleccionarModuloService;
+import com.marcablanca.platform.aprovisionamiento.application.port.in.FinalizarRegistro;
 import com.marcablanca.platform.aprovisionamiento.application.port.in.PersonalizarEmpresa;
 import com.marcablanca.platform.aprovisionamiento.application.port.in.RegistrarEmpresa;
 import com.marcablanca.platform.aprovisionamiento.application.port.in.SeleccionarModulo;
 import com.marcablanca.platform.aprovisionamiento.application.port.out.ActivadorDeModulosDeEmpresa;
+import com.marcablanca.platform.aprovisionamiento.application.port.out.RegistroDeEventos;
 import com.marcablanca.platform.aprovisionamiento.application.port.out.RepositorioEmpresas;
 import com.marcablanca.platform.aprovisionamiento.application.port.out.RepositorioPersonalizacion;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,5 +41,13 @@ public class ConfiguracionAprovisionamiento {
     PersonalizarEmpresa personalizarEmpresa(RepositorioEmpresas repositorioEmpresas,
                                             RepositorioPersonalizacion repositorioPersonalizacion) {
         return new PersonalizarEmpresaService(repositorioEmpresas, repositorioPersonalizacion);
+    }
+
+    @Bean
+    FinalizarRegistro finalizarRegistro(RepositorioEmpresas repositorioEmpresas,
+                                        RegistroDeEventos registroDeEventos,
+                                        ActivadorDeModulosDeEmpresa modulos) {
+        return new FinalizarRegistroTransaccional(
+                new FinalizarRegistroService(repositorioEmpresas, registroDeEventos, modulos));
     }
 }

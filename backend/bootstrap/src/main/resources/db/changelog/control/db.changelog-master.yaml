@@ -50,3 +50,6 @@ databaseChangeLog:
   - include:
       file: changes/0016-crear-tabla-config-correo.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changes/0017-preparar-correo-de-bienvenida.yaml
+      relativeToChangelogFile: true

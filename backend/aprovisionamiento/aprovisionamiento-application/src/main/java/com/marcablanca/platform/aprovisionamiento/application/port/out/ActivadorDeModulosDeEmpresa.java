@@ -1,5 +1,6 @@
 package com.marcablanca.platform.aprovisionamiento.application.port.out;
 
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -9,4 +10,5 @@ import java.util.UUID;
 public interface ActivadorDeModulosDeEmpresa {
     void activar(UUID empresaId, String codigoModulo);
     void desactivar(UUID empresaId, String codigoModulo);
+    Set<String> codigosSeleccionados(UUID empresaId);
 }

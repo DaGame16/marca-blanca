@@ -18,7 +18,8 @@ import java.util.stream.Collectors;
 @RestControllerAdvice(assignableTypes = {
         AltaEmpresaController.class,
         RegistroModulosController.class,
-        RegistroPersonalizacionController.class })
+        RegistroPersonalizacionController.class,
+        RegistroFinalizacionController.class })
 class ManejadorErroresAprovisionamiento {
 
     @ExceptionHandler(EmpresaYaExisteException.class)
