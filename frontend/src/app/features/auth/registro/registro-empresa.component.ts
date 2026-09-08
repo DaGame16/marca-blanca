@@ -255,7 +255,13 @@ interface EstadoWizardGuardado {
 
                 <mat-form-field appearance="outline" class="full-width">
                   <mat-label>Sitio web de tu empresa</mat-label>
-                  <input matInput formControlName="sitioWeb" placeholder="https://tuempresa.com" autocomplete="url" />
+                  <input
+                    matInput
+                    formControlName="sitioWeb"
+                    (input)="onEditarSitioWebManual()"
+                    placeholder="https://tuempresa.com"
+                    autocomplete="url"
+                  />
                   <mat-icon matPrefix>language</mat-icon>
                 </mat-form-field>
                 <p class="campo-hint">
@@ -1707,6 +1713,10 @@ export class RegistroEmpresaComponent {
   );
   private readonly nombreLegalSignal = signal('');
 
+  // Si el usuario edita el sitio web a mano, dejamos de autocompletarlo a
+  // partir del nombre de la empresa.
+  private sitioWebTocadoManualmente = false;
+
   protected readonly form = this.fb.nonNullable.group({
     nombreLegal: ['', [Validators.required, Validators.maxLength(200)]],
     nombreRepresentanteLegal: ['', [Validators.required, Validators.maxLength(200)]],
@@ -1855,6 +1865,15 @@ export class RegistroEmpresaComponent {
 
   onCambiarNombre(): void {
     this.nombreLegalSignal.set(this.form.controls.nombreLegal.value);
+    if (this.sitioWebTocadoManualmente) {
+      return;
+    }
+    const slug = generarIdentificador(this.form.controls.nombreLegal.value);
+    this.form.controls.sitioWeb.setValue(slug ? `https://${slug}.${DOMINIO_BASE}` : '', { emitEvent: false });
+  }
+
+  onEditarSitioWebManual(): void {
+    this.sitioWebTocadoManualmente = true;
   }
 
   // Paso 1: crea la empresa en el backend (estado "borrador") y guarda el
