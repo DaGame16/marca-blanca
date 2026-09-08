@@ -26,6 +26,18 @@ app:
       password: ${APROV_MANT_PASSWORD:guajiranet_owner}
 
 
+    # Separado por comas si hay mas de uno. En cualquier ambiente real
+    # (QA, PROD) viene de la variable de entorno CORS_ORIGENES, con el
+    # dominio real del frontend desplegado -- nunca localhost.
+    origenes-permitidos: ${CORS_ORIGENES:http://localhost:4200}
+  correo:
+    # Direccion "De:" en cada correo saliente. En cualquier ambiente real
+    # viene de CORREO_REMITENTE.
+    remitente: ${CORREO_REMITENTE:no-responder@marcablanca.local}
+    # Apagado por defecto -- sin esto, correr local sin configurar SMTP
+    # tiraria un error de conexion confuso en vez de uno claro. Se prende
+    # explicito (CORREO_HABILITADO=true) apenas haya credenciales SMTP reales.
+    habilitado: ${CORREO_HABILITADO:false}
 spring:
   application:
     name: marca-blanca-backend
@@ -43,6 +55,18 @@ spring:
 
   liquibase:
     change-log: classpath:db/changelog/control/db.changelog-master.yaml
+
+  # SMTP estandar -- funciona con cualquier proveedor que lo hable (SES,
+  # SendGrid, Mailgun, Gmail, Postfix propio). Todo vacio por defecto: si
+  # app.correo.habilitado sigue en false, nunca se intenta conectar.
+  mail:
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
 
   docker:
     compose:

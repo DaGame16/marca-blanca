@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -354,7 +354,7 @@ export class ListaUsuariosComponent implements OnInit {
     this.error.set(null);
 
     this.usuarioService.listar().subscribe({
-      next: (usuarios) => {
+      next: (usuarios: Usuario[]) => {
         this.usuarios.set(usuarios);
         this.cargando.set(false);
       },
@@ -378,7 +378,7 @@ export class ListaUsuariosComponent implements OnInit {
     }
     this.creando.set(true);
     this.usuarioService.crear(this.formCrear.getRawValue()).subscribe({
-      next: (usuario) => {
+      next: (usuario: Usuario) => {
         this.usuarios.set([...this.usuarios(), usuario]);
         this.formCrear.reset();
         this.mostrarFormularioCreacion.set(false);
@@ -434,7 +434,7 @@ export class ListaUsuariosComponent implements OnInit {
     }
     this.procesandoUuid.set(usuario.uuid);
     this.usuarioService.actualizar(usuario.uuid, { nombreCompleto }).subscribe({
-      next: (actualizado) => {
+      next: (actualizado: Usuario) => {
         this.usuarios.set(this.usuarios().map((u) => (u.uuid === usuario.uuid ? actualizado : u)));
         this.procesandoUuid.set(null);
         this.editandoUuid.set(null);

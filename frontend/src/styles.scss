@@ -1,26 +1,40 @@
 @use '@angular/material' as mat;
 
-html {
-  @include mat.theme(
-    (
-      color: (
-        theme-type: light,
-        primary: mat.$azure-palette,
-        tertiary: mat.$blue-palette,
-      ),
-      typography: Roboto,
-      density: 0,
-    )
-  );
-}
+@include mat.core();
 
-html,
-body {
-  height: 100%;
-  margin: 0;
-  font-family: Roboto, 'Helvetica Neue', sans-serif;
+html {
+  @include mat.theme((
+    color: (
+      theme-type: light,
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
 }
 
 :root {
   color-scheme: light;
+  --ink: #172033;
+  --muted: #718096;
+  --line: #e6eaf1;
+  --surface: #ffffff;
+  --canvas: #f5f7fb;
+  --brand: #2468d9;
+  --brand-deep: #101a2d;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { font-family: 'Inter', 'Roboto', sans-serif; background: var(--canvas); color: var(--ink); }
+button, input, textarea, select { font: inherit; }
+
+.mat-mdc-form-field { --mdc-outlined-text-field-container-shape: 9px; }
+.mat-mdc-card { border-radius: 14px !important; }
+.mat-mdc-unelevated-button { border-radius: 8px !important; }
+
+@media (prefers-reduced-motion: no-preference) {
+  a, button, .mat-mdc-button-base { transition: color .18s ease, background-color .18s ease, border-color .18s ease, transform .18s ease, box-shadow .18s ease; }
+  button:active, .mat-mdc-button-base:active { transform: scale(.98); }
 }

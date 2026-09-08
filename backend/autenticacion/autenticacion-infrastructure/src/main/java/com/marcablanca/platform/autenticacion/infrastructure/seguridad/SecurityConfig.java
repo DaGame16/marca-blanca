@@ -18,28 +18,20 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final List<String> origenesPermitidos;
 
-    /**
-     * Origenes permitidos para CORS, separados por coma. En dev por defecto
-     * solo http://localhost:4200 (ng serve) -- en cualquier otro ambiente
-     * se sobreescribe con la variable de entorno CORS_ALLOWED_ORIGINS,
-     * nunca se deja "*" porque las peticiones autenticadas van con
-     * Authorization/X-Admin-Key (allowCredentials no es compatible con
-     * origen comodin de todos modos).
-     */
-    @Value("${app.cors.allowed-origins:http://localhost:4200}")
-    private String allowedOrigins;
-
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter,
+                           @Value("${app.cors.origenes-permitidos:http://localhost:4200}") List<String> origenesPermitidos) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.origenesPermitidos = origenesPermitidos;
     }
 
     @Bean
     public SecurityFilterChain filterChain(org.springframework.security.config.annotation.web.builders.HttpSecurity http) {
         try {
             http
-                    .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .csrf(csrf -> csrf.disable())
+                    .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(auth -> auth
                             .requestMatchers("/api/v1/auth/**").permitAll()
@@ -48,6 +40,10 @@ public class SecurityConfig {
                             // (ClaveAdminInterceptor, modulo empresas). Ver ADR del modulo de
                             // modulos-por-empresa para el porque de esta decision interina.
                             .requestMatchers("/api/v1/admin/**").permitAll()
+                            // El webhook de LIWA no tiene sesion humana -- el secreto en el
+                            // header ES el mecanismo de autenticacion/identificacion de tenant
+                            // (ver ResolverEmpresaPorWebhookSecreto, modulo omnicanal).
+                            .requestMatchers("/api/v1/omnicanal/webhook/**").permitAll()
                             .anyRequest().authenticated()
                     )
                     .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -58,22 +54,22 @@ public class SecurityConfig {
     }
 
     /**
-     * Sin esto, cualquier llamada del frontend (Angular en un origen
-     * distinto al del backend) queda bloqueada por el navegador antes de
-     * llegar a los controllers -- Spring Security no habilita CORS por
-     * defecto aunque el filtro de la request nunca la rechace del lado
-     * del servidor.
+     * Sin esto, un navegador bloquea la lectura de la respuesta cuando el
+     * frontend (localhost:4200 en desarrollo) y el backend (localhost:8080)
+     * son origenes distintos -- aunque el backend responda 200 igual, el
+     * navegador nunca deja que el JS lea el cuerpo. No aparece nunca
+     * probando con curl/Postman, porque CORS es una regla exclusiva de
+     * navegadores, no del servidor en si.
      */
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(allowedOrigins.split(",")));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Admin-Key"));
-        configuration.setAllowCredentials(true);
+    private CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuracion = new CorsConfiguration();
+        configuracion.setAllowedOrigins(origenesPermitidos);
+        configuracion.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuracion.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Admin-Key"));
+        configuracion.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/api/**", configuration);
-        return source;
+        UrlBasedCorsConfigurationSource fuente = new UrlBasedCorsConfigurationSource();
+        fuente.registerCorsConfiguration("/**", configuracion);
+        return fuente;
     }
 }

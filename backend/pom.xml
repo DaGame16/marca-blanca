@@ -47,6 +47,9 @@
         <module>omnicanal/omnicanal-domain</module>
         <module>omnicanal/omnicanal-application</module>
         <module>omnicanal/omnicanal-infrastructure</module>
+        <module>correo/correo-domain</module>
+        <module>correo/correo-application</module>
+        <module>correo/correo-infrastructure</module>
         <module>bootstrap</module>
     </modules>
 </project>

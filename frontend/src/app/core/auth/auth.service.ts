@@ -3,6 +3,8 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { MarcaPendienteService } from '../identidad-visual/marca-pendiente.service';
+import { MarcaService } from '../identidad-visual/marca.service';
 import { LoginRequest, LoginResponse, RefreshRequest, RefreshResponse, UserInfo } from './models';
 
 const TOKEN_KEY = 'mp_access_token';
@@ -14,6 +16,8 @@ const EMPRESA_KEY = 'mp_identificador_empresa';
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly marcaService = inject(MarcaService);
+  private readonly marcaPendiente = inject(MarcaPendienteService);
 
   private readonly currentUserSignal = signal<UserInfo | null>(this.readStoredUser());
   readonly currentUser = this.currentUserSignal.asReadonly();
@@ -22,7 +26,7 @@ export class AuthService {
   login(request: LoginRequest): Observable<LoginResponse> {
     return this.http
       .post<LoginResponse>(`${environment.apiUrl}/auth/login`, request)
-      .pipe(tap((res) => this.storeSession(res, request.identificadorEmpresa)));
+      .pipe(tap((res: LoginResponse) => this.storeSession(res, request.identificadorEmpresa)));
   }
 
   refresh(): Observable<RefreshResponse> {
@@ -35,7 +39,7 @@ export class AuthService {
     const request: RefreshRequest = { refreshToken, identificadorEmpresa };
     return this.http
       .post<RefreshResponse>(`${environment.apiUrl}/auth/refresh`, request)
-      .pipe(tap((res) => this.storeSession(res, identificadorEmpresa)));
+      .pipe(tap((res: RefreshResponse) => this.storeSession(res, identificadorEmpresa)));
   }
 
   logout(): void {
@@ -67,6 +71,30 @@ export class AuthService {
     const userInfo: UserInfo = { usuarioId: res.usuarioId };
     localStorage.setItem(USER_KEY, JSON.stringify(userInfo));
     this.currentUserSignal.set(userInfo);
+
+    this.aplicarMarcaPendienteSiExiste(identificadorEmpresa);
+  }
+
+  /**
+   * Si en el registro (RegistroEmpresaComponent) el usuario eligio logo y/o
+   * colores antes de que la empresa existiera realmente, quedaron guardados
+   * en localStorage (MarcaPendienteService) porque en ese momento no habia
+   * JWT con el que llamar a PUT /mi-empresa/marca. Ahora que hay sesion,
+   * los aplicamos una sola vez y los borramos. Si falla (red, validacion),
+   * los dejamos para reintentar en el proximo login -- no bloquea el login
+   * actual de ninguna forma.
+   */
+  private aplicarMarcaPendienteSiExiste(identificadorEmpresa: string): void {
+    const marca = this.marcaPendiente.obtener(identificadorEmpresa);
+    if (!marca) {
+      return;
+    }
+    this.marcaService.actualizar(marca).subscribe({
+      next: () => this.marcaPendiente.limpiar(identificadorEmpresa),
+      error: () => {
+        // se reintenta en el proximo login
+      },
+    });
   }
 
   private readStoredUser(): UserInfo | null {

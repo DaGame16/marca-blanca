@@ -43,6 +43,10 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "host": "0.0.0.0",
+            "allowedHosts": ["all"]
+          },
           "configurations": {
             "production": { "buildTarget": "mi-proyecto-frontend:build:production" },
             "development": { "buildTarget": "mi-proyecto-frontend:build:development" }
@@ -61,5 +65,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": false
   }
 }
