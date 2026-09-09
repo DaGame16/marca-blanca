@@ -9,4 +9,6 @@ export interface MarcaDeEmpresa {
   // pantalla (clasico/compacto/amplio) usa esta empresa.
   tipoLogin: number | null;
   tipoPantallaPrincipal: number | null;
+  // Solo lo llena el endpoint publico (login) -- ver MarcaPublicaController.
+  nombreEmpresa?: string | null;
 }

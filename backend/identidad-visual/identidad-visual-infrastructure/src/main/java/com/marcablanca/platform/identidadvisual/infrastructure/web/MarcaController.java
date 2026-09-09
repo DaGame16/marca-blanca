@@ -71,7 +71,8 @@ public class MarcaController {
                 marca.colorSecundario() != null ? marca.colorSecundario().valor() : null,
                 marca.dominioPropio(),
                 marca.tipoLogin(),
-                marca.tipoPantallaPrincipal()
+                marca.tipoPantallaPrincipal(),
+                null
         );
     }
 }
