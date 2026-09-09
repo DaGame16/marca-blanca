@@ -50,6 +50,9 @@
         <module>correo/correo-domain</module>
         <module>correo/correo-application</module>
         <module>correo/correo-infrastructure</module>
+        <module>consola/consola-domain</module>
+        <module>consola/consola-application</module>
+        <module>consola/consola-infrastructure</module>
         <module>bootstrap</module>
     </modules>
 </project>

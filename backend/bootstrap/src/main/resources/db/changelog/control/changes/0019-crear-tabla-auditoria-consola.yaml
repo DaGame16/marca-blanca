@@ -1,0 +1,51 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0019-crear-tabla-auditoria-consola
+      author: leidi
+      comment: >
+        Bitacora de acciones de los operadores de la consola (quien, que, cuando,
+        sobre que empresa). Se empieza a escribir en la fase de administracion de
+        empresas; la tabla se crea ya para no arrastrar una migracion despues.
+      changes:
+        - createTable:
+            schemaName: plataforma
+            tableName: tbl_auditoria_consola
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_auditoria_consola
+              - column:
+                  name: operador_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_auditoria_consola_operador
+                    references: plataforma.tbl_operadores(id)
+              - column:
+                  name: accion
+                  type: VARCHAR(80)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: empresa_uuid
+                  type: UUID
+              - column:
+                  name: detalle
+                  type: JSONB
+              - column:
+                  name: ip
+                  type: VARCHAR(64)
+              - column:
+                  name: creado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false
+      rollback:
+        - dropTable:
+            schemaName: plataforma
+            tableName: tbl_auditoria_consola

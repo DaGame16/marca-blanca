@@ -9,6 +9,11 @@ app:
     # nunca usar este valor en DEV compartido, QA o PROD.
     secret: ${JWT_SECRET:solo-para-desarrollo-local-cambiar-siempre}
     expiracion-minutos: 15
+  consola:
+    # Token de operador de la consola de operacion. Comparte app.jwt.secret pero
+    # con forma propia (scope=plataforma, sin claim de empresa) y vida corta.
+    jwt:
+      expiracion-minutos: ${CONSOLA_JWT_MIN:15}
   cors:
     # Origenes permitidos separados por coma. Por defecto solo el dev server de
     # Angular (ng serve). En otros ambientes se sobreescribe con la variable de
@@ -51,6 +56,10 @@ spring:
 
   liquibase:
     change-log: classpath:db/changelog/control/db.changelog-master.yaml
+    parameters:
+      # Correo del primer operador que siembra el changeset 0020 (tiene un
+      # default propio; esto solo permite sobreescribirlo por variable de entorno).
+      "[consola.superadmin.correo]": ${CONSOLA_SUPERADMIN_CORREO:admin@guajiranet.com}
 
   docker:
     compose:

@@ -1,0 +1,30 @@
+databaseChangeLog:
+  # Correo del primer operador. Se puede sobreescribir con
+  #   -Dconsola.superadmin.correo=...   (plugin de Maven)
+  # o con spring.liquibase.parameters."[consola.superadmin.correo]" (arranque de la app).
+  - property:
+      name: consola.superadmin.correo
+      value: admin@guajiranet.com
+
+  - changeSet:
+      id: 0020-sembrar-operador-super-admin
+      author: leidi
+      comment: >
+        Primer SUPER_ADMIN de la consola. El hash queda como 'PENDIENTE' (sentinela
+        que nunca valida); SembradorDeOperadorInicial fija la contrasena al arrancar,
+        desde CONSOLA_SUPERADMIN_PASSWORD o generando una temporal que escribe en el
+        log. Idempotente: no hace nada si ya existe un operador con ese correo.
+      changes:
+        - sql:
+            sql: >
+              INSERT INTO plataforma.tbl_operadores
+                (correo, nombre, hash_contrasena, rol, es_contrasena_temporal)
+              VALUES
+                (LOWER('${consola.superadmin.correo}'), 'Administrador de plataforma',
+                 'PENDIENTE', 'super_admin', true)
+              ON CONFLICT (correo) DO NOTHING
+      rollback:
+        - sql:
+            sql: >
+              DELETE FROM plataforma.tbl_operadores
+              WHERE correo = LOWER('${consola.superadmin.correo}')
