@@ -62,3 +62,6 @@ databaseChangeLog:
   - include:
       file: changes/0020-sembrar-operador-super-admin.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changes/0021-ampliar-url-logo-a-texto.yaml
+      relativeToChangelogFile: true

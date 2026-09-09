@@ -383,53 +383,80 @@ interface EstadoWizardGuardado {
                     [class.tema-card-activa]="temaLogin.tema() === opcion.codigo"
                     (click)="temaLogin.elegir(opcion.codigo)"
                   >
-                    <div class="preview" [class]="'preview-' + opcion.codigo">
-                      @switch (opcion.codigo) {
-                        @case ('lateral') {
-                          <div class="preview-lateral">
-                            <div class="preview-panel" [style.background]="colorPrimario()">
-                              @if (logoDataUrl()) {
-                                <img [src]="logoDataUrl()" alt="" class="preview-logo" />
-                              }
+                    <div class="mockup-browser">
+                      <div class="mockup-browser-bar">
+                        <span class="mockup-dot mockup-dot-red"></span>
+                        <span class="mockup-dot mockup-dot-yellow"></span>
+                        <span class="mockup-dot mockup-dot-green"></span>
+                        <span class="mockup-url">
+                          <mat-icon inline>lock</mat-icon>
+                          {{ identificadorPreview() || 'tu-empresa' }}.{{ dominioBase }}
+                        </span>
+                      </div>
+                      <div class="preview" [class]="'preview-' + opcion.codigo">
+                        @switch (opcion.codigo) {
+                          @case ('lateral') {
+                            <div class="preview-lateral">
+                              <div class="preview-panel" [style.background]="'linear-gradient(160deg, ' + colorSecundario() + ', ' + colorPrimario() + ')'">
+                                @if (logoDataUrl()) {
+                                  <img [src]="logoDataUrl()" alt="" class="preview-logo" />
+                                } @else {
+                                  <span class="preview-logo preview-logo-vacio"></span>
+                                }
+                              </div>
+                              <div class="preview-form">
+                                <div class="preview-linea corta"></div>
+                                <div class="preview-input"></div>
+                                <div class="preview-input"></div>
+                                <div class="preview-boton" [style.background]="colorPrimario()"></div>
+                              </div>
                             </div>
-                            <div class="preview-form">
-                              <div class="preview-linea corta" [style.background]="colorSecundario()"></div>
-                              <div class="preview-linea"></div>
+                          }
+                          @case ('centrado') {
+                            <div class="preview-centrado">
+                              <div class="preview-tarjeta">
+                                @if (logoDataUrl()) {
+                                  <img [src]="logoDataUrl()" alt="" class="preview-logo preview-logo-chica" />
+                                } @else {
+                                  <span class="preview-logo preview-logo-vacio preview-logo-chica"></span>
+                                }
+                                <div class="preview-linea corta centrada"></div>
+                                <div class="preview-input"></div>
+                                <div class="preview-input"></div>
+                                <div class="preview-boton" [style.background]="colorPrimario()"></div>
+                              </div>
                             </div>
-                          </div>
+                          }
+                          @case ('fondo') {
+                            <div class="preview-fondo" [style.background]="'linear-gradient(135deg, ' + colorPrimario() + ', ' + colorSecundario() + ')'">
+                              <div class="preview-tarjeta preview-tarjeta-flotante">
+                                @if (logoDataUrl()) {
+                                  <img [src]="logoDataUrl()" alt="" class="preview-logo preview-logo-chica" />
+                                } @else {
+                                  <span class="preview-logo preview-logo-vacio preview-logo-chica"></span>
+                                }
+                                <div class="preview-linea corta centrada"></div>
+                                <div class="preview-input"></div>
+                                <div class="preview-input"></div>
+                                <div class="preview-boton" [style.background]="colorPrimario()"></div>
+                              </div>
+                            </div>
+                          }
                         }
-                        @case ('centrado') {
-                          <div class="preview-centrado">
-                            <div class="preview-tarjeta">
-                              @if (logoDataUrl()) {
-                                <img [src]="logoDataUrl()" alt="" class="preview-logo preview-logo-chica" />
-                              }
-                              <div class="preview-linea corta centrada" [style.background]="colorPrimario()"></div>
-                              <div class="preview-linea"></div>
-                            </div>
-                          </div>
-                        }
-                        @case ('fondo') {
-                          <div class="preview-fondo" [style.background]="'linear-gradient(135deg, ' + colorPrimario() + ', ' + colorSecundario() + ')'">
-                            <div class="preview-tarjeta">
-                              @if (logoDataUrl()) {
-                                <img [src]="logoDataUrl()" alt="" class="preview-logo preview-logo-chica" />
-                              }
-                              <div class="preview-linea corta centrada" [style.background]="colorPrimario()"></div>
-                              <div class="preview-linea"></div>
-                            </div>
-                          </div>
-                        }
+                      </div>
+                    </div>
+                    <div class="tema-card-footer">
+                      <div class="tema-card-titulo">
+                        <h3>{{ opcion.nombre }}</h3>
+                        <p>{{ opcion.descripcion }}</p>
+                      </div>
+                      @if (temaLogin.tema() === opcion.codigo) {
+                        <span class="tema-activo-badge">
+                          <mat-icon inline>check_circle</mat-icon>
+                          Elegido
+                        </span>
                       }
                     </div>
-                    <h3>{{ opcion.nombre }}</h3>
-                    <p>{{ opcion.descripcion }}</p>
-                    @if (temaLogin.tema() === opcion.codigo) {
-                      <span class="tema-activo-badge">
-                        <mat-icon inline>check_circle</mat-icon>
-                        Seleccionado
-                      </span>
-                    }
                   </button>
                 }
               </div>
@@ -557,36 +584,81 @@ interface EstadoWizardGuardado {
                     [class.tema-pagina-item-activo]="temaPagina.tema() === opcion.codigo"
                     (click)="temaPagina.elegir(opcion.codigo)"
                   >
-                    <div class="pagina-preview" [class]="'pagina-preview-' + opcion.codigo">
-                      @switch (opcion.codigo) {
-                        @case ('clasico') {
-                          <div class="pagina-window">
-                            <div class="pagina-sidebar" [style.background]="colorSecundario()"></div>
-                            <div class="pagina-content"><span class="pagina-barra" [style.background]="colorPrimario()"></span><span class="pagina-linea ancha"></span><span class="pagina-linea"></span><div class="pagina-cards"><i></i><i></i><i></i></div></div>
-                          </div>
+                    <div class="mockup-browser">
+                      <div class="mockup-browser-bar">
+                        <span class="mockup-dot mockup-dot-red"></span>
+                        <span class="mockup-dot mockup-dot-yellow"></span>
+                        <span class="mockup-dot mockup-dot-green"></span>
+                        <span class="mockup-url">
+                          <mat-icon inline>lock</mat-icon>
+                          {{ identificadorPreview() || 'tu-empresa' }}.{{ dominioBase }}/inicio
+                        </span>
+                      </div>
+                      <div class="pagina-preview" [class]="'pagina-preview-' + opcion.codigo">
+                        @switch (opcion.codigo) {
+                          @case ('clasico') {
+                            <div class="pagina-window">
+                              <div class="pagina-sidebar" [style.background]="'linear-gradient(180deg, ' + colorSecundario() + ', ' + colorPrimario() + ')'">
+                                @if (logoDataUrl()) {
+                                  <img [src]="logoDataUrl()" alt="" class="pagina-sidebar-logo" />
+                                }
+                                <i class="pagina-sidebar-item activo"></i>
+                                <i class="pagina-sidebar-item"></i>
+                                <i class="pagina-sidebar-item"></i>
+                              </div>
+                              <div class="pagina-content">
+                                <span class="pagina-barra" [style.background]="colorPrimario()"></span>
+                                <span class="pagina-linea ancha"></span>
+                                <span class="pagina-linea"></span>
+                                <div class="pagina-cards"><i></i><i></i><i></i></div>
+                              </div>
+                            </div>
+                          }
+                          @case ('compacto') {
+                            <div class="pagina-window pagina-window-compacto">
+                              <div class="pagina-topbar" [style.background]="colorPrimario()">
+                                @if (logoDataUrl()) {
+                                  <img [src]="logoDataUrl()" alt="" class="pagina-topbar-logo" />
+                                }
+                              </div>
+                              <div class="pagina-content">
+                                <span class="pagina-linea ancha"></span>
+                                <div class="pagina-lista-lineas"><i></i><i></i><i></i><i></i></div>
+                              </div>
+                            </div>
+                          }
+                          @case ('amplio') {
+                            <div class="pagina-window pagina-window-amplio">
+                              <div class="pagina-topbar" [style.background]="colorSecundario()">
+                                @if (logoDataUrl()) {
+                                  <img [src]="logoDataUrl()" alt="" class="pagina-topbar-logo" />
+                                }
+                              </div>
+                              <div class="pagina-content">
+                                <span class="pagina-barra grande" [style.background]="colorPrimario()"></span>
+                                <span class="pagina-linea ancha"></span>
+                                <div class="pagina-cards grandes"><i></i><i></i></div>
+                              </div>
+                            </div>
+                          }
                         }
-                        @case ('compacto') {
-                          <div class="pagina-window pagina-window-compacto">
-                            <div class="pagina-topbar" [style.background]="colorPrimario()"></div>
-                            <div class="pagina-content"><span class="pagina-linea ancha"></span><div class="pagina-lista-lineas"><i></i><i></i><i></i><i></i></div></div>
-                          </div>
-                        }
-                        @case ('amplio') {
-                          <div class="pagina-window pagina-window-amplio">
-                            <div class="pagina-topbar" [style.background]="colorSecundario()"></div>
-                            <div class="pagina-content"><span class="pagina-barra grande" [style.background]="colorPrimario()"></span><span class="pagina-linea ancha"></span><div class="pagina-cards grandes"><i></i><i></i></div></div>
-                          </div>
-                        }
+                      </div>
+                    </div>
+                    <div class="tema-card-footer">
+                      <div class="pagina-item-heading">
+                        <mat-icon>{{ opcion.icono }}</mat-icon>
+                        <span class="tema-pagina-texto">
+                          <strong>{{ opcion.nombre }}</strong>
+                          <span>{{ opcion.descripcion }}</span>
+                        </span>
+                      </div>
+                      @if (temaPagina.tema() === opcion.codigo) {
+                        <span class="tema-activo-badge">
+                          <mat-icon inline>check_circle</mat-icon>
+                          Elegido
+                        </span>
                       }
                     </div>
-                    <div class="pagina-item-heading"><mat-icon>{{ opcion.icono }}</mat-icon><span class="tema-pagina-texto">
-                        <strong>{{ opcion.nombre }}</strong>
-                        <span>{{ opcion.descripcion }}</span>
-                      </span>
-                    </div>
-                    @if (temaPagina.tema() === opcion.codigo) {
-                      <mat-icon class="tema-pagina-check">check_circle</mat-icon>
-                    }
                   </button>
                 }
               </div>
@@ -683,15 +755,12 @@ interface EstadoWizardGuardado {
                     Revisa tu bandeja de entrada, y la carpeta de spam por si acaso, en unos minutos.
                   </p>
                   <div class="subdominio-local">
-                    <span class="subdominio-local-label">Tu espacio local</span>
+                    <span class="subdominio-local-label">Tu espacio</span>
                     <code>{{ subdominioLocal() }}</code>
-                    <a mat-stroked-button [href]="subdominioLocal()" target="_blank" rel="noopener">
-                      Abrir plataforma
-                      <mat-icon>open_in_new</mat-icon>
-                    </a>
                   </div>
                   <a mat-flat-button color="primary" [href]="subdominioLocal() + 'login'" class="full-width submit-btn">
                     Ir a iniciar sesión
+                    <mat-icon>arrow_forward</mat-icon>
                   </a>
                 </div>
               </div>
@@ -1048,7 +1117,7 @@ interface EstadoWizardGuardado {
       .temas-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
+        gap: 16px;
         margin-bottom: 24px;
       }
 
@@ -1056,29 +1125,89 @@ interface EstadoWizardGuardado {
         text-align: left;
         background: white;
         border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 12px;
+        border-radius: 14px;
+        padding: 10px;
         cursor: pointer;
         font: inherit;
         color: inherit;
         display: flex;
         flex-direction: column;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
       }
 
       .tema-card:hover {
         border-color: #93c5fd;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
       }
 
       .tema-card-activa {
         border-color: var(--brand-light);
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+      }
+
+      .tema-card-activa:hover {
+        transform: none;
+      }
+
+      /* Mini navegador que envuelve cada preview -- barra de trafico +
+         URL real de la empresa, para que se sienta como un screenshot y no
+         como un boceto suelto de rectangulos. */
+      .mockup-browser {
+        border-radius: 9px;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        margin-bottom: 10px;
+        background: #fff;
+      }
+
+      .mockup-browser-bar {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 8px;
+        background: #eef1f6;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      .mockup-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #cbd5e1;
+      }
+
+      .mockup-dot-red { background: #f87171; }
+      .mockup-dot-yellow { background: #fbbf24; }
+      .mockup-dot-green { background: #4ade80; }
+
+      .mockup-url {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        margin-left: 6px;
+        padding: 2px 8px;
+        border-radius: 5px;
+        background: #fff;
+        border: 1px solid #e5eaf2;
+        font-size: 0.62rem;
+        color: #64748b;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1;
+      }
+
+      .mockup-url mat-icon {
+        font-size: 10px;
+        width: 10px;
+        height: 10px;
+        color: #94a3b8;
       }
 
       .preview {
-        height: 128px;
-        border-radius: 8px;
+        height: 132px;
         overflow: hidden;
-        margin-bottom: 10px;
         background: #f1f5f9;
       }
 
@@ -1089,15 +1218,17 @@ interface EstadoWizardGuardado {
       }
 
       .preview-panel {
-        background: linear-gradient(135deg, var(--brand-dark) 0%, var(--brand-light) 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .preview-form {
         display: flex;
         flex-direction: column;
         justify-content: center;
-        gap: 6px;
-        padding: 10px;
+        gap: 7px;
+        padding: 12px;
         background: #f8fafc;
       }
 
@@ -1114,17 +1245,20 @@ interface EstadoWizardGuardado {
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(160deg, #0f172a 0%, var(--brand-dark) 45%, var(--brand-light) 100%);
       }
 
       .preview-tarjeta {
         width: 72%;
         background: white;
         border-radius: 6px;
-        padding: 8px;
+        padding: 10px;
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 7px;
+      }
+
+      .preview-tarjeta-flotante {
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
       }
 
       .preview-linea {
@@ -1134,17 +1268,39 @@ interface EstadoWizardGuardado {
       }
 
       .preview-linea.corta {
-        width: 60%;
+        width: 55%;
         height: 6px;
       }
 
+      .preview-input {
+        height: 10px;
+        border-radius: 3px;
+        background: #eef1f6;
+        border: 1px solid #e2e8f0;
+      }
+
+      .preview-boton {
+        height: 10px;
+        border-radius: 3px;
+        margin-top: 2px;
+        opacity: 0.95;
+      }
+
       .preview-logo {
-        max-width: 32px;
-        max-height: 32px;
+        max-width: 30px;
+        max-height: 30px;
         object-fit: contain;
-        border-radius: 4px;
-        background: rgba(255, 255, 255, 0.85);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.9);
         padding: 3px;
+      }
+
+      .preview-logo-vacio {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.35);
       }
 
       .preview-logo-chica {
@@ -1156,14 +1312,22 @@ interface EstadoWizardGuardado {
         align-self: center;
       }
 
-      .tema-card h3 {
+      .tema-card-footer {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 4px 4px 2px;
+      }
+
+      .tema-card-titulo h3 {
         font-size: 0.85rem;
         font-weight: 700;
         margin: 0 0 2px;
         color: #0f172a;
       }
 
-      .tema-card p {
+      .tema-card-titulo p {
         font-size: 0.76rem;
         color: #64748b;
         line-height: 1.3;
@@ -1173,16 +1337,26 @@ interface EstadoWizardGuardado {
       .tema-activo-badge {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
-        margin-top: 8px;
-        font-size: 0.72rem;
-        font-weight: 600;
+        gap: 3px;
+        flex-shrink: 0;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: #f0fdf4;
+        font-size: 0.68rem;
+        font-weight: 700;
         color: #16a34a;
+        white-space: nowrap;
+      }
+
+      .tema-activo-badge mat-icon {
+        font-size: 13px;
+        width: 13px;
+        height: 13px;
       }
 
       @media (max-width: 560px) {
         .temas-grid { grid-template-columns: 1fr; }
-        .preview { height: 150px; }
+        .preview { height: 160px; }
       }
 
       .marca-fields {
@@ -1415,40 +1589,43 @@ interface EstadoWizardGuardado {
       .temas-pagina-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
+        gap: 16px;
         margin-bottom: 24px;
       }
 
       .tema-pagina-item {
-        position: relative;
         display: flex;
         flex-direction: column;
-        gap: 10px;
         text-align: left;
         background: white;
         border: 1px solid #e2e8f0;
-        border-radius: 10px;
+        border-radius: 14px;
         padding: 10px;
         cursor: pointer;
         font: inherit;
         color: #0f172a;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
       }
 
       .tema-pagina-item:hover {
         border-color: #93c5fd;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
       }
 
       .tema-pagina-item-activo {
         border-color: var(--brand-light);
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+      }
+
+      .tema-pagina-item-activo:hover {
+        transform: none;
       }
 
       .pagina-preview {
-        height: 112px;
+        height: 116px;
         overflow: hidden;
-        border-radius: 7px;
         background: #eef2f7;
-        border: 1px solid #e5eaf2;
         padding: 8px;
       }
 
@@ -1461,8 +1638,21 @@ interface EstadoWizardGuardado {
         box-shadow: 0 3px 10px rgba(15, 23, 42, .10);
       }
 
-      .pagina-sidebar { width: 22%; }
-      .pagina-topbar { height: 13px; width: 100%; border-radius: 3px 3px 0 0; }
+      /* clasico = sidebar + contenido lado a lado (row, el default de arriba).
+         compacto/amplio = topbar arriba y contenido debajo -- sin esto, el
+         topbar y el contenido quedaban uno al lado del otro en vez de
+         apilados. */
+      .pagina-window-compacto,
+      .pagina-window-amplio {
+        flex-direction: column;
+      }
+
+      .pagina-sidebar { width: 24%; display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 8px; }
+      .pagina-sidebar-logo { width: 14px; height: 14px; object-fit: contain; border-radius: 3px; background: rgba(255,255,255,.85); margin-bottom: 2px; }
+      .pagina-sidebar-item { display: block; width: 60%; height: 4px; border-radius: 2px; background: rgba(255,255,255,.35); }
+      .pagina-sidebar-item.activo { background: rgba(255,255,255,.9); }
+      .pagina-topbar { height: 14px; width: 100%; border-radius: 3px 3px 0 0; display: flex; align-items: center; padding-left: 8px; }
+      .pagina-topbar-logo { width: 9px; height: 9px; object-fit: contain; border-radius: 2px; background: rgba(255,255,255,.85); }
       .pagina-content { flex: 1; padding: 9px; min-width: 0; }
       .pagina-barra { display: block; width: 34%; height: 5px; border-radius: 3px; margin-bottom: 8px; }
       .pagina-barra.grande { width: 55%; height: 8px; margin-bottom: 11px; }
@@ -1493,18 +1683,9 @@ interface EstadoWizardGuardado {
         font-weight: 400;
       }
 
-      .tema-pagina-check {
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        color: #16a34a;
-        background: #fff;
-        border-radius: 50%;
-      }
-
       @media (max-width: 560px) {
         .temas-pagina-grid { grid-template-columns: 1fr; }
-        .pagina-preview { height: 132px; }
+        .pagina-preview { height: 140px; }
       }
 
       .error-creacion {
@@ -1616,16 +1797,6 @@ interface EstadoWizardGuardado {
         white-space: nowrap;
       }
 
-      .subdominio-local a {
-        align-self: flex-start;
-        color: #2468d9;
-      }
-
-      .subdominio-local a mat-icon {
-        margin-left: 6px;
-        font-size: 16px;
-        vertical-align: middle;
-      }
 
       @media (max-width: 900px) {
         .topbar {
@@ -1958,11 +2129,14 @@ export class RegistroEmpresaComponent {
 
     this.guardandoPersonalizacion.set(true);
     this.errorCreacion.set(null);
-    const logo = this.logoDataUrl();
+    // El logo viaja como data: URL (base64) porque todavia no hay subida
+    // real de archivos -- el backend lo guarda tal cual en una columna TEXT
+    // y el navegador lo puede pintar directo en un <img src="data:...">
+    // sin necesitar ningun servicio de archivos aparte.
     const request: PersonalizacionRequest = {
       colorPrimario: this.colorPrimario(),
       colorSecundario: this.colorSecundario(),
-      urlLogo: logo && !logo.startsWith('data:') ? logo : null,
+      urlLogo: this.logoDataUrl(),
       tipoLogin: this.codigoTemaLogin(),
       tipoPantallaPrincipal: this.codigoTemaPagina(),
     };

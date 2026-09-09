@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0021-ampliar-url-logo-a-texto
+      author: neider
+      comment: >
+        No hay subida real de archivos todavia (ver docs identidad-visual):
+        el logo que se elige en el wizard de registro viaja como data: URL
+        (imagen en base64), que facilmente supera los 500 caracteres de
+        VARCHAR(500). Se amplia a TEXT -- Postgres no penaliza TEXT vs
+        VARCHAR en almacenamiento ni rendimiento, y sigue siendo un
+        <img src="data:..."> valido para el navegador sin necesitar un
+        servicio de archivos aparte.
+      changes:
+        - modifyDataType:
+            schemaName: plataforma
+            tableName: tbl_empresas_marca
+            columnName: url_logo
+            newDataType: TEXT
+      rollback:
+        - modifyDataType:
+            schemaName: plataforma
+            tableName: tbl_empresas_marca
+            columnName: url_logo
+            newDataType: VARCHAR(500)
