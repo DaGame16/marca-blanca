@@ -15,6 +15,8 @@ import { MarcaDeEmpresa } from '../../../core/identidad-visual/models';
 
 type TemaVisual = 'lateral' | 'centrado' | 'fondo';
 
+const CORREO_RECORDADO_KEY = 'login.correoRecordado';
+
 // Cada empresa vive en su propio subdominio (<identificador>.localhost en
 // dev, <identificador>.marca-blanca.com en prod) -- de ahi se saca a que
 // empresa preguntarle el logo/colores/variante antes de que haya sesion.
@@ -79,6 +81,11 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
             <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
         </mat-form-field>
+
+        <label class="recordarme">
+          <input type="checkbox" formControlName="recordarme" />
+          Recordar mi correo
+        </label>
 
         @if (errorMessage()) {
           <p class="error">
@@ -154,6 +161,15 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
             </div>
             <h2>{{ nombreEmpresa() }}</h2>
             <p class="form-subtitle">Iniciar sesión</p>
+
+            <div class="avatar-saludo">
+              <span class="avatar-circulo">
+                <mat-icon>person</mat-icon>
+                <span class="avatar-badge">1</span>
+              </span>
+              <p class="saludo">Hola de nuevo,</p>
+            </div>
+
             <ng-container [ngTemplateOutlet]="formularioTpl"></ng-container>
           </div>
         </div>
@@ -274,6 +290,24 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
 
       .registro-link a:hover {
         text-decoration: underline;
+      }
+
+      .recordarme {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: #64748b;
+        margin: 2px 0 18px;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .recordarme input {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--brand-light);
+        cursor: pointer;
       }
 
       .form-subtitle {
@@ -517,7 +551,7 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
         text-align: center;
       }
 
-      /* ---------- Tema fondo ---------- */
+      /* ---------- Tema fondo -- tarjeta oscura tipo "glass" ---------- */
       .tema-fondo {
         position: relative;
         min-height: 100vh;
@@ -525,14 +559,17 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
         align-items: center;
         justify-content: center;
         padding: 24px;
-        background: linear-gradient(160deg, #0f172a 0%, var(--brand-dark) 45%, var(--brand-light) 100%);
+        background: radial-gradient(circle at 15% 15%, #4c1d95 0%, transparent 45%),
+          radial-gradient(circle at 85% 30%, #1d4ed8 0%, transparent 50%),
+          linear-gradient(160deg, #05030f 0%, #0f0a24 55%, #1a1035 100%);
+        overflow: hidden;
       }
 
       .fondo-overlay {
         position: absolute;
         inset: 0;
-        background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.08), transparent 55%),
-          radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.06), transparent 50%);
+        background: radial-gradient(circle at 20% 80%, rgba(124, 58, 237, 0.18), transparent 55%),
+          radial-gradient(circle at 80% 15%, rgba(37, 99, 235, 0.18), transparent 50%);
       }
 
       .tarjeta-flotante {
@@ -540,23 +577,120 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
         z-index: 1;
         width: 100%;
         max-width: 400px;
-        background: rgba(255, 255, 255, 0.97);
-        backdrop-filter: blur(6px);
-        border-radius: 20px;
-        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+        background: rgba(30, 27, 60, 0.55);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
         padding: 40px 36px;
+        color: #e2e8f0;
       }
 
       .tarjeta-flotante h2 {
         text-align: center;
         font-size: 1.6rem;
         font-weight: 700;
-        margin: 0 0 6px;
-        color: #0f172a;
+        margin: 0 0 2px;
+        color: #f8fafc;
       }
 
       .tarjeta-flotante .form-subtitle {
         text-align: center;
+        color: #94a3b8;
+        margin: 0 0 24px;
+      }
+
+      .avatar-saludo {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .avatar-circulo {
+        position: relative;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #7c3aed, #2563eb);
+        margin-bottom: 10px;
+      }
+
+      .avatar-circulo mat-icon {
+        color: #fff;
+        font-size: 26px;
+        width: 26px;
+        height: 26px;
+      }
+
+      .avatar-badge {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #ef4444;
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #1e1b3c;
+      }
+
+      .tema-fondo .saludo {
+        margin: 0;
+        font-size: 0.95rem;
+        color: #cbd5e1;
+      }
+
+      .tema-fondo .recordarme,
+      .tema-fondo .registro-link {
+        color: #94a3b8;
+      }
+
+      .tema-fondo .registro-link a {
+        color: #93c5fd;
+      }
+
+      .tema-fondo .brand-logo-icon {
+        color: #f8fafc;
+      }
+
+      /* Los form-field de Material renderizan su DOM interno fuera del
+         encapsulamiento del componente -- ::ng-deep es la unica forma de
+         oscurecerlos para que calcen con la tarjeta de vidrio. */
+      .tema-fondo ::ng-deep .mat-mdc-text-field-wrapper {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border-radius: 12px;
+      }
+
+      .tema-fondo ::ng-deep .mdc-notched-outline__leading,
+      .tema-fondo ::ng-deep .mdc-notched-outline__notch,
+      .tema-fondo ::ng-deep .mdc-notched-outline__trailing {
+        border-color: rgba(255, 255, 255, 0.15) !important;
+      }
+
+      .tema-fondo ::ng-deep .mat-mdc-form-field-input-control,
+      .tema-fondo ::ng-deep input {
+        color: #f1f5f9 !important;
+        caret-color: #f1f5f9;
+      }
+
+      .tema-fondo ::ng-deep .mat-mdc-form-field-icon-prefix mat-icon,
+      .tema-fondo ::ng-deep .mat-mdc-form-field-icon-suffix mat-icon,
+      .tema-fondo ::ng-deep mat-label {
+        color: #94a3b8 !important;
+      }
+
+      .tema-fondo .submit-btn {
+        background: linear-gradient(90deg, #7c3aed, #2563eb) !important;
+        border-radius: 12px;
       }
 
       .brand-logo-img {
@@ -590,6 +724,7 @@ export class LoginComponent {
   protected readonly form = this.fb.nonNullable.group({
     correo: ['', [Validators.required, Validators.email]],
     contrasena: ['', [Validators.required]],
+    recordarme: [false],
   });
 
   constructor() {
@@ -601,6 +736,14 @@ export class LoginComponent {
         // todavia -- se queda con el diseno generico, no es un error visible.
         error: () => this.marcaPublica.set(null),
       });
+    }
+
+    // No se guarda la contraseña en ningun lado -- solo el correo, para no
+    // tener que volver a escribirlo cada vez. Guardar la contrasena en
+    // localStorage seria un riesgo de seguridad real sin ganancia real de UX.
+    const correoRecordado = localStorage.getItem(CORREO_RECORDADO_KEY);
+    if (correoRecordado) {
+      this.form.patchValue({ correo: correoRecordado, recordarme: true });
     }
   }
 
@@ -617,7 +760,7 @@ export class LoginComponent {
     this.loading.set(true);
     this.errorMessage.set(null);
 
-    const { correo, contrasena } = this.form.getRawValue();
+    const { correo, contrasena, recordarme } = this.form.getRawValue();
     const identificadorDelSubdominio = identificadorDesdeSubdominio();
     const identificadorEmpresa$ = identificadorDelSubdominio
       ? of({ identificadorEmpresa: identificadorDelSubdominio })
@@ -628,8 +771,14 @@ export class LoginComponent {
         switchMap(({ identificadorEmpresa }) => this.auth.login({ correo, contrasena, identificadorEmpresa })),
       )
       .subscribe({
-        next: () =>
-          this.router.navigateByUrl(this.auth.debeCambiarContrasena() ? '/cambiar-contrasena' : '/mis-modulos'),
+        next: () => {
+          if (recordarme) {
+            localStorage.setItem(CORREO_RECORDADO_KEY, correo);
+          } else {
+            localStorage.removeItem(CORREO_RECORDADO_KEY);
+          }
+          this.router.navigateByUrl(this.auth.debeCambiarContrasena() ? '/cambiar-contrasena' : '/mis-modulos');
+        },
         error: (error: HttpErrorResponse) => {
           this.errorMessage.set(this.mensajeDeError(error));
           this.loading.set(false);
