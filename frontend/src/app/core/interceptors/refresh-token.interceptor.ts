@@ -20,6 +20,12 @@ import { RefreshResponse } from '../auth/models';
 let refreshInProgress$: Observable<RefreshResponse> | null = null;
 
 export const refreshTokenInterceptor: HttpInterceptorFn = (req, next) => {
+  // La consola de operacion no tiene refresh token; un 401 suyo no debe
+  // disparar el refresh (ni el logout) del token de tenant.
+  if (req.url.includes('/api/v1/consola/')) {
+    return next(req);
+  }
+
   const authService = inject(AuthService);
 
   return next(req).pipe(

@@ -36,6 +36,19 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         this.verificadorDeToken = verificadorDeToken;
     }
 
+    /**
+     * La consola de operacion (/api/v1/consola/**) tiene su propia cadena de
+     * seguridad y su propio filtro. Este filtro de tenant esta registrado de
+     * forma global, asi que sin este corte tambien correria ahi: como el token
+     * de operador comparte el secreto de firma, lo validaria como si fuera de
+     * tenant (con empresa nula) y, si trae pwd_temp, bloquearia con 403 el
+     * propio cambio de contrasena del operador.
+     */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return request.getRequestURI().startsWith("/api/v1/consola/");
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {

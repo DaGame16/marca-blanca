@@ -11,7 +11,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
-interface AnalisisJpaRepository extends JpaRepository<AnalisisEntity, Long> {
+public interface AnalisisJpaRepository extends JpaRepository<AnalisisEntity, Long> {
 
     Optional<AnalisisEntity> findByUuid(java.util.UUID uuid);
 

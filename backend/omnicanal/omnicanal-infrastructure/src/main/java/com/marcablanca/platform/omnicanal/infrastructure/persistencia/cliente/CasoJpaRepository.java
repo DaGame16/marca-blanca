@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.OffsetDateTime;
 import java.util.List;
 
-interface CasoJpaRepository extends JpaRepository<CasoEntity, Long> {
+public interface CasoJpaRepository extends JpaRepository<CasoEntity, Long> {
 
     @Query("select c from CasoEntity c where c.esProcesada = false and "
             + "(:desde is null or c.archivadaEn >= :desde) and (:hasta is null or c.archivadaEn <= :hasta)")
