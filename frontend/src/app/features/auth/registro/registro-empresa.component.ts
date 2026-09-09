@@ -2013,10 +2013,11 @@ export class RegistroEmpresaComponent {
   // en venta -- por ahora solo omnicanal y 3cx se ofrecen en este paso del
   // wizard. Si el catalogo del backend llega a tener mas modulos en venta,
   // ajustar este filtro.
+  // "usuarios" es un modulo base que toda empresa tiene por defecto -- se
+  // excluye por nombre, no por una lista fija de "los unicos que existen":
+  // cualquier modulo nuevo en tbl_modulos aparece aca sin tocar este wizard.
   private filtrarModulosEnVenta(modulos: Modulo[]): Modulo[] {
-    const codigosEnVenta = new Set(['omnicanal', '3cx']);
-    const filtrados = modulos.filter((m) => codigosEnVenta.has(m.codigo));
-    return filtrados.length > 0 ? filtrados : modulos;
+    return modulos.filter((m) => m.codigo !== 'usuarios');
   }
 
   private aplicarModuloPreseleccionado(modulos: Modulo[]): void {

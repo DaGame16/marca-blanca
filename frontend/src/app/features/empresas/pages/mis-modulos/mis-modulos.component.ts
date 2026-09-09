@@ -9,9 +9,10 @@ import { MisModulosService } from './mis-modulos.service';
 import { ModuloDeEmpresa } from '../../../../core/admin/models';
 
 // "usuarios" es un modulo base que toda empresa tiene por defecto (no se
-// vende ni se activa/desactiva) -- igual que en el wizard de registro, solo
-// se muestran aqui los que si estan en venta.
-const CODIGOS_EN_VENTA = new Set(['omnicanal', '3cx']);
+// vende ni se activa/desactiva) -- se excluye por nombre, no por una lista
+// fija de "los unicos 2 que existen": cualquier modulo nuevo que se agregue
+// a tbl_modulos aparece aca automaticamente, sin tocar este componente.
+const CODIGOS_EXCLUIDOS = new Set(['usuarios']);
 
 // Metadatos visuales por módulo (icono + color de acento). El backend solo
 // conoce codigo/nombre/descripcion/activo; esto es puramente de presentación.
@@ -416,7 +417,7 @@ export class MisModulosComponent implements OnInit {
 
     this.misModulosService.listar().subscribe({
       next: (modulos: ModuloDeEmpresa[]) => {
-        this.modulos.set(modulos.filter((m) => CODIGOS_EN_VENTA.has(m.codigo)));
+        this.modulos.set(modulos.filter((m) => !CODIGOS_EXCLUIDOS.has(m.codigo)));
         this.cargando.set(false);
       },
       error: () => {
