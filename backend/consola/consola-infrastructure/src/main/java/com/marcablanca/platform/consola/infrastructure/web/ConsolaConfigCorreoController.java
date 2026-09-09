@@ -4,9 +4,12 @@ import com.marcablanca.platform.consola.application.port.out.RegistroDeAuditoria
 import com.marcablanca.platform.consola.domain.CredencialesDeOperadorInvalidasException;
 import com.marcablanca.platform.correo.application.port.in.GestionarConfiguracionCorreo;
 import com.marcablanca.platform.correo.application.port.in.GestionarConfiguracionCorreo.ComandoConfiguracionSmtp;
+import com.marcablanca.platform.correo.application.port.in.ProbarConfiguracionCorreo;
 import com.marcablanca.platform.correo.domain.ConfiguracionSmtp;
+import com.marcablanca.platform.correo.domain.EnvioDeCorreoFallidoException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,10 +19,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -33,11 +38,14 @@ public class ConsolaConfigCorreoController {
 
     private final GestionarConfiguracionCorreo gestionarConfiguracionCorreo;
     private final RegistroDeAuditoria registroDeAuditoria;
+    private final ProbarConfiguracionCorreo probarConfiguracionCorreo;
 
     public ConsolaConfigCorreoController(GestionarConfiguracionCorreo gestionarConfiguracionCorreo,
-                                        RegistroDeAuditoria registroDeAuditoria) {
+                                        RegistroDeAuditoria registroDeAuditoria,
+                                        ProbarConfiguracionCorreo probarConfiguracionCorreo) {
         this.gestionarConfiguracionCorreo = gestionarConfiguracionCorreo;
         this.registroDeAuditoria = registroDeAuditoria;
+        this.probarConfiguracionCorreo = probarConfiguracionCorreo;
     }
 
     @GetMapping
@@ -79,9 +87,23 @@ public class ConsolaConfigCorreoController {
         auditar("correo.config_eliminada");
     }
 
+    /** Manda un correo real de prueba con ESTA configuracion (activa o no). */
+    @PostMapping("/{id}/probar")
+    public ResponseEntity<?> probar(@PathVariable UUID id, @RequestParam String destinatario) {
+        gestionarConfiguracionCorreo.buscarPorId(id);
+        try {
+            probarConfiguracionCorreo.ejecutar(id, destinatario);
+            auditar("correo.prueba_enviada");
+            return ResponseEntity.ok(Map.of("enviado", true));
+        } catch (EnvioDeCorreoFallidoException e) {
+            String detalle = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of("enviado", false, "error", detalle));
+        }
+    }
+
     private ComandoConfiguracionSmtp aComando(ConfigCorreoRequest b) {
         return new ComandoConfiguracionSmtp(b.remitenteNombre(), b.remitenteCorreo(), b.responderA(),
-                b.host(), b.puerto(), b.usuario(), b.secretoRef(), b.seguridad());
+                b.host(), b.puerto(), b.usuario(), b.secretoRef(), b.seguridad(), b.clave());
     }
 
     private void auditar(String accion) {

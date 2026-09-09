@@ -24,7 +24,10 @@ class EmpresaMarcaEntity {
     @Column(name = "empresa_id", nullable = false, unique = true)
     private Long empresaId;
 
-    @Column(name = "url_logo")
+    // TEXT, no VARCHAR: el logo del wizard de registro viaja como data: URL
+    // (base64) porque todavia no hay subida real de archivos -- facilmente
+    // supera los limites tipicos de VARCHAR. Ver 0018-ampliar-url-logo-a-texto.
+    @Column(name = "url_logo", columnDefinition = "TEXT")
     private String urlLogo;
 
     @Column(name = "color_primario")

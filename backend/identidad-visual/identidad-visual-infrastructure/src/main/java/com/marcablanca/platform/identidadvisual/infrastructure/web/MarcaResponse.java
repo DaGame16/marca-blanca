@@ -6,5 +6,10 @@ public record MarcaResponse(
         String colorSecundario,
         String dominioPropio,
         Integer tipoLogin,
-        Integer tipoPantallaPrincipal) {
+        Integer tipoPantallaPrincipal,
+        // Solo lo llena MarcaPublicaController (el login publico lo necesita
+        // para mostrar el nombre real de la empresa, no solo su logo). El
+        // self-service (MarcaController) manda null -- ya hay sesion, el
+        // nombre no hace falta ahi.
+        String nombreEmpresa) {
 }

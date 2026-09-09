@@ -1,97 +1,128 @@
 package com.marcablanca.platform.correo.infrastructure;
 
+import com.marcablanca.platform.correo.application.port.in.ProbarConfiguracionCorreo;
 import com.marcablanca.platform.correo.application.port.out.ProveedorDeCorreo;
+import com.marcablanca.platform.correo.application.port.out.RepositorioConfiguracionCorreo;
+import com.marcablanca.platform.correo.domain.ConfiguracionCorreoNoEncontradaException;
+import com.marcablanca.platform.correo.domain.ConfiguracionSmtp;
 import com.marcablanca.platform.correo.domain.EnvioDeCorreoFallidoException;
 import com.marcablanca.platform.correo.domain.MensajeDeCorreo;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
-import javax.sql.DataSource;
 import java.util.Properties;
+import java.util.UUID;
 
 /**
  * Contra JavaMailSender (SMTP estandar) -- funciona con cualquier proveedor
  * que hable SMTP (SES, SendGrid, Mailgun, Gmail, Postfix propio, etc.).
  *
- * La configuracion (remitente, host, puerto, usuario, tipo de seguridad) se
- * lee de plataforma.tbl_config_correo (base de control), no de propiedades
- * estaticas -- asi coincide con lo que ya administra Leidi ahi. La clave en
- * si sigue viniendo de app.aprovisionamiento.smtp-password (se mantuvo el
- * mismo nombre de propiedad al mudar esta pieza, para no romper ninguna
- * variable de entorno ya configurada en ningun ambiente).
- *
- * Si no hay ninguna fila con es_activa=true, o falta la clave: se loguea una
- * advertencia y se sale sin lanzar excepcion -- mismo comportamiento que
- * tenia esto cuando vivia adentro de aprovisionamiento, para no tumbar el
- * pipeline de alta de una empresa solo porque el correo todavia no esta
- * configurado en ese ambiente.
+ * Tanto la configuracion (remitente, host, puerto, usuario, seguridad) como
+ * la CLAVE viven en plataforma.tbl_config_correo (base de control), cifrada
+ * con {@link CifradorDeCorreo} -- un admin puede crear, editar y rotar
+ * cuantas configuraciones SMTP quiera desde la consola de operacion, sin
+ * tocar el backend ni sus variables de entorno.
  */
 @Component
-public class AdaptadorProveedorCorreoSmtp implements ProveedorDeCorreo {
+public class AdaptadorProveedorCorreoSmtp implements ProveedorDeCorreo, ProbarConfiguracionCorreo {
 
     private static final Logger log = LoggerFactory.getLogger(AdaptadorProveedorCorreoSmtp.class);
 
-    private final JdbcTemplate control;
-    private final String smtpClave;
+    private final RepositorioConfiguracionCorreo repositorio;
 
-    public AdaptadorProveedorCorreoSmtp(@Qualifier("controlDataSource") DataSource controlDataSource,
-                                         @Value("${app.aprovisionamiento.smtp-password:}") String smtpClave) {
-        this.control = new JdbcTemplate(controlDataSource);
-        this.smtpClave = smtpClave;
+    public AdaptadorProveedorCorreoSmtp(RepositorioConfiguracionCorreo repositorio) {
+        this.repositorio = repositorio;
     }
 
     @Override
     public void enviar(MensajeDeCorreo mensaje) {
-        String[] cfg = control.query("""
-                select remitente_nombre, remitente_correo, host, puerto, usuario, seguridad
-                from plataforma.tbl_config_correo where es_activa limit 1""",
-                rs -> rs.next() ? new String[] {
-                        rs.getString(1), rs.getString(2), rs.getString(3),
-                        String.valueOf(rs.getInt(4)), rs.getString(5), rs.getString(6)
-                } : null);
-
-        if (cfg == null || smtpClave == null || smtpClave.isBlank()) {
-            log.warn("Sin config SMTP activa en tbl_config_correo (o sin app.aprovisionamiento.smtp-password). "
-                    + "Correo NO enviado. Para={} asunto={}", mensaje.destinatario().valor(), mensaje.asunto());
+        ConfiguracionSmtp cfg = repositorio.buscarActiva().orElse(null);
+        if (cfg == null) {
+            log.warn("Sin config SMTP activa en tbl_config_correo. Correo NO enviado. Para={} asunto={}",
+                    mensaje.destinatario().valor(), mensaje.asunto());
             return;
         }
 
-        JavaMailSenderImpl sender = new JavaMailSenderImpl();
-        sender.setHost(cfg[2]);
-        sender.setPort(Integer.parseInt(cfg[3]));
-        if (cfg[4] != null) {
-            sender.setUsername(cfg[4]);
-            sender.setPassword(smtpClave);
-        }
-        Properties props = sender.getJavaMailProperties();
-        props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.auth", String.valueOf(cfg[4] != null));
-        if ("starttls".equalsIgnoreCase(cfg[5])) {
-            props.put("mail.smtp.starttls.enable", "true");
-        } else if ("ssl".equalsIgnoreCase(cfg[5])) {
-            props.put("mail.smtp.ssl.enable", "true");
+        String clave = repositorio.obtenerClaveDescifrada(cfg.uuid()).orElse(null);
+        if (cfg.usuario() != null && (clave == null || clave.isBlank())) {
+            log.warn("La config SMTP activa (id={}) exige usuario pero no tiene clave configurada. "
+                    + "Correo NO enviado. Para={} asunto={}", cfg.uuid(), mensaje.destinatario().valor(),
+                    mensaje.asunto());
+            return;
         }
 
         try {
-            MimeMessage mime = sender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mime, "UTF-8");
-            String remitente = cfg[0] != null ? cfg[0] + " <" + cfg[1] + ">" : cfg[1];
-            helper.setFrom(remitente);
-            helper.setTo(mensaje.destinatario().valor());
-            helper.setSubject(mensaje.asunto());
-            helper.setText(mensaje.cuerpoHtml(), true);
-            sender.send(mime);
+            enviarConexionSmtp(cfg.host(), cfg.puerto(), cfg.usuario(), cfg.seguridad(), cfg.remitenteNombre(),
+                    cfg.remitenteCorreo(), clave, mensaje.destinatario().valor(), mensaje.asunto(),
+                    mensaje.cuerpoHtml());
             log.info("Correo enviado a {}", mensaje.destinatario().valor());
         } catch (Exception e) {
             throw new EnvioDeCorreoFallidoException(
                     "No se pudo enviar el correo a " + mensaje.destinatario().valor(), e);
         }
+    }
+
+    @Override
+    public void ejecutar(UUID id, String destinatario) {
+        ConfiguracionSmtp cfg = repositorio.buscarPorId(id)
+                .orElseThrow(() -> new ConfiguracionCorreoNoEncontradaException(id));
+        String clave = repositorio.obtenerClaveDescifrada(id).orElse(null);
+
+        try {
+            enviarConexionSmtp(cfg.host(), cfg.puerto(), cfg.usuario(), cfg.seguridad(), cfg.remitenteNombre(),
+                    cfg.remitenteCorreo(), clave, destinatario, "Correo de prueba -- Marca Blanca",
+                    "Si estas leyendo esto, la configuracion SMTP \"" + cfg.remitenteNombre()
+                            + "\" funciona correctamente.");
+            log.info("Correo de PRUEBA enviado a {} usando config id={}", destinatario, id);
+        } catch (Exception e) {
+            throw new EnvioDeCorreoFallidoException("No se pudo enviar el correo de prueba a " + destinatario, e);
+        }
+    }
+
+    @Override
+    public void ejecutarAdHoc(DatosConexion datos, String destinatario) {
+        try {
+            enviarConexionSmtp(datos.host(), datos.puerto(), datos.usuario(), datos.seguridad(),
+                    datos.remitenteNombre(), datos.remitenteCorreo(), datos.clave(), destinatario,
+                    "Correo de prueba -- Marca Blanca",
+                    "Si estas leyendo esto, la configuracion SMTP \"" + datos.remitenteNombre()
+                            + "\" funciona correctamente.");
+            log.info("Correo de PRUEBA (ad hoc) enviado a {}", destinatario);
+        } catch (Exception e) {
+            throw new EnvioDeCorreoFallidoException("No se pudo verificar el envio a " + destinatario, e);
+        }
+    }
+
+    private void enviarConexionSmtp(String host, int puerto, String usuario, String seguridad,
+                                     String remitenteNombre, String remitenteCorreo, String clave,
+                                     String destinatario, String asunto, String cuerpo) throws Exception {
+        JavaMailSenderImpl sender = new JavaMailSenderImpl();
+        sender.setHost(host);
+        sender.setPort(puerto);
+        if (usuario != null) {
+            sender.setUsername(usuario);
+            sender.setPassword(clave);
+        }
+        Properties props = sender.getJavaMailProperties();
+        props.put("mail.transport.protocol", "smtp");
+        props.put("mail.smtp.auth", String.valueOf(usuario != null));
+        if ("starttls".equalsIgnoreCase(seguridad)) {
+            props.put("mail.smtp.starttls.enable", "true");
+        } else if ("ssl".equalsIgnoreCase(seguridad)) {
+            props.put("mail.smtp.ssl.enable", "true");
+        }
+
+        MimeMessage mime = sender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mime, "UTF-8");
+        String remitente = remitenteNombre != null ? remitenteNombre + " <" + remitenteCorreo + ">" : remitenteCorreo;
+        helper.setFrom(remitente);
+        helper.setTo(destinatario);
+        helper.setSubject(asunto);
+        helper.setText(cuerpo, true);
+        sender.send(mime);
     }
 }

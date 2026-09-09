@@ -1,6 +1,7 @@
 package com.marcablanca.platform.correo.infrastructure.web;
 
 import com.marcablanca.platform.correo.domain.ConfiguracionCorreoNoEncontradaException;
+import com.marcablanca.platform.correo.domain.EnvioDeCorreoFallidoException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,14 @@ class ManejadorErroresConfigCorreo {
     public ResponseEntity<ErrorResponseConfigCorreo> manejarEstadoInvalido(IllegalStateException ex,
                                                                             HttpServletRequest r) {
         return construir(HttpStatus.CONFLICT, ex.getMessage(), r);
+    }
+
+    /** La validacion automatica (correo de prueba al crear/editar) no logro conectarse/autenticarse. */
+    @ExceptionHandler(EnvioDeCorreoFallidoException.class)
+    public ResponseEntity<ErrorResponseConfigCorreo> manejarEnvioFallido(EnvioDeCorreoFallidoException ex,
+                                                                          HttpServletRequest r) {
+        String detalle = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+        return construir(HttpStatus.BAD_GATEWAY, "No se pudo verificar el envio con esos datos: " + detalle, r);
     }
 
     private ResponseEntity<ErrorResponseConfigCorreo> construir(HttpStatus estado, String mensaje,

@@ -101,10 +101,15 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
           }
         </button>
 
-        <p class="registro-link">
-          ¿Tu empresa aún no tiene cuenta?
-          <a routerLink="/registro">Regístrala aquí</a>
-        </p>
+        @if (!marcaPublica()?.nombreEmpresa) {
+          <!-- Solo tiene sentido ofrecer registro cuando NO hay una empresa
+               identificada por el subdominio -- si ya es el login de una
+               empresa existente, sus usuarios no necesitan "registrarla". -->
+          <p class="registro-link">
+            ¿Tu empresa aún no tiene cuenta?
+            <a routerLink="/registro">Regístrala aquí</a>
+          </p>
+        }
       </form>
     </ng-template>
 
@@ -129,10 +134,9 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
           <div class="tarjeta-centrada">
             <div class="logo-centrado">
               <ng-container [ngTemplateOutlet]="logoTpl"></ng-container>
-              <span>Marca Blanca</span>
             </div>
-            <h2>Iniciar sesión</h2>
-            <p class="form-subtitle">Ingresa tus credenciales para continuar</p>
+            <h2>{{ nombreEmpresa() }}</h2>
+            <p class="form-subtitle">Iniciar sesión</p>
             <ng-container [ngTemplateOutlet]="formularioTpl"></ng-container>
           </div>
         </div>
@@ -147,10 +151,9 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
           <div class="tarjeta-flotante">
             <div class="logo-centrado">
               <ng-container [ngTemplateOutlet]="logoTpl"></ng-container>
-              <span>Marca Blanca</span>
             </div>
-            <h2>Iniciar sesión</h2>
-            <p class="form-subtitle">Ingresa tus credenciales para continuar</p>
+            <h2>{{ nombreEmpresa() }}</h2>
+            <p class="form-subtitle">Iniciar sesión</p>
             <ng-container [ngTemplateOutlet]="formularioTpl"></ng-container>
           </div>
         </div>
@@ -165,32 +168,44 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
             <div class="brand-shape shape-a"></div>
             <div class="brand-shape shape-b"></div>
 
-            <div class="brand-content">
-              <div class="brand-logo">
-                <ng-container [ngTemplateOutlet]="logoTpl"></ng-container>
-                <span>Marca Blanca</span>
+            @if (marcaPublica()?.nombreEmpresa; as nombre) {
+              <!-- Empresa identificada por el subdominio: el panel es de
+                   ELLA, no un aviso publicitario de la plataforma. -->
+              <div class="brand-content brand-content-empresa">
+                <div class="brand-logo-grande">
+                  <ng-container [ngTemplateOutlet]="logoTpl"></ng-container>
+                </div>
+                <h1>{{ nombre }}</h1>
+                <p class="brand-tagline">Inicia sesión para entrar a tu plataforma</p>
               </div>
+            } @else {
+              <div class="brand-content">
+                <div class="brand-logo">
+                  <ng-container [ngTemplateOutlet]="logoTpl"></ng-container>
+                  <span>Marca Blanca</span>
+                </div>
 
-              <h1>Gestiona tu empresa desde un solo lugar</h1>
-              <p class="brand-tagline">
-                Usuarios, módulos y comunicación omnicanal en una sola plataforma.
-              </p>
+                <h1>Gestiona tu empresa desde un solo lugar</h1>
+                <p class="brand-tagline">
+                  Usuarios, módulos y comunicación omnicanal en una sola plataforma.
+                </p>
 
-              <ul class="brand-highlights">
-                <li>
-                  <mat-icon>verified_user</mat-icon>
-                  <span>Autenticación segura con JWT</span>
-                </li>
-                <li>
-                  <mat-icon>apartment</mat-icon>
-                  <span>Multi-empresa, multi-tenant</span>
-                </li>
-                <li>
-                  <mat-icon>bolt</mat-icon>
-                  <span>Arquitectura lista para escalar</span>
-                </li>
-              </ul>
-            </div>
+                <ul class="brand-highlights">
+                  <li>
+                    <mat-icon>verified_user</mat-icon>
+                    <span>Autenticación segura con JWT</span>
+                  </li>
+                  <li>
+                    <mat-icon>apartment</mat-icon>
+                    <span>Multi-empresa, multi-tenant</span>
+                  </li>
+                  <li>
+                    <mat-icon>bolt</mat-icon>
+                    <span>Arquitectura lista para escalar</span>
+                  </li>
+                </ul>
+              </div>
+            }
           </section>
 
           <section class="form-panel">
@@ -328,6 +343,45 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
         letter-spacing: 0.2px;
       }
 
+      /* Panel personalizado cuando el subdominio identifica una empresa --
+         centrado en su logo y su nombre, sin el discurso de venta generico
+         de la plataforma. */
+      .brand-content-empresa {
+        text-align: center;
+        max-width: 360px;
+      }
+
+      .brand-logo-grande {
+        width: 160px;
+        height: 160px;
+        margin: 0 auto 28px;
+        border-radius: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.14);
+        overflow: hidden;
+      }
+
+      .brand-logo-grande .brand-logo-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .brand-logo-grande mat-icon {
+        font-size: 44px;
+        width: 44px;
+        height: 44px;
+      }
+
+      .brand-content-empresa h1 {
+        font-size: 1.9rem;
+        line-height: 1.25;
+        font-weight: 800;
+        margin: 0 0 10px;
+      }
+
       .tema-lateral .brand-content h1 {
         font-size: 2.2rem;
         line-height: 1.25;
@@ -436,11 +490,19 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 10px;
-        font-size: 20px;
-        font-weight: 700;
+        margin-bottom: 20px;
+      }
+
+      .logo-centrado .brand-logo-img {
+        max-height: 96px;
+        max-width: 220px;
+      }
+
+      .logo-centrado .brand-logo-icon {
+        font-size: 64px;
+        width: 64px;
+        height: 64px;
         color: var(--brand-dark);
-        margin-bottom: 28px;
       }
 
       .tarjeta-centrada h2 {
@@ -523,6 +585,7 @@ export class LoginComponent {
   protected readonly temaVisual = computed(() => temaVisualDesdeCodigo(this.marcaPublica()?.tipoLogin));
   protected readonly colorPrimario = computed(() => this.marcaPublica()?.colorPrimario || undefined);
   protected readonly colorSecundario = computed(() => this.marcaPublica()?.colorSecundario || undefined);
+  protected readonly nombreEmpresa = computed(() => this.marcaPublica()?.nombreEmpresa || 'Marca Blanca');
 
   protected readonly form = this.fb.nonNullable.group({
     correo: ['', [Validators.required, Validators.email]],
