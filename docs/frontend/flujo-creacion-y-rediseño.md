@@ -20,7 +20,6 @@ La aplicación mantiene una organización por dominios funcionales. Las rutas p�
 | Identidad | `/mi-marca` | Logo, colores y dominio de marca. |
 | Experiencia de acceso | `/tema-login` | Selección del diseño de inicio de sesión. |
 | Usuarios | `/usuarios` | Administración de usuarios y accesos. |
-| Tareas | `/tareas` | Gestión de tareas operativas. |
 
 Las rutas autenticadas se agrupan bajo `ShellComponent` y utilizan `authGuard`. Las peticiones administrativas utilizan `adminInterceptor` para adjuntar `X-Admin-Key` durante el desarrollo local.
 
@@ -30,11 +29,11 @@ El registro utiliza un flujo de seis estados internos. El usuario puede avanzar 
 
 | Paso | Nombre | Contenido |
 |---:|---|---|
-| 1 | Empresa | Nombre legal, representante legal, correo, teléfono, identificador y contraseña maestra. |
+| 1 | Empresa | Nombre legal, representante legal, correo, teléfono y sitio web. |
 | 2 | Módulos | Selección de módulos que estarán disponibles desde el primer día. |
 | 3 | Inicio de sesión | Selección visual entre panel lateral, tarjeta centrada y fondo completo. |
 | 4 | Páginas | Selección visual entre diseño clásico, compacto y amplio. |
-| 5 | Resumen | Revisión de módulos, costo de activación y creación gratuita en local. |
+| 5 | Resumen | Revisión de módulos con su costo informativo y activación sin cobro. |
 | 6 | Resultado | Confirmación de creación, estado de aprovisionamiento y subdominio local. |
 
 ### Datos de empresa
@@ -47,10 +46,9 @@ El formulario actual muestra los siguientes campos:
 | `nombreRepresentanteLegal` | Sí | Persona responsable de la empresa. |
 | `correo` | Sí | Correo del representante para contacto y notificaciones. |
 | `telefono` | Sí | Teléfono del representante. |
-| `identificador` | Sí | Identificador normalizado utilizado para el subdominio. |
-| `contrasenaMaestra` | Sí | Contraseña inicial del primer administrador. |
+| `sitioWeb` | Sí | Sitio web de la empresa. |
 
-El identificador se normaliza a minúsculas, números y guion bajo. Se muestra al usuario con el sufijo:
+El identificador del subdominio lo asigna el servidor a partir del nombre legal; el formulario solo muestra una vista previa normalizada a minúsculas, números y guion bajo, con el sufijo:
 
 ```text
 identificador.marca-blanca.com
@@ -62,11 +60,21 @@ En el entorno local, el mismo identificador se transforma en:
 http://identificador.localhost:4200/
 ```
 
-### Compatibilidad temporal del contrato
+La contraseña inicial tampoco se captura en el wizard: el sistema genera una temporal y la envía por correo, y el primer inicio de sesión obliga a cambiarla — ver [ADR 0007](../backend/modulos/aprovisionamiento/decisiones/2026-09-08-0007-contrasena-temporal-y-primer-login.md).
 
-El backend actual todavía define `nombreComercial` y `dominio` como campos del `RegistrarEmpresaRequest`. Aunque ya no se muestran en el formulario, el frontend los envía como `null` para mantener compatibilidad con el DTO existente mientras se completa la migración del contrato.
+### Contrato de registro
 
-El correo y el teléfono se conservan mediante `DatosContactoPendienteService` hasta que el backend los incorpore formalmente al contrato de aprovisionamiento.
+El paso 1 envía a `POST /api/v1/registro/empresas` los campos que coinciden con `RegistrarEmpresaRequest`:
+
+| Campo enviado | Origen en el formulario |
+|---|---|
+| `nombreEmpresa` | `nombreLegal` |
+| `representanteLegal` | `nombreRepresentanteLegal` |
+| `correo` | `correo` |
+| `telefono` | `telefono` |
+| `sitioWeb` | `sitioWeb` |
+
+El identificador y el dominio no se envían: los asigna el servidor a partir del nombre y vuelven en la respuesta (`identificador`, `dominio`), junto con `empresaId`.
 
 ## Catálogo de módulos
 
@@ -100,26 +108,25 @@ Los diseños de página disponibles son:
 - **Compacto:** barra superior y mayor densidad de información.
 - **Amplio:** más espacio entre bloques y tarjetas de mayor tamaño.
 
+La elección se aplica en `ShellComponent` con la clase dinámica `tema-{clasico|compacto|amplio}` sobre `.app-shell`. Al entrar al shell se consulta `MarcaService` para sincronizar el tema desde el backend, de modo que la elección se respete en cualquier navegador y no solo en el que completó el wizard.
+
 ## Resumen y creación
 
-El paso final ya no se presenta como una pasarela de pago activa. En el entorno local se muestra como una activación gratuita. El botón principal es `Crear empresa`.
+El paso final no incluye pasarela de pago. Se muestra el costo de los módulos de forma informativa y la activación se realiza sin cobro. El botón principal es `Crear empresa`.
 
-El endpoint utilizado es:
+El alta es pública, sin `X-Admin-Key`: todo `/api/v1/registro/**` está en `permitAll`. Ver [ADR 0005](../backend/modulos/aprovisionamiento/decisiones/2026-09-08-0005-onboarding-publico-sin-pasarela-de-pago.md).
 
 ```text
-POST /api/v1/admin/empresas
+POST /api/v1/registro/empresas
 ```
-
-El payload compatible con el backend actual es:
 
 ```json
 {
-  "identificador": "mi_empresa",
-  "nombreLegal": "Mi Empresa S.A.S.",
-  "nombreComercial": null,
-  "dominio": null,
-  "contrasenaMaestra": "********",
-  "modulosSolicitados": ["omnicanal"]
+  "nombreEmpresa": "Mi Empresa S.A.S.",
+  "representanteLegal": "Nombre Apellido",
+  "correo": "contacto@miempresa.com",
+  "telefono": "3001234567",
+  "sitioWeb": "https://miempresa.com"
 }
 ```
 
@@ -159,18 +166,18 @@ Durante la implementación se corrigieron errores de código y de configuración
 
 ## Ejecución local
 
-Desde PowerShell:
+Desde la raíz del monorepo:
 
-```powershell
-cd C:\xampp\htdocs\mi-proyecto-monorepo\marca-blanca\frontend
+```bash
+cd frontend
 pnpm install
 pnpm start
 ```
 
 Si `node_modules` quedó incompleto:
 
-```powershell
-Remove-Item -Recurse -Force node_modules
+```bash
+rm -rf node_modules
 pnpm install
 pnpm start
 ```
@@ -186,7 +193,7 @@ El frontend se sirve normalmente en `http://localhost:4200/`. Después de crear 
 | `frontend/src/app/features/home/home.component.ts` | Landing pública rediseñada. |
 | `frontend/src/app/features/auth/registro/registro-empresa.component.ts` | Asistente completo de creación. |
 | `frontend/src/app/features/auth/registro/registro-empresa.models.ts` | Contrato frontend del registro. |
-| `frontend/src/app/features/auth/registro/registro-empresa.service.ts` | Cliente HTTP del endpoint de aprovisionamiento. |
+| `frontend/src/app/features/auth/registro/registro-empresa.service.ts` | Cliente HTTP del endpoint de registro. |
 | `frontend/angular.json` | Configuración del servidor local y build. |
 | `frontend/src/styles.scss` | Tokens y estilos globales. |
 | `frontend/tsconfig.json` | Configuración TypeScript. |
@@ -197,7 +204,7 @@ La validación final debe ejecutarse en el equipo local después de restaurar `n
 
 La secuencia recomendada es:
 
-```powershell
+```bash
 pnpm install
 pnpm build
 pnpm start
