@@ -104,6 +104,25 @@ public class Empresa {
         estado = EstadoEmpresa.ACTIVA;
     }
 
+    /**
+     * Suspension operativa desde la consola: ACTIVA -&gt; SUSPENDIDA. La base de la
+     * empresa sigue existiendo; solo se le corta el acceso. Es reversible.
+     */
+    public void suspender() {
+        if (estado != EstadoEmpresa.ACTIVA) {
+            throw new EmpresaNoSuspendibleException(estado);
+        }
+        estado = EstadoEmpresa.SUSPENDIDA;
+    }
+
+    /** Reactivacion desde la consola: SUSPENDIDA -&gt; ACTIVA. */
+    public void reactivar() {
+        if (estado != EstadoEmpresa.SUSPENDIDA) {
+            throw new EmpresaNoReactivableException(estado);
+        }
+        estado = EstadoEmpresa.ACTIVA;
+    }
+
     public List<EventoDeDominio> eventosPendientes() {
         return List.copyOf(eventos);
     }

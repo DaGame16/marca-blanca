@@ -1,11 +1,15 @@
 package com.marcablanca.platform.consola.infrastructure;
 
+import com.marcablanca.platform.consola.application.AdministrarEmpresasService;
 import com.marcablanca.platform.consola.application.AutenticarOperadorService;
 import com.marcablanca.platform.consola.application.CambiarContrasenaDeOperadorService;
+import com.marcablanca.platform.consola.application.port.in.AdministrarEmpresas;
 import com.marcablanca.platform.consola.application.port.in.AutenticarOperador;
 import com.marcablanca.platform.consola.application.port.in.CambiarContrasenaDeOperador;
+import com.marcablanca.platform.consola.application.port.out.AdministracionDeEmpresas;
 import com.marcablanca.platform.consola.application.port.out.CifradorDeContrasenaDeOperador;
 import com.marcablanca.platform.consola.application.port.out.EmisorDeTokenDeOperador;
+import com.marcablanca.platform.consola.application.port.out.RegistroDeAuditoria;
 import com.marcablanca.platform.consola.application.port.out.RepositorioOperadores;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,5 +34,11 @@ public class ConfiguracionConsola {
                                                                   CifradorDeContrasenaDeOperador cifrador) {
         return new CambiarContrasenaDeOperadorTransaccional(
                 new CambiarContrasenaDeOperadorService(repositorioOperadores, cifrador));
+    }
+
+    @Bean
+    public AdministrarEmpresas administrarEmpresas(AdministracionDeEmpresas administracionDeEmpresas,
+                                                  RegistroDeAuditoria registroDeAuditoria) {
+        return new AdministrarEmpresasService(administracionDeEmpresas, registroDeAuditoria);
     }
 }

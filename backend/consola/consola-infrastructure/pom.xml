@@ -30,6 +30,19 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- ACL hacia aprovisionamiento (dueno del agregado Empresa). Solo lo usa
+             el puente en consola.infrastructure; el nucleo de consola no lo ve. -->
+        <dependency>
+            <groupId>com.marcablanca.platform</groupId>
+            <artifactId>aprovisionamiento-application</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.marcablanca.platform</groupId>
+            <artifactId>aprovisionamiento-domain</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
