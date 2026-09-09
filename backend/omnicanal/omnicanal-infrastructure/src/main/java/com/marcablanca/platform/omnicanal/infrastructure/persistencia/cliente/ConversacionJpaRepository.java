@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 
-interface ConversacionJpaRepository extends JpaRepository<ConversacionEntity, Long> {
+public interface ConversacionJpaRepository extends JpaRepository<ConversacionEntity, Long> {
 
     Optional<ConversacionEntity> findByIdContacto(String idContacto);
 

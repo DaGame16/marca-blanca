@@ -1,6 +1,5 @@
 package com.marcablanca.platform.bootstrap.multitenencia;
 
-import com.marcablanca.platform.empresas.application.ContextoEmpresaActual;
 import com.marcablanca.platform.empresas.application.port.in.ResolverConexionDeEmpresa;
 import jakarta.persistence.EntityManagerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;

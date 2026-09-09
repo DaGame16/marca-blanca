@@ -6,7 +6,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-interface TurnoJpaRepository extends JpaRepository<TurnoEntity, Long> {
+public interface TurnoJpaRepository extends JpaRepository<TurnoEntity, Long> {
 
     List<TurnoEntity> findByConversacionIdOrderByOrdenAsc(Long conversacionId);
 

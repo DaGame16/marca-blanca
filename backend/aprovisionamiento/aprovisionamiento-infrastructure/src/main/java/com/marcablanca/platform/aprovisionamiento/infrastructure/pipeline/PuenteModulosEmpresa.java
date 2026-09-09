@@ -1,5 +1,6 @@
 package com.marcablanca.platform.aprovisionamiento.infrastructure.pipeline;
 
+import com.marcablanca.platform.aprovisionamiento.application.ModuloDisponible;
 import com.marcablanca.platform.aprovisionamiento.application.port.out.ActivadorDeModulosDeEmpresa;
 import com.marcablanca.platform.modulosempresa.application.port.in.ActivarModuloDeEmpresa;
 import com.marcablanca.platform.modulosempresa.application.port.in.DesactivarModuloDeEmpresa;
@@ -8,6 +9,7 @@ import com.marcablanca.platform.modulosempresa.domain.ModuloDeEmpresa;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -46,5 +48,12 @@ class PuenteModulosEmpresa implements ActivadorDeModulosDeEmpresa {
             }
         }
         return codigos;
+    }
+
+    @Override
+    public List<ModuloDisponible> listar(UUID empresaId) {
+        return listar.ejecutar(empresaId).stream()
+                .map(m -> new ModuloDisponible(m.codigo(), m.nombre(), m.activo()))
+                .toList();
     }
 }

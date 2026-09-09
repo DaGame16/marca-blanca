@@ -30,6 +30,12 @@ public class JwtVerificadorDeToken implements VerificadorDeToken {
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
+            // Un token con claim "scope" es de la consola de operacion (scope=plataforma),
+            // no de un usuario de empresa. Comparte el secreto de firma, asi que aca se
+            // rechaza explicitamente para que nunca autentique como usuario de tenant.
+            if (claims.get("scope", String.class) != null) {
+                return Optional.empty();
+            }
             UUID usuarioId = UUID.fromString(claims.getSubject());
             String identificadorEmpresa = claims.get("empresa", String.class);
             boolean debeCambiarContrasena = Boolean.TRUE.equals(claims.get("pwd_temp", Boolean.class));

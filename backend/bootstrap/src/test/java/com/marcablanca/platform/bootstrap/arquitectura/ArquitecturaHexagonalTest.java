@@ -100,6 +100,23 @@ class ArquitecturaHexagonalTest {
     }
 
     @Test
+    void consola_dominio_y_aplicacion_no_dependen_de_otros_contextos() {
+        // La consola de operacion solo habla con el exterior por sus puertos. El
+        // acoplamiento hacia aprovisionamiento (re-aprovisionar, etc.) sera un
+        // adaptador ACL en infrastructure, nunca aca.
+        ArchRule regla = noClasses()
+                .that().resideInAnyPackage(
+                        "..consola.domain..", "..consola.application..")
+                .should().dependOnClassesThat().resideInAnyPackage(
+                        "..empresas..", "..modulosempresa..", "..identidadvisual..",
+                        "..usuarios..", "..autenticacion..", "..aprovisionamiento..",
+                        "..omnicanal..", "..correo..")
+                .allowEmptyShould(true);
+
+        regla.check(clases);
+    }
+
+    @Test
     void las_excepciones_de_dominio_terminan_en_exception() {
         ArchRule regla = classes()
                 .that().resideInAPackage("..domain..")

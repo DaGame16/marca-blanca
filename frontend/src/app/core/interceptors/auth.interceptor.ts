@@ -3,6 +3,12 @@ import { inject } from '@angular/core';
 import { AuthService } from '../auth/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  // La consola de operacion usa su propio token (consolaAuthInterceptor). El
+  // token de tenant nunca debe viajar a /api/v1/consola/**.
+  if (req.url.includes('/api/v1/consola/')) {
+    return next(req);
+  }
+
   const authService = inject(AuthService);
   const token = authService.getToken();
 

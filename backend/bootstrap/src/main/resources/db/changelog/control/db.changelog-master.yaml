@@ -53,3 +53,12 @@ databaseChangeLog:
   - include:
       file: changes/0017-preparar-correo-de-bienvenida.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changes/0018-crear-tabla-operadores.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/0019-crear-tabla-auditoria-consola.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/0020-sembrar-operador-super-admin.yaml
+      relativeToChangelogFile: true

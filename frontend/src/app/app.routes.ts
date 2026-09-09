@@ -21,6 +21,12 @@ export const routes: Routes = [
   { path: 'cambiar-contrasena', component: CambiarContrasenaComponent },
   { path: 'registro', component: RegistroEmpresaComponent },
   { path: 'admin/modulos', component: ModulosAdminComponent },
+  // Consola de operacion de GuajiraNet (Opcion C: seccion aparte, lazy,
+  // token y guard propios). No se tematiza por empresa.
+  {
+    path: 'consola',
+    loadChildren: () => import('./features/consola/consola.routes').then((m) => m.CONSOLA_ROUTES),
+  },
   // Paginas publicas de "conocer la solucion" (enlazadas desde el home,
   // antes de comprar/loguearse) -- no confundir con el panel del modulo ya
   // instalado, que vive dentro del Shell mas abajo.

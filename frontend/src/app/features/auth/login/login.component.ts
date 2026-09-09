@@ -583,7 +583,10 @@ export class LoginComponent {
   // cual cuando existe, y solo se cae al generico si de verdad no vino nada.
   private mensajeDeError(error: HttpErrorResponse): string {
     if (error.status === 404) {
-      return 'No encontramos una cuenta con ese correo.';
+      // El resolver correo->empresa solo mira empresas ACTIVAS y, por privacidad,
+      // trata "no existe", "ambiguo" y "empresa suspendida" igual. El mensaje lo
+      // refleja sin confirmar si la cuenta existe.
+      return 'No encontramos una empresa activa para ese correo. Si tu empresa fue suspendida, escribe a soporte.';
     }
     const mensaje = (error.error as { mensaje?: string } | null)?.mensaje;
     return mensaje || 'Correo o contraseña incorrectos';
