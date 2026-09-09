@@ -1,14 +1,22 @@
 package com.marcablanca.platform.aprovisionamiento.infrastructure;
 
+import com.marcablanca.platform.aprovisionamiento.application.ActualizarDatosDeEmpresaService;
+import com.marcablanca.platform.aprovisionamiento.application.ActualizarPersonalizacionDeEmpresaService;
 import com.marcablanca.platform.aprovisionamiento.application.CambiarEstadoDeEmpresaService;
 import com.marcablanca.platform.aprovisionamiento.application.FinalizarRegistroService;
+import com.marcablanca.platform.aprovisionamiento.application.GestionarModulosDeEmpresaService;
 import com.marcablanca.platform.aprovisionamiento.application.ListarEmpresasService;
+import com.marcablanca.platform.aprovisionamiento.application.ObtenerDetalleDeEmpresaService;
 import com.marcablanca.platform.aprovisionamiento.application.PersonalizarEmpresaService;
 import com.marcablanca.platform.aprovisionamiento.application.RegistrarEmpresaService;
 import com.marcablanca.platform.aprovisionamiento.application.SeleccionarModuloService;
+import com.marcablanca.platform.aprovisionamiento.application.port.in.ActualizarDatosDeEmpresa;
+import com.marcablanca.platform.aprovisionamiento.application.port.in.ActualizarPersonalizacionDeEmpresa;
 import com.marcablanca.platform.aprovisionamiento.application.port.in.CambiarEstadoDeEmpresa;
 import com.marcablanca.platform.aprovisionamiento.application.port.in.FinalizarRegistro;
+import com.marcablanca.platform.aprovisionamiento.application.port.in.GestionarModulosDeEmpresa;
 import com.marcablanca.platform.aprovisionamiento.application.port.in.ListarEmpresas;
+import com.marcablanca.platform.aprovisionamiento.application.port.in.ObtenerDetalleDeEmpresa;
 import com.marcablanca.platform.aprovisionamiento.application.port.in.PersonalizarEmpresa;
 import com.marcablanca.platform.aprovisionamiento.application.port.in.RegistrarEmpresa;
 import com.marcablanca.platform.aprovisionamiento.application.port.in.SeleccionarModulo;
@@ -65,5 +73,32 @@ public class ConfiguracionAprovisionamiento {
     CambiarEstadoDeEmpresa cambiarEstadoDeEmpresa(RepositorioEmpresas repositorioEmpresas) {
         return new CambiarEstadoDeEmpresaTransaccional(
                 new CambiarEstadoDeEmpresaService(repositorioEmpresas));
+    }
+
+    @Bean
+    ObtenerDetalleDeEmpresa obtenerDetalleDeEmpresa(ConsultaDeEmpresas consultaDeEmpresas,
+                                                    ActivadorDeModulosDeEmpresa modulos) {
+        return new ObtenerDetalleDeEmpresaService(consultaDeEmpresas, modulos);
+    }
+
+    @Bean
+    ActualizarDatosDeEmpresa actualizarDatosDeEmpresa(RepositorioEmpresas repositorioEmpresas) {
+        return new ActualizarDatosDeEmpresaTransaccional(
+                new ActualizarDatosDeEmpresaService(repositorioEmpresas));
+    }
+
+    @Bean
+    ActualizarPersonalizacionDeEmpresa actualizarPersonalizacionDeEmpresa(
+            RepositorioEmpresas repositorioEmpresas,
+            RepositorioPersonalizacion repositorioPersonalizacion) {
+        return new ActualizarPersonalizacionDeEmpresaTransaccional(
+                new ActualizarPersonalizacionDeEmpresaService(repositorioEmpresas, repositorioPersonalizacion));
+    }
+
+    @Bean
+    GestionarModulosDeEmpresa gestionarModulosDeEmpresa(RepositorioEmpresas repositorioEmpresas,
+                                                        ActivadorDeModulosDeEmpresa modulos) {
+        return new GestionarModulosDeEmpresaTransaccional(
+                new GestionarModulosDeEmpresaService(repositorioEmpresas, modulos));
     }
 }

@@ -123,6 +123,44 @@ public class Empresa {
         estado = EstadoEmpresa.ACTIVA;
     }
 
+    /**
+     * Edicion de los datos de contacto desde la consola de operacion. Permitida
+     * mientras la empresa este en operacion o esperando aprovisionamiento; el
+     * wizard (BORRADOR) tiene su propio camino y una empresa INACTIVA no se toca.
+     */
+    public void actualizarDatos(String nombreLegal, String representanteLegal, String correo,
+                                String telefono, String sitioWeb) {
+        if (estado != EstadoEmpresa.PENDIENTE_APROVISIONAMIENTO
+                && estado != EstadoEmpresa.ACTIVA
+                && estado != EstadoEmpresa.SUSPENDIDA) {
+            throw new EmpresaNoEditableException(estado);
+        }
+        exigirTexto(nombreLegal, "El nombre de la empresa es obligatorio.");
+        exigirTexto(representanteLegal, "El representante legal es obligatorio.");
+        exigirTexto(correo, "El correo es obligatorio.");
+        exigirTexto(telefono, "El telefono es obligatorio.");
+        exigirTexto(sitioWeb, "El sitio web es obligatorio.");
+
+        this.nombreLegal = nombreLegal.trim();
+        this.representanteLegal = representanteLegal.trim();
+        this.correo = correo.trim().toLowerCase();
+        this.telefono = telefono.trim();
+        this.sitioWeb = sitioWeb.trim();
+    }
+
+    /** Los mismos estados en los que la consola puede editar datos, marca o modulos. */
+    public boolean esEditablePorOperador() {
+        return estado == EstadoEmpresa.PENDIENTE_APROVISIONAMIENTO
+                || estado == EstadoEmpresa.ACTIVA
+                || estado == EstadoEmpresa.SUSPENDIDA;
+    }
+
+    public void exigirEditablePorOperador() {
+        if (!esEditablePorOperador()) {
+            throw new EmpresaNoEditableException(estado);
+        }
+    }
+
     public List<EventoDeDominio> eventosPendientes() {
         return List.copyOf(eventos);
     }

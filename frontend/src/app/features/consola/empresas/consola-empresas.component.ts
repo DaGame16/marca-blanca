@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
+import { RouterLink } from '@angular/router';
 import { ConsolaAuthService } from '../../../core/consola/consola-auth.service';
 import { ConsolaEmpresasService } from '../../../core/consola/consola-empresas.service';
 import { EmpresaConsola } from '../../../core/consola/empresas.models';
@@ -24,6 +25,7 @@ import { EmpresaConsola } from '../../../core/consola/empresas.models';
     MatProgressBarModule,
     MatSnackBarModule,
     MatTableModule,
+    RouterLink,
   ],
   template: `
     <div class="marco">
@@ -104,6 +106,13 @@ import { EmpresaConsola } from '../../../core/consola/empresas.models';
               <ng-container matColumnDef="acciones">
                 <th mat-header-cell *matHeaderCellDef></th>
                 <td mat-cell *matCellDef="let e">
+                  <a
+                    mat-button
+                    [routerLink]="['/consola/empresas', e.id]"
+                    class="ver-editar"
+                  >
+                    Ver / editar
+                  </a>
                   @if (e.estado === 'activa') {
                     <button
                       mat-stroked-button

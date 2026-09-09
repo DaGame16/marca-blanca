@@ -1,8 +1,12 @@
 package com.marcablanca.platform.consola.application.port.out;
 
+import com.marcablanca.platform.consola.application.DatosEmpresaConsola;
+import com.marcablanca.platform.consola.application.DetalleEmpresaConsola;
 import com.marcablanca.platform.consola.application.EmpresaParaConsola;
+import com.marcablanca.platform.consola.application.MarcaConsola;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -15,7 +19,17 @@ public interface AdministracionDeEmpresas {
 
     List<EmpresaParaConsola> listar();
 
+    Optional<DetalleEmpresaConsola> detalle(UUID empresaId);
+
     void suspender(UUID empresaId);
 
     void reactivar(UUID empresaId);
+
+    void actualizarDatos(UUID empresaId, DatosEmpresaConsola datos);
+
+    void actualizarMarca(UUID empresaId, MarcaConsola marca);
+
+    void activarModulo(UUID empresaId, String codigoModulo);
+
+    void desactivarModulo(UUID empresaId, String codigoModulo);
 }

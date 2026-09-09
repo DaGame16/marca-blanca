@@ -1,10 +1,12 @@
 package com.marcablanca.platform.consola.infrastructure.web;
 
+import com.marcablanca.platform.aprovisionamiento.domain.EmpresaNoEditableException;
 import com.marcablanca.platform.aprovisionamiento.domain.EmpresaNoEncontradaException;
 import com.marcablanca.platform.aprovisionamiento.domain.EmpresaNoReactivableException;
 import com.marcablanca.platform.aprovisionamiento.domain.EmpresaNoSuspendibleException;
 import com.marcablanca.platform.consola.domain.CredencialesDeOperadorInvalidasException;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -28,7 +30,11 @@ public class ManejadorErroresEmpresasConsola {
         return new ErrorConsola(404, e.getMessage());
     }
 
-    @ExceptionHandler({ EmpresaNoSuspendibleException.class, EmpresaNoReactivableException.class })
+    @ExceptionHandler({
+            EmpresaNoSuspendibleException.class,
+            EmpresaNoReactivableException.class,
+            EmpresaNoEditableException.class
+    })
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorConsola transicionInvalida(RuntimeException e) {
         return new ErrorConsola(409, e.getMessage());
@@ -38,5 +44,11 @@ public class ManejadorErroresEmpresasConsola {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorConsola invalido(IllegalArgumentException e) {
         return new ErrorConsola(400, e.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorConsola cuerpoInvalido(MethodArgumentNotValidException e) {
+        return new ErrorConsola(400, "Datos invalidos para la operacion.");
     }
 }

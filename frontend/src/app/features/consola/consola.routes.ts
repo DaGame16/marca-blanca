@@ -26,5 +26,11 @@ export const CONSOLA_ROUTES: Routes = [
     loadComponent: () =>
       import('./empresas/consola-empresas.component').then((m) => m.ConsolaEmpresasComponent),
   },
+  {
+    path: 'empresas/:id',
+    canActivate: [operadorGuard],
+    loadComponent: () =>
+      import('./empresa/consola-empresa-detalle.component').then((m) => m.ConsolaEmpresaDetalleComponent),
+  },
   { path: '**', redirectTo: '' },
 ];
