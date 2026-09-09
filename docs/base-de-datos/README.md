@@ -98,6 +98,9 @@ Un solo schema: **`plataforma`**.
 | `tbl_empresa_esquema_version` | Audita que ninguna base de cliente quede desincronizada del changelog. |
 | `tbl_modulos` | Catálogo de módulos del producto: `usuarios`, `omnicanal`, `3cx`. |
 | `tbl_empresa_modulos` | Qué módulos tiene activo cada empresa. Es un checklist — el gating real lo hace el backend, la BD no bloquea nada. |
+| `tbl_config_correo` | Configuración(es) SMTP de la plataforma — remitente, host, puerto, seguridad, usuario y **clave cifrada** (`clave_cifrada`, AES desde el backend — nunca en texto plano). Como máximo una fila con `es_activa = true` (índice único parcial `uq_config_correo_activa`) y sin remitentes repetidos (`uq_config_correo_remitente` sobre `lower(remitente_correo)`). Ver `docs/backend/modulos/correo/`. |
+| `tbl_operadores` | Cuentas de operador de la **consola de operación** (staff de la plataforma, no usuarios de una empresa cliente) — correo, hash de contraseña, rol (`super_admin`), si la contraseña es temporal. |
+| `tbl_auditoria_consola` | Auditoría de acciones de operador en la consola (qué operador, qué acción, cuándo) — no confundir con `plataforma.tbl_auditoria` de cada base de cliente (§8), que audita datos de negocio del tenant. |
 
 El changelog de control lo aplica **la app al arrancar** (`spring.liquibase`
 apunta a `db/changelog/control/db.changelog-master.yaml`).
@@ -156,7 +159,7 @@ enrutamiento por tenant y en QA/PROD.
 backend/bootstrap/src/main/resources/db/changelog/
 ├── control/                    → db_portal_guajiranet_control (corre al arrancar la app)
 │   ├── db.changelog-master.yaml
-│   └── changes/                0000..0008
+│   └── changes/                0000..0023 (crece con cada módulo nuevo — no es un rango fijo)
 └── cliente/                    → db_plantilla_maestra (mvn -pl bootstrap liquibase:update)
     ├── db.changelog-master.yaml   incluye los módulos EN ORDEN de dependencia
     ├── base/                    schemas
@@ -270,3 +273,10 @@ dump MySQL  →  MariaDB (Docker)  →  pgloader  →  schema "staging" en la ba
   Liquibase, base de control, esquema completo de una base de cliente (6 schemas,
   76 tablas), roles del motor, auditoría por triggers, y el workspace + los
   scripts de migración desde el sistema anterior.
+- **2026-09-09** — Neider — Base de control: `tbl_empresas_marca.url_logo`
+  amplió de `VARCHAR(500)` a `TEXT` (el logo del wizard de registro viaja
+  como `data:` URL en base64, superaba el límite anterior); se sumaron
+  `tbl_config_correo.clave_cifrada` (clave SMTP cifrada por fila, ver
+  `docs/backend/modulos/correo/decisiones/2026-09-09-0003-*.md`) y el índice
+  único `uq_config_correo_remitente` (no puede haber dos configuraciones con
+  el mismo remitente).
