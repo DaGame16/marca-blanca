@@ -9,7 +9,7 @@ html {
       primary: mat.$azure-palette,
       tertiary: mat.$blue-palette,
     ),
-    typography: Roboto,
+    typography: Sora,
     density: 0,
   ));
 }
@@ -27,7 +27,7 @@ html {
 
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
-body { font-family: 'Inter', 'Roboto', sans-serif; background: var(--canvas); color: var(--ink); }
+body { font-family: 'Sora', 'Roboto', sans-serif; background: var(--canvas); color: var(--ink); }
 button, input, textarea, select { font: inherit; }
 
 .mat-mdc-form-field { --mdc-outlined-text-field-container-shape: 9px; }
