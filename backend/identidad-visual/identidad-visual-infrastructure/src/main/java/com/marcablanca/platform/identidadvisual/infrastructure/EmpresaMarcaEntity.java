@@ -36,6 +36,14 @@ class EmpresaMarcaEntity {
     @Column(name = "dominio_propio")
     private String dominioPropio;
 
+    // SMALLINT en la BD (ver 0015-agregar-variantes-ui-marca.yaml) -- Short,
+    // no Integer, o Hibernate falla la validacion de esquema al arrancar.
+    @Column(name = "tipo_login", nullable = false)
+    private Short tipoLogin;
+
+    @Column(name = "tipo_pantalla_principal", nullable = false)
+    private Short tipoPantallaPrincipal;
+
     @Column(name = "creado_en", nullable = false)
     private OffsetDateTime creadoEn;
 
@@ -47,23 +55,32 @@ class EmpresaMarcaEntity {
     }
 
     EmpresaMarcaEntity(Long empresaId, String urlLogo, String colorPrimario, String colorSecundario,
-                        String dominioPropio) {
+                        String dominioPropio, Integer tipoLogin, Integer tipoPantallaPrincipal) {
         this.uuid = UUID.randomUUID();
         this.empresaId = empresaId;
         this.urlLogo = urlLogo;
         this.colorPrimario = colorPrimario;
         this.colorSecundario = colorSecundario;
         this.dominioPropio = dominioPropio;
+        this.tipoLogin = aCorto(tipoLogin, (short) 1);
+        this.tipoPantallaPrincipal = aCorto(tipoPantallaPrincipal, (short) 1);
         this.creadoEn = OffsetDateTime.now();
         this.actualizadoEn = OffsetDateTime.now();
     }
 
-    void actualizar(String urlLogo, String colorPrimario, String colorSecundario, String dominioPropio) {
+    void actualizar(String urlLogo, String colorPrimario, String colorSecundario, String dominioPropio,
+                     Integer tipoLogin, Integer tipoPantallaPrincipal) {
         this.urlLogo = urlLogo;
         this.colorPrimario = colorPrimario;
         this.colorSecundario = colorSecundario;
         this.dominioPropio = dominioPropio;
+        this.tipoLogin = aCorto(tipoLogin, this.tipoLogin);
+        this.tipoPantallaPrincipal = aCorto(tipoPantallaPrincipal, this.tipoPantallaPrincipal);
         this.actualizadoEn = OffsetDateTime.now();
+    }
+
+    private static Short aCorto(Integer valor, Short porDefecto) {
+        return valor != null ? valor.shortValue() : porDefecto;
     }
 
     String getUrlLogo() {
@@ -76,6 +93,14 @@ class EmpresaMarcaEntity {
 
     String getColorSecundario() {
         return colorSecundario;
+    }
+
+    Integer getTipoLogin() {
+        return tipoLogin != null ? tipoLogin.intValue() : null;
+    }
+
+    Integer getTipoPantallaPrincipal() {
+        return tipoPantallaPrincipal != null ? tipoPantallaPrincipal.intValue() : null;
     }
 
     String getDominioPropio() {

@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { switchMap } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -186,15 +187,22 @@ export class CambiarContrasenaComponent {
     this.errorMensaje.set(null);
 
     const { contrasenaActual, contrasenaNueva } = this.form.getRawValue();
-    this.auth.cambiarContrasena({ contrasenaActual, contrasenaNueva }).subscribe({
-      next: () => this.router.navigateByUrl('/tareas'),
-      error: (error: HttpErrorResponse) => {
-        this.enviando.set(false);
-        this.errorMensaje.set(
-          error.status === 401 || error.status === 400
-            ? 'La contraseña temporal no es correcta.'
-            : 'No se pudo cambiar la contraseña. Intenta de nuevo.',
-        );
+    this.auth
+      .cambiarContrasena({ contrasenaActual, contrasenaNueva })
+      // El token actual ya quedo firmado con pwd_temp=true -- eso no cambia
+      // solo porque el backend acepto la contraseña nueva. Sin renovar aca,
+      // un refresh de pagina volvia a leer ese claim viejo del token
+      // guardado y mandaba otra vez a esta misma pantalla en bucle.
+      .pipe(switchMap(() => this.auth.refresh()))
+      .subscribe({
+        next: () => this.router.navigateByUrl('/mis-modulos'),
+        error: (error: HttpErrorResponse) => {
+          this.enviando.set(false);
+          this.errorMensaje.set(
+            error.status === 401 || error.status === 400
+              ? 'La contraseña temporal no es correcta.'
+              : 'No se pudo cambiar la contraseña. Intenta de nuevo.',
+          );
       },
     });
   }

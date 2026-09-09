@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { AbstractControl, ReactiveFormsModule, FormBuilder, ValidationErrors, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
@@ -11,6 +11,14 @@ import { MarcaService } from '../../../../core/identidad-visual/marca.service';
 import { MarcaDeEmpresa } from '../../../../core/identidad-visual/models';
 
 const FORMATO_HEX = /^#[0-9A-Fa-f]{6}$/;
+// El backend todavia no tiene subida real de logos -- solo guarda una URL
+// (columna VARCHAR(500)). Un data: URL (lo que sale de "elegir archivo" en
+// el navegador) facilmente pasa de varios KB, rompe esa columna, y ademas
+// no es lo que este campo espera semanticamente (una URL, no el archivo).
+function noEsDataUrlValidator(control: AbstractControl): ValidationErrors | null {
+  const valor = control.value as string | null;
+  return valor && valor.trim().toLowerCase().startsWith('data:') ? { esDataUrl: true } : null;
+}
 
 @Component({
   selector: 'app-mi-marca',
@@ -51,6 +59,13 @@ const FORMATO_HEX = /^#[0-9A-Fa-f]{6}$/;
               <input matInput formControlName="urlLogo" placeholder="https://mi-empresa.com/logo.png" />
               <mat-icon matPrefix>image</mat-icon>
             </mat-form-field>
+            @if (form.get('urlLogo')?.hasError('esDataUrl')) {
+              <p class="field-error">
+                Todavía no soportamos subir el archivo directamente: pega la URL de una imagen ya
+                publicada en internet (ej. la que te da tu servicio de hosting de imágenes), no el
+                archivo en sí.
+              </p>
+            }
 
             <div class="color-field">
               <mat-form-field appearance="outline">
@@ -273,7 +288,7 @@ export class MiMarcaComponent implements OnInit {
   protected readonly logoConError = signal(false);
 
   protected readonly form = this.fb.nonNullable.group({
-    urlLogo: [''],
+    urlLogo: ['', [noEsDataUrlValidator]],
     colorPrimario: ['', [Validators.pattern(FORMATO_HEX)]],
     colorSecundario: ['', [Validators.pattern(FORMATO_HEX)]],
     dominioPropio: [''],
@@ -315,6 +330,11 @@ export class MiMarcaComponent implements OnInit {
       colorPrimario: valores.colorPrimario || null,
       colorSecundario: valores.colorSecundario || null,
       dominioPropio: valores.dominioPropio || null,
+      // null = "no tocar" (el backend conserva el valor que ya tenia
+      // guardado); esta pantalla no edita el tema de login/pagina, eso vive
+      // en "Experiencia de acceso".
+      tipoLogin: null,
+      tipoPantallaPrincipal: null,
     };
 
     this.guardando.set(true);

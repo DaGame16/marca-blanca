@@ -6,12 +6,16 @@ import com.marcablanca.platform.autenticacion.application.port.in.RenovarToken;
 import com.marcablanca.platform.autenticacion.application.port.out.VerificadorDeUsuarios;
 import com.marcablanca.platform.autenticacion.domain.CredencialesInvalidasException;
 import com.marcablanca.platform.empresas.application.ContextoEmpresaActual;
+import com.marcablanca.platform.empresas.application.port.in.ResolverEmpresaPorCorreo;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
@@ -28,12 +32,29 @@ public class AuthController {
     private final AutenticarUsuario autenticarUsuario;
     private final RenovarToken renovarToken;
     private final VerificadorDeUsuarios verificadorDeUsuarios;
+    private final ResolverEmpresaPorCorreo resolverEmpresaPorCorreo;
 
     public AuthController(AutenticarUsuario autenticarUsuario, RenovarToken renovarToken,
-                          VerificadorDeUsuarios verificadorDeUsuarios) {
+                          VerificadorDeUsuarios verificadorDeUsuarios,
+                          ResolverEmpresaPorCorreo resolverEmpresaPorCorreo) {
         this.autenticarUsuario = autenticarUsuario;
         this.renovarToken = renovarToken;
         this.verificadorDeUsuarios = verificadorDeUsuarios;
+        this.resolverEmpresaPorCorreo = resolverEmpresaPorCorreo;
+    }
+
+    /**
+     * Para que el login solo pida correo y contrasena: el frontend llama esto
+     * primero para averiguar a que empresa pertenece el correo, y con eso arma
+     * la llamada a /login. Publico (bajo /api/v1/auth/**), como el resto del
+     * login -- ver ResolverEmpresaPorCorreoJdbc (modulo empresas) para las
+     * limitaciones de como se resuelve.
+     */
+    @GetMapping("/identificador-empresa")
+    public ResponseEntity<IdentificadorEmpresaResponse> identificadorEmpresa(@RequestParam String correo) {
+        return resolverEmpresaPorCorreo.ejecutar(correo)
+                .map(identificador -> ResponseEntity.ok(new IdentificadorEmpresaResponse(identificador)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     @PostMapping("/login")

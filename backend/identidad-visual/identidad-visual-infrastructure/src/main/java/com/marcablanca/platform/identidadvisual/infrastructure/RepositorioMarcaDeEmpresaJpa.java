@@ -21,7 +21,7 @@ class RepositorioMarcaDeEmpresaJpa implements RepositorioMarcaDeEmpresa {
 
         return empresaMarcaJpaRepository.findByEmpresaId(empresaIdInterno)
                 .map(this::aDominio)
-                .orElse(new MarcaDeEmpresa(null, null, null, null));
+                .orElse(new MarcaDeEmpresa(null, null, null, null, 1, 1));
     }
 
     @Override
@@ -33,11 +33,13 @@ class RepositorioMarcaDeEmpresaJpa implements RepositorioMarcaDeEmpresa {
         empresaMarcaJpaRepository.findByEmpresaId(empresaIdInterno)
                 .ifPresentOrElse(
                         existente -> {
-                            existente.actualizar(marca.urlLogo(), colorPrimario, colorSecundario, marca.dominioPropio());
+                            existente.actualizar(marca.urlLogo(), colorPrimario, colorSecundario, marca.dominioPropio(),
+                                    marca.tipoLogin(), marca.tipoPantallaPrincipal());
                             empresaMarcaJpaRepository.save(existente);
                         },
                         () -> empresaMarcaJpaRepository.save(new EmpresaMarcaEntity(
-                                empresaIdInterno, marca.urlLogo(), colorPrimario, colorSecundario, marca.dominioPropio()))
+                                empresaIdInterno, marca.urlLogo(), colorPrimario, colorSecundario, marca.dominioPropio(),
+                                marca.tipoLogin(), marca.tipoPantallaPrincipal()))
                 );
     }
 
@@ -51,7 +53,9 @@ class RepositorioMarcaDeEmpresaJpa implements RepositorioMarcaDeEmpresa {
                 entity.getUrlLogo(),
                 entity.getColorPrimario() != null ? new ColorHex(entity.getColorPrimario()) : null,
                 entity.getColorSecundario() != null ? new ColorHex(entity.getColorSecundario()) : null,
-                entity.getDominioPropio()
+                entity.getDominioPropio(),
+                entity.getTipoLogin(),
+                entity.getTipoPantallaPrincipal()
         );
     }
 }

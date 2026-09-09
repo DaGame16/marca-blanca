@@ -5,14 +5,19 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { AdminService } from '../../../../core/admin/admin.service';
+import { MisModulosService } from './mis-modulos.service';
 import { ModuloDeEmpresa } from '../../../../core/admin/models';
+
+// "usuarios" es un modulo base que toda empresa tiene por defecto (no se
+// vende ni se activa/desactiva) -- igual que en el wizard de registro, solo
+// se muestran aqui los que si estan en venta.
+const CODIGOS_EN_VENTA = new Set(['omnicanal', '3cx']);
 
 // Metadatos visuales por módulo (icono + color de acento). El backend solo
 // conoce codigo/nombre/descripcion/activo; esto es puramente de presentación.
 const APARIENCIA_MODULO: Record<string, { icono: string; color: string }> = {
   omnicanal: { icono: 'support_agent', color: '#7c3aed' },
-  'pbx-3cx': { icono: 'call', color: '#2563eb' },
+  '3cx': { icono: 'call', color: '#2563eb' },
 };
 
 const APARIENCIA_DEFECTO = { icono: 'extension', color: '#64748b' };
@@ -86,6 +91,10 @@ const APARIENCIA_DEFECTO = { icono: 'extension', color: '#64748b' };
 
               <div class="app-action">
                 @if (modulo.activo) {
+                  <a [routerLink]="rutaPanel(modulo.codigo)" class="btn-abrir">
+                    <mat-icon inline>open_in_new</mat-icon>
+                    Abrir
+                  </a>
                   <button
                     class="btn-installed"
                     [disabled]="procesando() === modulo.codigo"
@@ -263,6 +272,33 @@ const APARIENCIA_DEFECTO = { icono: 'extension', color: '#64748b' };
     .app-action {
       width: 100%;
       margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .btn-abrir {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 34px;
+      border-radius: 8px;
+      background: #eff6ff;
+      color: #2563eb;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-decoration: none;
+    }
+
+    .btn-abrir:hover {
+      background: #dbeafe;
+    }
+
+    .btn-abrir mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
     }
 
     .btn-install {
@@ -351,13 +387,8 @@ const APARIENCIA_DEFECTO = { icono: 'extension', color: '#64748b' };
   `],
 })
 export class MisModulosComponent implements OnInit {
-  private readonly adminService = inject(AdminService);
+  private readonly misModulosService = inject(MisModulosService);
   private readonly snackBar = inject(MatSnackBar);
-
-  // TODO: reemplazar por el ID de la empresa del usuario logueado
-  // (pendiente de que backend defina cómo se obtiene desde el JWT/sesión,
-  // en vez de un UUID fijo de demo).
-  private readonly empresaId = '00000000-0000-0000-0000-000000000001';
 
   readonly modulos = signal<ModuloDeEmpresa[]>([]);
   readonly cargando = signal(false);
@@ -383,9 +414,9 @@ export class MisModulosComponent implements OnInit {
     this.cargando.set(true);
     this.error.set(null);
 
-    this.adminService.getModulosDeEmpresa(this.empresaId).subscribe({
+    this.misModulosService.listar().subscribe({
       next: (modulos: ModuloDeEmpresa[]) => {
-        this.modulos.set(modulos);
+        this.modulos.set(modulos.filter((m) => CODIGOS_EN_VENTA.has(m.codigo)));
         this.cargando.set(false);
       },
       error: () => {
@@ -398,8 +429,8 @@ export class MisModulosComponent implements OnInit {
   alternar(modulo: ModuloDeEmpresa): void {
     this.procesando.set(modulo.codigo);
     const observable = modulo.activo
-      ? this.adminService.desactivarModulo(this.empresaId, modulo.codigo)
-      : this.adminService.activarModulo(this.empresaId, modulo.codigo);
+      ? this.misModulosService.desactivar(modulo.codigo)
+      : this.misModulosService.activar(modulo.codigo);
 
     observable.subscribe({
       next: () => {
@@ -431,5 +462,9 @@ export class MisModulosComponent implements OnInit {
   colorClaro(codigo: string): string {
     const color = this.colorAcento(codigo);
     return `color-mix(in srgb, ${color} 14%, white)`;
+  }
+
+  rutaPanel(codigo: string): string {
+    return codigo === '3cx' ? '/panel/pbx-3cx' : `/panel/${codigo}`;
   }
 }
