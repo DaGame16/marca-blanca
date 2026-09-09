@@ -52,6 +52,12 @@ services:
       APROV_MANT_PASSWORD: guajiranet_owner
       APROV_CLIENTE_HOST: postgres
       APROV_CLIENTE_PUERTO: "5432"
+      # Cifra/descifra la clave SMTP guardada en tbl_config_correo (ver
+      # modulo correo, CifradorDeCorreo) -- es un secreto de INFRAESTRUCTURA,
+      # no la clave de ningun proveedor de correo en particular: casi nunca
+      # cambia. Las claves SMTP en si las administra un admin desde la
+      # consola de operacion (/consola/correo), sin tocar el backend.
+      APP_CORREO_CLAVE_MAESTRA: ${CORREO_CLAVE_MAESTRA:-solo-para-desarrollo-local-cambiar-siempre}
     ports:
       - "8080:8080"
 
