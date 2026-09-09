@@ -66,8 +66,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 request.setAttribute(ATRIBUTO_EMPRESA, datos.identificadorEmpresa());
 
                 // Contrasena temporal: hasta cambiarla, el token solo sirve para /api/v1/auth/**
-                // (cambiar-contrasena, logout). Cualquier otro endpoint se rechaza con 403.
-                if (datos.debeCambiarContrasena() && !request.getRequestURI().startsWith("/api/v1/auth/")) {
+                // (cambiar-contrasena, logout) y para las rutas publicas (permitAll en
+                // SecurityConfig) que de todas formas no requieren este token para nada --
+                // rechazarlas aca de mas era un bug real: el login de OTRA empresa hace un
+                // GET publico a /api/v1/empresas/{id}/marca para pintar el logo, y si el
+                // navegador todavia tenia guardado un token viejo con contrasena temporal
+                // pendiente (de un intento de login anterior sin completar), ese GET publico
+                // se rechazaba con 403 -- el logo/colores nunca se pintaban y parecia que la
+                // marca "no se guardo", cuando en realidad si estaba en la base de datos.
+                if (datos.debeCambiarContrasena() && esRutaQueRequiereContrasenaDefinitiva(request.getRequestURI())) {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     response.setContentType("application/json");
                     response.getWriter().write(
@@ -86,5 +93,20 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * Espejo del permitAll de SecurityConfig: si la ruta ya es publica (no
+     * necesita JWT para nada), no tiene sentido bloquearla solo porque el
+     * token que vino de arrastre tenga la contrasena temporal pendiente.
+     * Cuando SecurityConfig gane una ruta publica nueva, agregarla aca
+     * tambien.
+     */
+    private static boolean esRutaQueRequiereContrasenaDefinitiva(String uri) {
+        return !uri.startsWith("/api/v1/auth/")
+                && !uri.startsWith("/api/v1/registro/")
+                && !uri.startsWith("/api/v1/admin/")
+                && !uri.startsWith("/api/v1/omnicanal/webhook/")
+                && !(uri.startsWith("/api/v1/empresas/") && uri.endsWith("/marca"));
     }
 }
