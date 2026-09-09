@@ -7,9 +7,9 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
-import { ConsolaAuthService } from '../../../core/consola/consola-auth.service';
 import { ConsolaEmpresasService } from '../../../core/consola/consola-empresas.service';
 import { EmpresaConsola } from '../../../core/consola/empresas.models';
+import { ConsolaNavComponent } from '../nav/consola-nav.component';
 
 /**
  * Fase 2: listado de TODAS las empresas de la plataforma + suspender / reactivar.
@@ -26,27 +26,11 @@ import { EmpresaConsola } from '../../../core/consola/empresas.models';
     MatSnackBarModule,
     MatTableModule,
     RouterLink,
+    ConsolaNavComponent,
   ],
   template: `
     <div class="marco">
-      <header>
-        <div class="titulo">
-          <mat-icon>shield_person</mat-icon>
-          <div>
-            <strong>Consola de operación</strong>
-            <span>Portal GuajiraNet</span>
-          </div>
-        </div>
-        <div class="sesion">
-          @if (operador(); as op) {
-            <span class="quien">{{ op.correo }} · {{ op.rol }}</span>
-          }
-          <button mat-stroked-button type="button" (click)="salir()">
-            <mat-icon>logout</mat-icon>
-            Salir
-          </button>
-        </div>
-      </header>
+      <app-consola-nav />
 
       <section class="panel">
         <div class="panel-cabecera">
@@ -157,52 +141,6 @@ import { EmpresaConsola } from '../../../core/consola/empresas.models';
         max-width: 1080px;
         margin: 0 auto;
         padding: 24px;
-      }
-
-      header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        padding: 14px 0 22px;
-        flex-wrap: wrap;
-      }
-
-      .titulo {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-
-      .titulo mat-icon {
-        color: #0e7490;
-        font-size: 30px;
-        width: 30px;
-        height: 30px;
-      }
-
-      .titulo strong {
-        display: block;
-        font-size: 0.95rem;
-        color: #0f172a;
-      }
-
-      .titulo span {
-        font-size: 0.72rem;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-      }
-
-      .sesion {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-      }
-
-      .quien {
-        font-size: 0.82rem;
-        color: #475569;
       }
 
       .panel {
@@ -318,10 +256,8 @@ import { EmpresaConsola } from '../../../core/consola/empresas.models';
 })
 export class ConsolaEmpresasComponent {
   private readonly empresasService = inject(ConsolaEmpresasService);
-  private readonly consolaAuth = inject(ConsolaAuthService);
   private readonly snack = inject(MatSnackBar);
 
-  protected readonly operador = this.consolaAuth.operador;
   protected readonly columnas = ['empresa', 'correo', 'estado', 'pipeline', 'creada', 'acciones'];
 
   protected readonly empresas = signal<EmpresaConsola[]>([]);
@@ -353,10 +289,6 @@ export class ConsolaEmpresasComponent {
 
   reactivar(e: EmpresaConsola): void {
     this.mutar(e.id, this.empresasService.reactivar(e.id), 'Empresa reactivada');
-  }
-
-  salir(): void {
-    this.consolaAuth.logout();
   }
 
   protected etiquetaEstado(estado: string): string {

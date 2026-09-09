@@ -66,6 +66,10 @@ const TIPOS_PANTALLA = [
         <!-- DATOS -->
         <section class="tarjeta">
           <h2>Datos de contacto</h2>
+          <p class="hint">
+            El correo de acá es el de contacto (facturación y avisos de la plataforma). No cambia el
+            correo con el que inician sesión los usuarios de la empresa.
+          </p>
           <form [formGroup]="datosForm" (ngSubmit)="guardarDatos()">
             <div class="grid">
               <mat-form-field appearance="outline">
@@ -198,6 +202,7 @@ const TIPOS_PANTALLA = [
         margin-top: 16px;
       }
       h2 { font-size: 1.05rem; font-weight: 700; margin: 0 0 14px; color: #0f172a; }
+      .hint { margin: -6px 0 16px; font-size: 0.82rem; color: #64748b; line-height: 1.5; }
 
       .grid {
         display: grid;
