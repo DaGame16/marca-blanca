@@ -32,7 +32,8 @@ import javax.sql.DataSource;
                 "com.marcablanca.platform.empresas.infrastructure",
                 "com.marcablanca.platform.identidadvisual.infrastructure",
                 "com.marcablanca.platform.modulosempresa.infrastructure",
-                "com.marcablanca.platform.aprovisionamiento.infrastructure.persistencia"
+                "com.marcablanca.platform.aprovisionamiento.infrastructure.persistencia",
+                "com.marcablanca.platform.correo.infrastructure.persistencia"
         },
         entityManagerFactoryRef = "entityManagerFactory",
         transactionManagerRef = "transactionManager"
@@ -72,7 +73,8 @@ public class ConfiguracionPersistenciaControl {
                 .packages("com.marcablanca.platform.empresas.infrastructure",
                         "com.marcablanca.platform.identidadvisual.infrastructure",
                         "com.marcablanca.platform.modulosempresa.infrastructure",
-                        "com.marcablanca.platform.aprovisionamiento.infrastructure.persistencia")
+                        "com.marcablanca.platform.aprovisionamiento.infrastructure.persistencia",
+                        "com.marcablanca.platform.correo.infrastructure.persistencia")
                 .persistenceUnit("control")
                 .build();
     }
