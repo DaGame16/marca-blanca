@@ -13,6 +13,9 @@ export interface ConfiguracionSmtp {
   secretoRef: string | null;
   seguridad: string; // ninguna | starttls | ssl
   esActiva: boolean;
+  // La clave en si NUNCA viaja de vuelta -- solo si ya hay una guardada,
+  // para poder avisar en la UI si falta configurarla.
+  claveConfigurada: boolean;
   creadoEn: string;
   actualizadoEn: string;
 }
@@ -26,6 +29,14 @@ export interface ConfigCorreoPayload {
   usuario: string | null;
   secretoRef: string | null;
   seguridad: string;
+  // Clave SMTP en texto plano -- viaja solo en este request (HTTPS + sesion
+  // de operador). null/omitido en una edicion = "no cambiarla".
+  clave: string | null;
+}
+
+export interface ResultadoPruebaCorreo {
+  enviado: boolean;
+  error?: string;
 }
 
 // Espejo de modulosempresa.domain.Modulo

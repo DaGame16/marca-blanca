@@ -2,6 +2,7 @@ package com.marcablanca.platform.correo.infrastructure.persistencia;
 
 import com.marcablanca.platform.correo.application.port.out.RepositorioConfiguracionCorreo;
 import com.marcablanca.platform.correo.domain.ConfiguracionSmtp;
+import com.marcablanca.platform.correo.infrastructure.CifradorDeCorreo;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,26 +14,39 @@ import java.util.UUID;
 class RepositorioConfiguracionCorreoJpa implements RepositorioConfiguracionCorreo {
 
     private final ConfiguracionCorreoJpaRepository jpa;
+    private final CifradorDeCorreo cifrador;
 
-    RepositorioConfiguracionCorreoJpa(ConfiguracionCorreoJpaRepository jpa) {
+    RepositorioConfiguracionCorreoJpa(ConfiguracionCorreoJpaRepository jpa, CifradorDeCorreo cifrador) {
         this.jpa = jpa;
+        this.cifrador = cifrador;
     }
 
     @Override
     public ConfiguracionSmtp crear(String remitenteNombre, String remitenteCorreo, String responderA, String host,
-                                    int puerto, String usuario, String secretoRef, String seguridad) {
+                                    int puerto, String usuario, String secretoRef, String seguridad, String clave) {
         var e = new ConfiguracionCorreoEntity(remitenteNombre, remitenteCorreo, responderA, host, puerto, usuario,
-                secretoRef, seguridad);
+                secretoRef, seguridad, cifrador.cifrar(clave));
         return mapear(jpa.save(e));
     }
 
     @Override
     public ConfiguracionSmtp actualizar(UUID id, String remitenteNombre, String remitenteCorreo, String responderA,
                                          String host, int puerto, String usuario, String secretoRef,
-                                         String seguridad) {
+                                         String seguridad, String clave) {
         var e = jpa.findByUuid(id).orElseThrow();
         e.actualizar(remitenteNombre, remitenteCorreo, responderA, host, puerto, usuario, secretoRef, seguridad);
+        e.actualizarClave(cifrador.cifrar(clave));
         return mapear(jpa.save(e));
+    }
+
+    @Override
+    public Optional<String> obtenerClaveDescifrada(UUID id) {
+        return jpa.findByUuid(id).map(ConfiguracionCorreoEntity::getClaveCifrada).map(cifrador::descifrar);
+    }
+
+    @Override
+    public Optional<ConfiguracionSmtp> buscarActiva() {
+        return jpa.findByEsActivaTrue().map(this::mapear);
     }
 
     @Override
@@ -59,13 +73,21 @@ class RepositorioConfiguracionCorreoJpa implements RepositorioConfiguracionCorre
     }
 
     @Override
+    @Transactional("transactionManager")
     public void eliminar(UUID id) {
         jpa.deleteByUuid(id);
+    }
+
+    @Override
+    public boolean existeConCorreo(String remitenteCorreo, UUID excluirId) {
+        return excluirId == null
+                ? jpa.existsByRemitenteCorreoIgnoreCase(remitenteCorreo)
+                : jpa.existsByRemitenteCorreoIgnoreCaseAndUuidNot(remitenteCorreo, excluirId);
     }
 
     private ConfiguracionSmtp mapear(ConfiguracionCorreoEntity e) {
         return new ConfiguracionSmtp(e.getId(), e.getUuid(), e.getRemitenteNombre(), e.getRemitenteCorreo(),
                 e.getResponderA(), e.getHost(), e.getPuerto(), e.getUsuario(), e.getSecretoRef(), e.getSeguridad(),
-                e.isEsActiva(), e.getCreadoEn(), e.getActualizadoEn());
+                e.isEsActiva(), e.getClaveCifrada() != null, e.getCreadoEn(), e.getActualizadoEn());
     }
 }

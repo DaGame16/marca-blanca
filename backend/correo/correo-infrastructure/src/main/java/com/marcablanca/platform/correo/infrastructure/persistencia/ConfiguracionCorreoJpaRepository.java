@@ -15,6 +15,12 @@ public interface ConfiguracionCorreoJpaRepository extends JpaRepository<Configur
 
     Optional<ConfiguracionCorreoEntity> findByUuid(UUID uuid);
 
+    Optional<ConfiguracionCorreoEntity> findByEsActivaTrue();
+
+    boolean existsByRemitenteCorreoIgnoreCaseAndUuidNot(String remitenteCorreo, UUID uuid);
+
+    boolean existsByRemitenteCorreoIgnoreCase(String remitenteCorreo);
+
     @Modifying
     @Query("update ConfiguracionCorreoEntity c set c.esActiva = false where c.uuid <> :uuid")
     void desactivarTodasMenos(@Param("uuid") UUID uuid);

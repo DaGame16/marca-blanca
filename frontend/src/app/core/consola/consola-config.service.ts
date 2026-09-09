@@ -7,6 +7,7 @@ import {
   ConfiguracionSmtp,
   ModuloCatalogo,
   ModuloPayload,
+  ResultadoPruebaCorreo,
 } from './config-plataforma.models';
 
 @Injectable({ providedIn: 'root' })
@@ -34,6 +35,13 @@ export class ConsolaConfigService {
 
   eliminarConfigCorreo(id: string): Observable<void> {
     return this.http.delete<void>(`${this.correoBase}/${id}`);
+  }
+
+  probarConfigCorreo(id: string, destinatario: string): Observable<ResultadoPruebaCorreo> {
+    return this.http.post<ResultadoPruebaCorreo>(
+      `${this.correoBase}/${id}/probar?destinatario=${encodeURIComponent(destinatario)}`,
+      null
+    );
   }
 
   // --- Catálogo de módulos ---

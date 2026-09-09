@@ -6,6 +6,7 @@ import com.marcablanca.platform.correo.application.port.in.EnviarCorreoDeBienven
 import com.marcablanca.platform.correo.application.port.in.EnviarCorreoDeResumenDePago;
 import com.marcablanca.platform.correo.application.GestionarConfiguracionCorreoService;
 import com.marcablanca.platform.correo.application.port.in.GestionarConfiguracionCorreo;
+import com.marcablanca.platform.correo.application.port.in.ProbarConfiguracionCorreo;
 import com.marcablanca.platform.correo.application.port.out.ProveedorDeCorreo;
 import com.marcablanca.platform.correo.application.port.out.RepositorioConfiguracionCorreo;
 import com.marcablanca.platform.correo.application.port.out.RenderizadorDePlantillas;
@@ -32,7 +33,8 @@ public class ConfiguracionCorreo {
     }
 
     @Bean
-    public GestionarConfiguracionCorreo gestionarConfiguracionCorreo(RepositorioConfiguracionCorreo repositorio) {
-        return new GestionarConfiguracionCorreoService(repositorio);
+    public GestionarConfiguracionCorreo gestionarConfiguracionCorreo(RepositorioConfiguracionCorreo repositorio,
+                                                                      ProbarConfiguracionCorreo probarConfiguracionCorreo) {
+        return new GestionarConfiguracionCorreoService(repositorio, probarConfiguracionCorreo);
     }
 }

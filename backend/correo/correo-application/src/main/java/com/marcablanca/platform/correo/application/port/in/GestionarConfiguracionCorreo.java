@@ -7,9 +7,10 @@ import java.util.UUID;
 
 public interface GestionarConfiguracionCorreo {
 
+    /** clave: la clave SMTP en texto plano (se cifra antes de guardar) -- null significa "no cambiarla". */
     record ComandoConfiguracionSmtp(String remitenteNombre, String remitenteCorreo, String responderA,
                                      String host, int puerto, String usuario, String secretoRef,
-                                     String seguridad) {
+                                     String seguridad, String clave) {
     }
 
     ConfiguracionSmtp crear(ComandoConfiguracionSmtp comando);

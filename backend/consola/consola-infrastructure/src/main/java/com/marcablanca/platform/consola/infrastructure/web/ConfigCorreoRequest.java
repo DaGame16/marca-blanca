@@ -10,6 +10,11 @@ import jakarta.validation.constraints.Size;
 /**
  * Cuerpo de POST/PUT /api/v1/consola/config-correo. {@code usuario} y
  * {@code secretoRef} son opcionales (no todo SMTP exige autenticacion).
+ * {@code clave}: la contrasena SMTP en texto plano -- viaja solo en este
+ * request (HTTPS + sesion de operador autenticado), se cifra al guardar y
+ * nunca vuelve a salir del backend. Null/vacio en un PUT significa "no
+ * cambiar la que ya tenia" -- asi el admin no tiene que reescribirla cada
+ * vez que edita otro campo.
  */
 public record ConfigCorreoRequest(
 
@@ -20,6 +25,7 @@ public record ConfigCorreoRequest(
         @Min(1) @Max(65535) int puerto,
         @Size(max = 255) String usuario,
         @Size(max = 400) String secretoRef,
-        @NotBlank @Pattern(regexp = "ninguna|starttls|ssl") String seguridad
+        @NotBlank @Pattern(regexp = "ninguna|starttls|ssl") String seguridad,
+        String clave
 ) {
 }

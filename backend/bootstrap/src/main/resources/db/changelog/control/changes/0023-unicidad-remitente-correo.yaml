@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0023-unicidad-remitente-correo
+      author: neider
+      comment: >
+        No pueden existir 2 configuraciones de correo con el mismo remitente
+        -- ademas de la validacion en GestionarConfiguracionCorreoService,
+        se refuerza aca para que una condicion de carrera no las deje colar.
+      changes:
+        - sql:
+            sql: >
+              CREATE UNIQUE INDEX uq_config_correo_remitente
+              ON plataforma.tbl_config_correo (lower(remitente_correo))
+      rollback:
+        - sql:
+            sql: DROP INDEX plataforma.uq_config_correo_remitente

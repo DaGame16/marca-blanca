@@ -36,6 +36,11 @@ class ConfiguracionCorreoEntity {
     @Column(name = "secreto_ref")
     private String secretoRef;
 
+    // Cifrada con CifradorDeCorreo (AES) -- nunca se guarda ni se expone en
+    // texto plano. Null si esta config todavia no tiene clave configurada.
+    @Column(name = "clave_cifrada", columnDefinition = "TEXT")
+    private String claveCifrada;
+
     @Column(nullable = false)
     private String seguridad;
 
@@ -52,7 +57,8 @@ class ConfiguracionCorreoEntity {
     }
 
     ConfiguracionCorreoEntity(String remitenteNombre, String remitenteCorreo, String responderA, String host,
-                               int puerto, String usuario, String secretoRef, String seguridad) {
+                               int puerto, String usuario, String secretoRef, String seguridad,
+                               String claveCifrada) {
         this.uuid = UUID.randomUUID();
         this.remitenteNombre = remitenteNombre;
         this.remitenteCorreo = remitenteCorreo;
@@ -62,6 +68,7 @@ class ConfiguracionCorreoEntity {
         this.usuario = usuario;
         this.secretoRef = secretoRef;
         this.seguridad = seguridad;
+        this.claveCifrada = claveCifrada;
         this.esActiva = false;
         this.creadoEn = OffsetDateTime.now();
         this.actualizadoEn = OffsetDateTime.now();
@@ -80,6 +87,14 @@ class ConfiguracionCorreoEntity {
         this.actualizadoEn = OffsetDateTime.now();
     }
 
+    /** Null = "no cambiar la clave que ya tenia" -- así el admin no tiene que reescribirla en cada edicion. */
+    void actualizarClave(String claveCifrada) {
+        if (claveCifrada != null) {
+            this.claveCifrada = claveCifrada;
+            this.actualizadoEn = OffsetDateTime.now();
+        }
+    }
+
     void marcarActiva(boolean valor) {
         this.esActiva = valor;
         this.actualizadoEn = OffsetDateTime.now();
@@ -94,6 +109,7 @@ class ConfiguracionCorreoEntity {
     int getPuerto() { return puerto; }
     String getUsuario() { return usuario; }
     String getSecretoRef() { return secretoRef; }
+    String getClaveCifrada() { return claveCifrada; }
     String getSeguridad() { return seguridad; }
     boolean isEsActiva() { return esActiva; }
     OffsetDateTime getCreadoEn() { return creadoEn; }

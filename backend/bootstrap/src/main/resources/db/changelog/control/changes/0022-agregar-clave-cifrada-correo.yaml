@@ -1,0 +1,22 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0022-agregar-clave-cifrada-correo
+      author: neider
+      comment: >
+        La clave SMTP vivia en una unica variable de entorno del backend
+        (app.aprovisionamiento.smtp-password) -- solo habia UNA clave posible
+        para toda la plataforma, y cambiarla exigia reiniciar el backend. Los
+        administradores necesitan poder crear/editar distintas configuraciones
+        de correo (cada una con su propia clave) sin tocar el servidor.
+        Se guarda CIFRADA (AES, ver CifradorDeCorreo) -- nunca en texto plano.
+      changes:
+        - addColumn:
+            schemaName: plataforma
+            tableName: tbl_config_correo
+            columns:
+              - column: {name: clave_cifrada, type: TEXT}
+      rollback:
+        - dropColumn:
+            schemaName: plataforma
+            tableName: tbl_config_correo
+            columnName: clave_cifrada
