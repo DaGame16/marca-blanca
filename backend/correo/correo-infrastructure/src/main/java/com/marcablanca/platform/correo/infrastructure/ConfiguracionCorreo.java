@@ -4,7 +4,10 @@ import com.marcablanca.platform.correo.application.EnviarCorreoDeBienvenidaServi
 import com.marcablanca.platform.correo.application.EnviarCorreoDeResumenDePagoService;
 import com.marcablanca.platform.correo.application.port.in.EnviarCorreoDeBienvenida;
 import com.marcablanca.platform.correo.application.port.in.EnviarCorreoDeResumenDePago;
+import com.marcablanca.platform.correo.application.GestionarConfiguracionCorreoService;
+import com.marcablanca.platform.correo.application.port.in.GestionarConfiguracionCorreo;
 import com.marcablanca.platform.correo.application.port.out.ProveedorDeCorreo;
+import com.marcablanca.platform.correo.application.port.out.RepositorioConfiguracionCorreo;
 import com.marcablanca.platform.correo.application.port.out.RenderizadorDePlantillas;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,5 +29,10 @@ public class ConfiguracionCorreo {
     public EnviarCorreoDeBienvenida enviarCorreoDeBienvenida(ProveedorDeCorreo proveedorDeCorreo,
                                                                RenderizadorDePlantillas renderizador) {
         return new EnviarCorreoDeBienvenidaService(proveedorDeCorreo, renderizador);
+    }
+
+    @Bean
+    public GestionarConfiguracionCorreo gestionarConfiguracionCorreo(RepositorioConfiguracionCorreo repositorio) {
+        return new GestionarConfiguracionCorreoService(repositorio);
     }
 }
