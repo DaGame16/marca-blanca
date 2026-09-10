@@ -1,7 +1,10 @@
 # ADR 0001 — Omnicanal multi-tenant y fin del hardcoding de GuajiraNet
 
 **Fecha:** 2026-09-10
-**Estado:** Borrador (pendiente de revisión del equipo)
+**Estado:** Aceptada — finalizada 2026-09-10 tras implementar los PRs 1–7. El
+cuerpo de "Opciones evaluadas" y "Decisión" queda como registro del razonamiento
+al momento de decidir; los ajustes que aparecieron al construir están al final,
+en "Ajustes respecto al borrador".
 **Módulos afectados:** omnicanal, modulos-empresa, bootstrap (persistencia), autenticacion (referencia)
 
 ## Resumen
@@ -194,9 +197,10 @@ tbl_configuracion_omnicanal            (una fila)
 | 1 | `feature/omnicanal-tabla-empresas-omnicanal` | Tabla de control flaca + registro de persistencia + resolver JPA activo |
 | 2 | `feature/omnicanal-webhook-multitenant` | `FiltroTenantOmnicanalWebhook` + limpieza del servicio + test de integración |
 | 3 | `feature/omnicanal-gate-modulo` | ACL `ModuloOmnicanalHabilitado` + `PuenteModulosOmnicanal` + regla ArchUnit |
-| 4 | `refactor/omnicanal-perfil-de-analisis` | `PerfilDeAnalisisOmnicanal` + `tbl_configuracion_omnicanal` (schema cliente) + de-hardcodeo dominio/prompt + golden tests |
+| 4a | `refactor/omnicanal-perfil-de-analisis-4a` | `PerfilDeAnalisisOmnicanal` + `tbl_configuracion_omnicanal` (schema cliente) + `AdaptadorOpenAI`/`AdaptadorClienteLiwa` desde el perfil |
+| 4b | `refactor/omnicanal-perfil-de-analisis-4b` | `FiltroDeRelevancia` / `NormalizadorDeMunicipio` pasan a recibir el perfil; se saca el vocab del dominio + golden tests |
 | 5 | `refactor/omnicanal-jackson-3` | Jackson 3 + mapper inyectado, borrar `JsonUtil` |
-| 6 | `feature/omnicanal-aprovisionar-config` | Alta de config al activar el módulo + rotación de secreto + backfill de ads por-tenant |
+| 6 | `feature/omnicanal-aprovisionar-config` | Self-service de config (crear/rotar secreto, token LIWA, flags IA). Backfill de ads **diferido**. |
 | 7 | `docs/omnicanal-multi-tenant` | README vivo + este ADR en firme + `docs/backend/flujos/omnicanal-ingesta-webhook.md` |
 
 ## Consecuencias
@@ -218,22 +222,48 @@ tbl_configuracion_omnicanal            (una fila)
 - **`AdaptadorOpenAI`** sigue con una única API key de plataforma (ver preguntas
   abiertas); lo que pasa a ser por-tenant es `ia_habilitada` y el modelo.
 
-## Preguntas abiertas (a resolver con el equipo antes de pasar a "Aceptada")
+## Preguntas abiertas — resueltas
 
-1. **API key de OpenAI:** ¿una sola key de plataforma (el costo de todos los
-   tenants lo absorbe la plataforma) con `ia_habilitada` + modelo por empresa, o
-   key propia por tenant? Propuesta: key de plataforma + flags por tenant.
-2. **`webhook_secret`:** ¿autogenerado al activar el módulo y mostrado en la
-   consola, o lo carga el operador a mano? Propuesta: autogenerado.
-3. **Alcance de "omnicanal" para otros tenants:** ¿se asume LIWA/WhatsApp como
-   hoy, o hay que dar lugar a otros canales ya en esta fase? Propuesta: asumir
-   LIWA y dejar la puerta abierta con una columna `canal`.
+1. **API key de OpenAI:** una sola key de plataforma
+   (`app.omnicanal.openai-api-key`); por-tenant solo cambian `ia_habilitada` y
+   `openai_modelo`. Sin key configurada, la IA queda apagada aunque el tenant la
+   prenda.
+2. **`webhook_secret`:** autogenerado (`SecureRandom`, base64url). Se crea solo
+   la primera vez que el tenant entra a `GET /api/v1/omnicanal/config`, y se
+   puede rotar desde ahí. La activación del módulo sigue siendo del operador; no
+   hay hook que cree la fila en ese momento.
+3. **Alcance:** se asume LIWA/WhatsApp. No se agregó columna `canal` — cuando
+   aparezca otro canal se evalúa (el `perfil_analisis` como JSONB ya da margen).
+
+## Ajustes respecto al borrador
+
+Al construir, esto salió distinto de lo escrito arriba:
+
+- **Cifrado del token:** se replicó el patrón de `CifradorDeCorreo` en un
+  `CifradorOmnicanal` propio (llave `app.omnicanal.clave-maestra`), en vez de
+  depender de `correo-infrastructure` — evita acoplar dos módulos de infra.
+- **Puerto de configuración:** `RepositorioConfiguracionOmnicanal.deLaEmpresaActiva()`
+  devuelve un `ConfiguracionDeTenant` (perfil + token descifrado + flags), no un
+  `RepositorioPerfilDeAnalisis#porEmpresaActiva()`. El `perfil_analisis` JSONB es
+  un **override parcial** del perfil ISP.
+- **Gate de módulo:** un único `InterceptorModuloOmnicanal` para
+  `/api/v1/omnicanal/**` (webhook incluido), no un chequeo repetido en cada
+  servicio.
+- **PR 4** se partió en 4a (infra: tabla + perfil + adaptadores) y 4b (dominio:
+  `FiltroDeRelevancia` / `NormalizadorDeMunicipio` reciben el perfil). Los
+  filtros normalizan las entradas del perfil en su constructor, lo que además
+  arregló un bug preexistente (una frase-marca con "ñ" que nunca casaba).
+- **`AnalizadorDeConversacion.analizar`** devuelve `AnalisisDeIa(resultado,
+  modeloUsado)`; `modelo_ia_usado` se graba con lo que respondió el adaptador en
+  vez de un literal.
+- **`EjecutarBackfillDeAds`** quedó **sin implementar** (queda como puerto
+  reservado); `ClienteLiwa` no tiene caller todavía.
 
 ## Cómo se podría revertir o evolucionar
 
-- Mientras el ADR esté en borrador y no haya un segundo tenant, revertir es
-  borrar `tbl_empresas_omnicanal`, volver a `ResolverEmpresaPorWebhookSecretoPendiente`
-  y quitar el registro de persistencia de control.
+- Si no hay un segundo tenant, revertir es borrar `tbl_empresas_omnicanal` y
+  `tbl_configuracion_omnicanal`, volver a un resolver que rechace todo, y quitar
+  el registro de persistencia de control.
 - Si más adelante se quiere una API key de OpenAI por tenant, se agrega la
   columna cifrada a `tbl_configuracion_omnicanal` sin tocar el ruteo.
 - El `perfil_analisis` como JSONB permite versionar el vocab por tenant; si
