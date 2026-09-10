@@ -9,6 +9,7 @@ import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConver
 import com.marcablanca.platform.omnicanal.domain.Caso;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Por cada contacto de la empresa activa consulta a LIWA si vino de ads y
@@ -65,8 +66,8 @@ public class EjecutarBackfillDeAdsService implements EjecutarBackfillDeAds {
     }
 
     /** listarPorConversacion viene del mas reciente al mas viejo -> el ultimo es el mas antiguo. */
-    private java.util.Optional<Caso> casoMasAntiguo(Long conversacionId) {
+    private Optional<Caso> casoMasAntiguo(Long conversacionId) {
         List<Caso> casos = repositorioCasos.listarPorConversacion(conversacionId);
-        return casos.isEmpty() ? java.util.Optional.empty() : java.util.Optional.of(casos.get(casos.size() - 1));
+        return casos.isEmpty() ? Optional.empty() : Optional.of(casos.getLast());
     }
 }
