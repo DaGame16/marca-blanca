@@ -72,14 +72,26 @@ class ArquitecturaHexagonalTest {
 
     @Test
     void omnicanal_no_depende_de_usuarios() {
-        // allowEmptyShould: hoy "omnicanal" todavia no tiene clases (modulos
-        // vacios, en construccion). La regla queda lista para cuando se
-        // empiece a escribir codigo ahi, sin fallar mientras tanto por
-        // "0 clases evaluadas".
         ArchRule regla = noClasses()
                 .that().resideInAPackage("..omnicanal..")
-                .should().dependOnClassesThat().resideInAPackage("..usuarios..")
-                .allowEmptyShould(true);
+                .should().dependOnClassesThat().resideInAPackage("..usuarios..");
+
+        regla.check(clases);
+    }
+
+    @Test
+    void omnicanal_dominio_y_aplicacion_no_dependen_de_otros_contextos() {
+        // El nucleo de omnicanal solo habla con el exterior por sus puertos. Los
+        // unicos acoplamientos permitidos -- ContextoEmpresaActual (empresas) y el
+        // gate del modulo (modulos-empresa) -- son adaptadores en infrastructure,
+        // nunca aca.
+        ArchRule regla = noClasses()
+                .that().resideInAnyPackage(
+                        "..omnicanal.domain..", "..omnicanal.application..")
+                .should().dependOnClassesThat().resideInAnyPackage(
+                        "..empresas..", "..modulosempresa..", "..identidadvisual..",
+                        "..usuarios..", "..autenticacion..", "..aprovisionamiento..",
+                        "..consola..", "..correo..");
 
         regla.check(clases);
     }
