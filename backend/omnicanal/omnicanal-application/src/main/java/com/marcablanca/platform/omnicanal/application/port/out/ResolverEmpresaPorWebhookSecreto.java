@@ -5,12 +5,9 @@ import java.util.Optional;
 /**
  * Puerto propio -- resuelve de que empresa es un webhook entrante a partir
  * de su secreto (no hay JWT ni formulario: el secreto ES el dato de tenant).
- *
- * Implementacion real pendiente de que exista tbl_empresas_omnicanal (base
- * de CONTROL) -- ver ResolverEmpresaPorWebhookSecretoPendiente mientras tanto.
+ * Devuelve el "identificador" (slug) de la empresa, o vacio si el secreto no
+ * corresponde a ninguna empresa con omnicanal aprovisionado.
  */
 public interface ResolverEmpresaPorWebhookSecreto {
     Optional<String> resolverIdentificadorEmpresa(String webhookSecret);
-
-    Optional<String> resolverLiwaApiToken(String identificadorEmpresa);
 }

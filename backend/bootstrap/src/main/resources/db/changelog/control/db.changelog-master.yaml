@@ -71,3 +71,6 @@ databaseChangeLog:
   - include:
       file: changes/0023-unicidad-remitente-correo.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changes/0024-crear-tabla-empresas-omnicanal.yaml
+      relativeToChangelogFile: true

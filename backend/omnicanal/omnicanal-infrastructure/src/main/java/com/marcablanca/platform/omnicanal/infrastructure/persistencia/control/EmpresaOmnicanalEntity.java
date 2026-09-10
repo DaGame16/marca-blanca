@@ -11,18 +11,15 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
- * PENDIENTE -- tbl_empresas_omnicanal todavia NO EXISTE. Esta clase esta
- * lista para cuando Leidi la cree (ver spec pasada aparte), pero NO esta
- * registrada en ConfiguracionPersistenciaControl todavia -- si lo estuviera,
- * @EnableJpaRepositories con hibernate.ddl-auto=validate tumbaria el arranque
- * completo de la app contra una tabla que no existe.
+ * plataforma.tbl_empresas_omnicanal -- directorio de ruteo del webhook de LIWA:
+ * a partir del secreto del header dice de que empresa es la conversacion
+ * entrante. Es lo unico de omnicanal que vive en la base de CONTROL, porque el
+ * webhook llega sin JWT ni subdominio y la resolucion de tenant necesita una
+ * tabla transversal (mismo rol que tbl_empresa_conexiones).
  *
- * Pasos para activar cuando la tabla exista:
- *   1. Agregar "com.marcablanca.platform.omnicanal.infrastructure.persistencia.control"
- *      a basePackages de @EnableJpaRepositories Y a .packages(...) en
- *      ConfiguracionPersistenciaControl.
- *   2. Cambiar la anotacion @Component de ResolverEmpresaPorWebhookSecretoPendiente
- *      a ResolverEmpresaPorWebhookSecretoJpa (o borrar la Pendiente y renombrar).
+ * El resto de la configuracion de omnicanal por empresa (token LIWA, flags de
+ * IA, perfil de analisis) vive en el schema "omnicanal" de la base de cada
+ * empresa y se lee una vez resuelto el contexto de tenant.
  */
 @Entity
 @Table(name = "tbl_empresas_omnicanal", schema = "plataforma")
@@ -41,9 +38,6 @@ class EmpresaOmnicanalEntity {
     @Column(name = "webhook_secret", nullable = false, unique = true)
     private String webhookSecret;
 
-    @Column(name = "liwa_api_token")
-    private String liwaApiToken;
-
     @Column(name = "creado_en", nullable = false)
     private OffsetDateTime creadoEn;
 
@@ -55,13 +49,5 @@ class EmpresaOmnicanalEntity {
 
     Long getEmpresaId() {
         return empresaId;
-    }
-
-    String getWebhookSecret() {
-        return webhookSecret;
-    }
-
-    String getLiwaApiToken() {
-        return liwaApiToken;
     }
 }
