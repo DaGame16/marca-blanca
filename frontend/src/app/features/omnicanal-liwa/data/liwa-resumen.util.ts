@@ -13,7 +13,7 @@ export function generarResumen(chats: LiwaChat[]): LiwaResumen {
   const porDia = new Map<string, number>();
   chats.forEach((c) => {
     const d = new Date(c.archivadaEn);
-    if (isNaN(d.getTime())) return;
+    if (Number.isNaN(d.getTime())) return;
     // OJO: nada de .toISOString() — convierte a UTC antes de formatear, y
     // Colombia (UTC-5) puede quedar "un día adelante" en UTC. Se arma el
     // día con los componentes LOCALES.

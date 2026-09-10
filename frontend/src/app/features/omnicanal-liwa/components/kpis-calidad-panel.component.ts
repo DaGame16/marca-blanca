@@ -8,7 +8,7 @@ type Semaforo = 'bueno' | 'regular' | 'malo';
 interface Kpi { icon: string; label: string; valor: string; sub?: string; semaforo?: Semaforo; }
 
 function formatTiempo(ms: number | null): string {
-  if (ms == null || !isFinite(ms)) return '—';
+  if (ms == null || !Number.isFinite(ms)) return '—';
   const minutos = Math.round(ms / 60000);
   if (minutos < 1) return '<1 min';
   if (minutos < 60) return `${minutos} min`;
@@ -16,8 +16,16 @@ function formatTiempo(ms: number | null): string {
   const m = minutos % 60;
   return `${h} h ${m.toString().padStart(2, '0')} min`;
 }
-function semaforoMasEsMejor(v: number): Semaforo { return v >= 80 ? 'bueno' : v >= 50 ? 'regular' : 'malo'; }
-function semaforoMenosEsMejor(v: number): Semaforo { return v <= 15 ? 'bueno' : v <= 40 ? 'regular' : 'malo'; }
+function semaforoMasEsMejor(v: number): Semaforo {
+  if (v >= 80) return 'bueno';
+  if (v >= 50) return 'regular';
+  return 'malo';
+}
+function semaforoMenosEsMejor(v: number): Semaforo {
+  if (v <= 15) return 'bueno';
+  if (v <= 40) return 'regular';
+  return 'malo';
+}
 
 // Traducción de components/liwa/IndicadoresCalidad.tsx (KpisCalidadPanel).
 @Component({
@@ -158,7 +166,7 @@ export class LiwaKpisCalidadPanelComponent implements OnChanges, OnDestroy {
       const valores: number[] = [];
       base.forEach((a) => {
         const v = diff(a);
-        if (v != null && isFinite(v)) valores.push(v);
+        if (v != null && Number.isFinite(v)) valores.push(v);
       });
       if (valores.length === 0) return null;
       return Math.round(valores.reduce((s, x) => s + x, 0) / valores.length);

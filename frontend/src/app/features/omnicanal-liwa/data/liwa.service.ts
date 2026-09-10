@@ -53,7 +53,10 @@ const CONFIG_BASE = () => `${environment.apiUrl}/omnicanal/config`;
 // Regex de hora embebida en el historial: 2026-08-5 4:10pm / 2026-08-05 16:10
 const FECHA_INLINE = /(\d{4})-(\d{1,2})-(\d{1,2})\s+(\d{1,2}):(\d{2})\s*(am|pm)?/i;
 // Una línea (turno) viene así:  Autor (fecha hora): texto
-const LINEA_MENSAJE = /^(.+?)\s*\(([^)]+)\):\s?([\s\S]*)$/;
+// El nombre nunca trae paréntesis ("Autor (fecha): texto") -- se excluyen
+// explícitamente en el grupo 1 ("[^()]" en vez de ".") para que no se
+// solape con el delimitador "(" que sigue (evita backtracking cuadrático).
+const LINEA_MENSAJE = /^([^()]+?)\(([^)]+)\):\s?([\s\S]*)$/;
 // Nombres fijos que usa el flujo automático — igual que NOMBRES_BOT del backend.
 const NOMBRES_BOT = new Set(['yo', 'bot']);
 
@@ -65,21 +68,21 @@ function clasificarAutor(nombre: string): LiwaAutorTurno {
 }
 
 function aIso(texto: string): string {
-  const m = texto.match(FECHA_INLINE);
+  const m = FECHA_INLINE.exec(texto);
   if (!m) return '';
-  let hour = parseInt(m[4], 10);
+  let hour = Number.parseInt(m[4], 10);
   const ampm = (m[6] || '').toLowerCase();
   if (ampm === 'pm' && hour < 12) hour += 12;
   else if (ampm === 'am' && hour === 12) hour = 0;
   const d = new Date(
-    parseInt(m[1], 10),
-    parseInt(m[2], 10) - 1,
-    parseInt(m[3], 10),
+    Number.parseInt(m[1], 10),
+    Number.parseInt(m[2], 10) - 1,
+    Number.parseInt(m[3], 10),
     hour,
-    parseInt(m[5], 10),
+    Number.parseInt(m[5], 10),
     0,
   );
-  return isNaN(d.getTime()) ? '' : d.toISOString();
+  return Number.isNaN(d.getTime()) ? '' : d.toISOString();
 }
 
 // Convierte historialChatCompleto (texto plano) en turnos LiwaMensaje[].
@@ -90,25 +93,25 @@ export function parsearHistorial(texto: string, fechaPorDefecto?: string): LiwaM
   for (const lineaVisible of String(texto || '').split(/\r?\n/)) {
     const linea = lineaVisible.trim();
     if (!linea) continue;
-    const m = linea.match(LINEA_MENSAJE);
+    const m = LINEA_MENSAJE.exec(linea);
     if (m) {
       const [, nombre, fecha, cuerpo] = m;
       const iso = aIso(fecha) || fechaActual;
       fechaActual = iso;
       mensajes.push({
-        id: `liwa-${mensajes.length}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        id: `liwa-${mensajes.length}-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
         autor: clasificarAutor(nombre),
         nombreAutor: nombre.trim(),
         texto: (cuerpo || '').trim(),
         fecha: iso,
       });
     } else {
-      const ultimo = mensajes[mensajes.length - 1];
+      const ultimo = mensajes.at(-1);
       if (ultimo) {
         ultimo.texto = `${ultimo.texto}\n${linea}`.trim();
       } else {
         mensajes.push({
-          id: `liwa-0-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          id: `liwa-0-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
           autor: 'cliente',
           nombreAutor: 'Usuario',
           texto: linea,
@@ -219,10 +222,16 @@ function mapearAAnalisisItem(a: AnalisisDeCaso): LiwaAnalisisItem {
   };
 }
 
+function nombrePorDefectoSegunAutor(autor: LiwaAutorTurno): string {
+  if (autor === 'cliente') return 'Usuario';
+  if (autor === 'bot') return 'Bot';
+  return 'Asesor';
+}
+
 function mapearATurnoAnalizado(t: Turno): LiwaTurnoAnalizado {
   const autor = normalizarAutor(t.autor);
   return {
-    nombre: t.nombreAutor || (autor === 'cliente' ? 'Usuario' : autor === 'bot' ? 'Bot' : 'Asesor'),
+    nombre: t.nombreAutor || nombrePorDefectoSegunAutor(autor),
     fecha: t.ocurridoEn || '',
     mensaje: t.mensaje,
     autor,
@@ -386,7 +395,7 @@ export class LiwaService {
     for (const v of [item.tsPrimerMensaje, item.tsPrimeraRespuesta, item.procesadoEn, item.creadoEn, item.fechaAnalisis, item.createdAt]) {
       if (!v) continue;
       const d = new Date(v);
-      if (!isNaN(d.getTime())) return d;
+      if (!Number.isNaN(d.getTime())) return d;
     }
     return null;
   }

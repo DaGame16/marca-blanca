@@ -20,7 +20,7 @@ function esTurnoCliente(t: LiwaTurnoAnalizado): boolean {
   standalone: true,
   imports: [CommonModule, MatIconModule],
   template: `
-    <div class="overlay" (click)="onClose.emit()">
+    <div class="overlay" (click)="close.emit()">
       <div class="modal" (click)="$event.stopPropagation()">
         <header (click)="infoAbierta = !infoAbierta">
           <div class="titulo">
@@ -33,7 +33,7 @@ function esTurnoCliente(t: LiwaTurnoAnalizado): boolean {
               </span>
             </div>
           </div>
-          <button type="button" class="cerrar" (click)="$event.stopPropagation(); onClose.emit()"><mat-icon>close</mat-icon></button>
+          <button type="button" class="cerrar" (click)="$event.stopPropagation(); close.emit()"><mat-icon>close</mat-icon></button>
         </header>
 
         <div class="info" *ngIf="infoAbierta">
@@ -157,7 +157,7 @@ function esTurnoCliente(t: LiwaTurnoAnalizado): boolean {
 })
 export class LiwaAnalisisDetalleComponent implements OnChanges {
   @Input({ required: true }) item!: LiwaAnalisisItem;
-  @Output() onClose = new EventEmitter<void>();
+  @Output() close = new EventEmitter<void>();
 
   readonly FCR_DESCRIPCION = FCR_DESCRIPCION;
   readonly ABANDONADO_POR_LABELS = ABANDONADO_POR_LABELS;
@@ -202,7 +202,7 @@ export class LiwaAnalisisDetalleComponent implements OnChanges {
   get abandonadoInfo() { return this.abandonadoPor ? ABANDONADO_POR_LABELS[this.abandonadoPor] : null; }
   get sentimientoFinal() { return this.detalle?.sentimientoFinal || this.item.sentimientoFinal; }
   get esfuerzo() { return this.detalle?.esfuerzoCliente || this.item.esfuerzoCliente; }
-  get temas(): string[] | undefined { return (this.detalle?.temas && this.detalle.temas.length ? this.detalle.temas : this.item.temas); }
+  get temas(): string[] | undefined { return (this.detalle?.temas?.length ? this.detalle.temas : this.item.temas); }
   get banderas(): string[] { return this.detalle?.banderasCalidad ?? this.item.banderasCalidad ?? []; }
   get sinRespuesta(): boolean { return this.liwa.tieneBandera({ banderasCalidad: this.banderas }, 'sin_respuesta'); }
   get esperoDemasiado(): boolean { return this.liwa.tieneBandera({ banderasCalidad: this.banderas }, 'espero_demasiado'); }

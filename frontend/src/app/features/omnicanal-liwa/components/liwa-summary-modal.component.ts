@@ -13,7 +13,7 @@ type ModalMode = 'conversaciones' | 'clientes';
   standalone: true,
   imports: [CommonModule, MatIconModule, LiwaTableComponent],
   template: `
-    <div class="overlay" (click)="onClose.emit()">
+    <div class="overlay" (click)="close.emit()">
       <div class="modal" (click)="$event.stopPropagation()">
         <header>
           <div class="titulo">
@@ -23,7 +23,7 @@ type ModalMode = 'conversaciones' | 'clientes';
               <p>{{ mode === 'clientes' ? (clientes.length + ' clientes') : (chats.length + ' conversaciones') }}</p>
             </div>
           </div>
-          <button type="button" (click)="onClose.emit()"><mat-icon>close</mat-icon></button>
+          <button type="button" (click)="close.emit()"><mat-icon>close</mat-icon></button>
         </header>
         <div class="cuerpo">
           <div class="clientes-grid" *ngIf="mode === 'clientes'; else tabla">
@@ -41,7 +41,7 @@ type ModalMode = 'conversaciones' | 'clientes';
             <app-liwa-table
               [chats]="chats"
               [contactosAnalizados]="contactosAnalizados"
-              (onSeleccionar)="seleccionar($event)"
+              (seleccionado)="seleccionar($event)"
             />
           </ng-template>
         </div>
@@ -71,8 +71,8 @@ export class LiwaSummaryModalComponent {
   @Input() mode: ModalMode = 'conversaciones';
   @Input() chats: LiwaChat[] = [];
   @Input() contactosAnalizados: Set<string> = new Set();
-  @Output() onClose = new EventEmitter<void>();
-  @Output() onSeleccionar = new EventEmitter<LiwaChat>();
+  @Output() close = new EventEmitter<void>();
+  @Output() seleccionado = new EventEmitter<LiwaChat>();
 
   get clientes(): { id: string; numero: string; nombre: string | null; conversaciones: number; mensajes: number }[] {
     const grouped = new Map<string, { id: string; numero: string; nombre: string | null; conversaciones: number; mensajes: number }>();
@@ -88,7 +88,7 @@ export class LiwaSummaryModalComponent {
   }
 
   seleccionar(chat: LiwaChat): void {
-    this.onClose.emit();
-    this.onSeleccionar.emit(chat);
+    this.close.emit();
+    this.seleccionado.emit(chat);
   }
 }

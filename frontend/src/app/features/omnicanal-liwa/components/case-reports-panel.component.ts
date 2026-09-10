@@ -23,6 +23,13 @@ const DONUT_COLORS = ['#1d4ed8', '#f59e0b', '#10b981', '#ef4444', '#a855f7', '#e
 const COLUMNAS_RESULTADO = ['resuelto', 'no_resuelto', 'escalado', 'abandonado'] as const;
 const NOMBRES_BOT_SET = new Set(['yo', 'bot']);
 
+// String(valor) puede dar "[object Object]" si el backend manda algo que no
+// es primitivo -- mejor un texto de respaldo que ensuciar la UI con eso.
+function aTexto(v: unknown): string {
+  if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') return String(v);
+  return 'sin_clasificar';
+}
+
 interface Barra { label: string; total: number; }
 interface GrupoMotivo { codigo: string; etiqueta: string; resultados: Record<string, number>; total: number; }
 interface DonutSeg { codigo: string; etiqueta: string; valor: number; color: string; pct: number; }
@@ -283,7 +290,7 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
         </div>
       </div>
 
-      <app-liwa-analisis-detalle *ngIf="detalle" [item]="detalle" (onClose)="detalle = null" />
+      <app-liwa-analisis-detalle *ngIf="detalle" [item]="detalle" (close)="detalle = null" />
     </section>
   `,
   styles: [`
@@ -491,39 +498,62 @@ export class LiwaCaseReportsPanelComponent implements OnChanges {
     return this.liwa.etiquetaMotivo(motivo);
   }
 
+  private pasaFiltroSentimiento(c: LiwaAnalisisItem): boolean {
+    return c.sentimientoFinal === (this.segmento || 'negativo');
+  }
+
+  private pasaFiltroSoporte(c: LiwaAnalisisItem): boolean {
+    return c.motivoContacto === 'soporte' && (!this.segmento || c.resultado === this.segmento);
+  }
+
+  private pasaFiltroMatriz(c: LiwaAnalisisItem): boolean {
+    const [codigoF, resultadoF] = this.partirSegmento();
+    if (codigoF && c.motivoContacto !== codigoF) return false;
+    return !resultadoF || c.resultado === resultadoF;
+  }
+
+  private pasaFiltroAsesor(c: LiwaAnalisisItem): boolean {
+    const [asesorF, resultadoF] = this.partirSegmento();
+    if (asesorF && this.nombreAsesor(c).nombre !== asesorF) return false;
+    return !resultadoF || c.resultado === resultadoF;
+  }
+
+  private pasaFiltroMapa(c: LiwaAnalisisItem): boolean {
+    const [mCodigo, muni] = this.partirSegmento();
+    if (mCodigo && c.motivoContacto !== mCodigo) return false;
+    return !muni || (c.municipio || '').trim() === muni;
+  }
+
+  private pasaFiltroVentas(c: LiwaAnalisisItem): boolean {
+    if (this.segmento === 'confirmadas') return c.oportunidadVenta === true && c.ventaConfirmadaEnTexto === true;
+    if (this.segmento === 'no_confirmadas') return c.oportunidadVenta === true && c.ventaConfirmadaEnTexto !== true;
+    return c.oportunidadVenta === true;
+  }
+
+  private pasaFiltroActivo(c: LiwaAnalisisItem): boolean {
+    const porFiltro: Partial<Record<Filtro, (c: LiwaAnalisisItem) => boolean>> = {
+      sentimiento: (x) => this.pasaFiltroSentimiento(x),
+      soporte: (x) => this.pasaFiltroSoporte(x),
+      matriz: (x) => this.pasaFiltroMatriz(x),
+      asesor: (x) => this.pasaFiltroAsesor(x),
+      mapa: (x) => this.pasaFiltroMapa(x),
+      ventas: (x) => this.pasaFiltroVentas(x),
+      ads: (x) => x.vieneDeAds === true,
+    };
+    return (porFiltro[this.filtro] ?? (() => true))(c);
+  }
+
+  private pasaBusqueda(c: LiwaAnalisisItem): boolean {
+    const q = this.busqueda.trim().toLowerCase();
+    if (!q) return true;
+    const texto = [c.idContacto, this.nombreAsesor(c).nombre, c.motivoContacto, c.resultado, c.sentimientoFinal].filter(Boolean).join(' ').toLowerCase();
+    return texto.includes(q);
+  }
+
   get visibles(): LiwaAnalisisItem[] {
-    return this.casosFiltrados.filter((c) => {
-      if (this.filtro === 'sentimiento') return c.sentimientoFinal === (this.segmento || 'negativo');
-      if (this.filtro === 'soporte') return c.motivoContacto === 'soporte' && (!this.segmento || c.resultado === this.segmento);
-      if (this.filtro === 'matriz') {
-        const [codigoF, resultadoF] = this.partirSegmento();
-        if (codigoF && c.motivoContacto !== codigoF) return false;
-        if (resultadoF && c.resultado !== resultadoF) return false;
-        return true;
-      }
-      if (this.filtro === 'asesor') {
-        const [asesorF, resultadoF] = this.partirSegmento();
-        if (asesorF && this.nombreAsesor(c).nombre !== asesorF) return false;
-        if (resultadoF && c.resultado !== resultadoF) return false;
-        return true;
-      }
-      if (this.filtro === 'mapa') {
-        const [mCodigo, muni] = this.partirSegmento();
-        if (mCodigo && c.motivoContacto !== mCodigo) return false;
-        if (muni && (c.municipio || '').trim() !== muni) return false;
-        return true;
-      }
-      if (this.filtro === 'ventas') {
-        if (this.segmento === 'confirmadas') return c.oportunidadVenta === true && c.ventaConfirmadaEnTexto === true;
-        if (this.segmento === 'no_confirmadas') return c.oportunidadVenta === true && c.ventaConfirmadaEnTexto !== true;
-        return c.oportunidadVenta === true;
-      }
-      if (this.filtro === 'ads') return c.vieneDeAds === true;
-      return true;
-    }).filter((c) => {
-      const texto = [c.idContacto, this.nombreAsesor(c).nombre, c.motivoContacto, c.resultado, c.sentimientoFinal].filter(Boolean).join(' ').toLowerCase();
-      return !this.busqueda.trim() || texto.includes(this.busqueda.trim().toLowerCase());
-    });
+    return this.casosFiltrados
+      .filter((c) => this.pasaFiltroActivo(c))
+      .filter((c) => this.pasaBusqueda(c));
   }
 
   private partirSegmento(): [string, string] {
@@ -567,7 +597,7 @@ export class LiwaCaseReportsPanelComponent implements OnChanges {
         c.resultado || '',
       ]),
     ];
-    const csv = filas.map((fila) => fila.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const csv = filas.map((fila) => fila.map((v) => `"${String(v).replaceAll('"', '""')}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const enlace = document.createElement('a');
     enlace.href = URL.createObjectURL(blob);
@@ -596,7 +626,7 @@ export class LiwaCaseReportsPanelComponent implements OnChanges {
     if (Array.isArray(value)) {
       return value.map((item) => {
         const row = item as Record<string, unknown>;
-        const label = String(row['sentimiento'] ?? row['resultado'] ?? row['estado'] ?? row['label'] ?? 'sin_clasificar');
+        const label = aTexto(row['sentimiento'] ?? row['resultado'] ?? row['estado'] ?? row['label'] ?? 'sin_clasificar');
         const total = Number(row['total'] ?? row['cantidad'] ?? row['count'] ?? 0);
         return { label, total: Number.isFinite(total) ? total : 0 };
       });
@@ -635,7 +665,7 @@ export class LiwaCaseReportsPanelComponent implements OnChanges {
 
   pctResultado(r: string): number {
     const d = this.motivoData;
-    if (!d || !d.total) return 0;
+    if (!d?.total) return 0;
     return Math.max(2, ((d.resultados[r] || 0) / d.total) * 100);
   }
 
@@ -690,7 +720,7 @@ export class LiwaCaseReportsPanelComponent implements OnChanges {
       valores[clave] = (valores[clave] || 0) + 1;
       if (valores[clave] > max) max = valores[clave];
     });
-    return { filas: Array.from(motivosPorCodigo.values()), columnas: Array.from(municipios).sort(), valores, max };
+    return { filas: Array.from(motivosPorCodigo.values()), columnas: Array.from(municipios).sort((a, b) => a.localeCompare(b)), valores, max };
   }
 
   valorCelda(codigo: string, municipio: string): number {

@@ -162,7 +162,7 @@ interface Barra { clave: string; label: string; total: number; color: string; }
         Para contactos históricos anteriores al fix, ejecuta el backfill desde la consola del servidor.
       </div>
 
-      <app-liwa-analisis-detalle *ngIf="detalle" [item]="detalle" (onClose)="detalle = null" />
+      <app-liwa-analisis-detalle *ngIf="detalle" [item]="detalle" (close)="detalle = null" />
     </section>
   `,
   styles: [`

@@ -14,12 +14,12 @@ function fechaDeAnalisis(item: LiwaAnalisisItem): Date | null {
     const v = item[clave] as string | undefined;
     if (!v) continue;
     const d = new Date(v);
-    if (!isNaN(d.getTime())) return d;
+    if (!Number.isNaN(d.getTime())) return d;
   }
   for (const v of [item.tsPrimerMensaje, item.tsPrimeraRespuesta, item.tsCierre]) {
     if (!v) continue;
     const d = new Date(v);
-    if (!isNaN(d.getTime())) return d;
+    if (!Number.isNaN(d.getTime())) return d;
   }
   return null;
 }
@@ -109,7 +109,7 @@ function fechaDeAnalisis(item: LiwaAnalisisItem): Date | null {
         </div>
       </div>
 
-      <app-liwa-analisis-detalle *ngIf="seleccionado" [item]="seleccionado" (onClose)="seleccionado = null" />
+      <app-liwa-analisis-detalle *ngIf="seleccionado" [item]="seleccionado" (close)="seleccionado = null" />
     </div>
   `,
   styles: [`
@@ -177,23 +177,45 @@ export class LiwaTablaAnalisisIaComponent implements OnChanges {
     return Number.isFinite(ms) ? ms : 0;
   }
 
+  private pasaFiltroResultado(a: LiwaAnalisisItem): boolean {
+    return this.filtroResultado === 'TODOS' || (a.resultado || '') === this.filtroResultado;
+  }
+
+  private pasaFiltroSentimiento(a: LiwaAnalisisItem): boolean {
+    return this.filtroSentimiento === 'TODOS' || (a.sentimientoFinal || '') === this.filtroSentimiento;
+  }
+
+  private pasaFiltroFcr(a: LiwaAnalisisItem): boolean {
+    if (this.filtroFcr === 'SI') return !!a.fcr;
+    if (this.filtroFcr === 'NO') return !a.fcr;
+    return true;
+  }
+
+  private pasaFiltroAbandonadoPor(a: LiwaAnalisisItem): boolean {
+    if (this.filtroAbandonadoPor === 'asesor') return a.abandonadoPor === 'asesor';
+    if (this.filtroAbandonadoPor === 'cliente') return a.abandonadoPor === 'cliente';
+    if (this.filtroAbandonadoPor === 'ninguno') return a.abandono !== true;
+    return true;
+  }
+
+  private pasaBusqueda(a: LiwaAnalisisItem, q: string): boolean {
+    if (!q) return true;
+    const texto = `${a.resumenMotivo || ''} ${a.resumenDesenlace || ''} ${a.motivoContacto || ''} ${this.etiqueta(a.motivoContacto)} ${a.idContacto || ''}`.toLowerCase();
+    return texto.includes(q);
+  }
+
+  private pasaFiltros(a: LiwaAnalisisItem, q: string): boolean {
+    return this.pasaFiltroResultado(a)
+      && this.pasaFiltroSentimiento(a)
+      && this.pasaFiltroFcr(a)
+      && this.pasaFiltroAbandonadoPor(a)
+      && this.pasaBusqueda(a, q);
+  }
+
   get filtrados(): LiwaAnalisisItem[] {
     const q = this.busqueda.trim().toLowerCase();
     return [...this.items]
-      .filter((a) => {
-        if (this.filtroResultado !== 'TODOS' && (a.resultado || '') !== this.filtroResultado) return false;
-        if (this.filtroSentimiento !== 'TODOS' && (a.sentimientoFinal || '') !== this.filtroSentimiento) return false;
-        if (this.filtroFcr === 'SI' && !a.fcr) return false;
-        if (this.filtroFcr === 'NO' && a.fcr) return false;
-        if (this.filtroAbandonadoPor === 'asesor' && a.abandonadoPor !== 'asesor') return false;
-        if (this.filtroAbandonadoPor === 'cliente' && a.abandonadoPor !== 'cliente') return false;
-        if (this.filtroAbandonadoPor === 'ninguno' && a.abandono === true) return false;
-        if (q) {
-          const texto = `${a.resumenMotivo || ''} ${a.resumenDesenlace || ''} ${a.motivoContacto || ''} ${this.etiqueta(a.motivoContacto)} ${a.idContacto || ''}`.toLowerCase();
-          if (!texto.includes(q)) return false;
-        }
-        return true;
-      })
+      .filter((a) => this.pasaFiltros(a, q))
       .sort((a, b) => this.fechaMs(b) - this.fechaMs(a));
   }
 

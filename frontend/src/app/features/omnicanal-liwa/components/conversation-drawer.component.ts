@@ -62,9 +62,9 @@ import { LiwaChat } from '../models/liwa.model';
 })
 export class LiwaConversationDrawerComponent {
   @Input() chat: LiwaChat | null = null;
-  @Output() onClose = new EventEmitter<void>();
+  @Output() close = new EventEmitter<void>();
 
   cerrar(): void {
-    this.onClose.emit();
+    this.close.emit();
   }
 }
