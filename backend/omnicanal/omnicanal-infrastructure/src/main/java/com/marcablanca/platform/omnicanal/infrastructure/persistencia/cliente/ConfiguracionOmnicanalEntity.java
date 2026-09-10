@@ -49,6 +49,29 @@ class ConfiguracionOmnicanalEntity {
     protected ConfiguracionOmnicanalEntity() {
     }
 
+    /** Fila nueva: uuid y timestamps se setean en Java porque hbm2ddl es "none". */
+    static ConfiguracionOmnicanalEntity nueva() {
+        ConfiguracionOmnicanalEntity e = new ConfiguracionOmnicanalEntity();
+        e.uuid = UUID.randomUUID();
+        e.iaHabilitada = false;
+        e.creadoEn = OffsetDateTime.now();
+        e.actualizadoEn = OffsetDateTime.now();
+        return e;
+    }
+
+    void aplicarAjustes(boolean iaHabilitada, String openaiModelo, String liwaBaseUrl, String liwaCustomFieldAds) {
+        this.iaHabilitada = iaHabilitada;
+        this.openaiModelo = openaiModelo;
+        this.liwaBaseUrl = liwaBaseUrl;
+        this.liwaCustomFieldAds = liwaCustomFieldAds;
+        this.actualizadoEn = OffsetDateTime.now();
+    }
+
+    void aplicarLiwaTokenCifrado(String tokenCifrado) {
+        this.liwaApiToken = tokenCifrado;
+        this.actualizadoEn = OffsetDateTime.now();
+    }
+
     String getLiwaApiToken() {
         return liwaApiToken;
     }

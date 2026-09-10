@@ -15,7 +15,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -85,5 +88,44 @@ class RepositorioConfiguracionOmnicanalJpaTest {
         when(repo.findFirstByOrderByIdAsc()).thenReturn(Optional.of(e));
 
         assertSame(PerfilDeAnalisisPredeterminado.ISP, adaptador().deLaEmpresaActiva().perfil());
+    }
+
+    @Test
+    void guardar_ajustes_sin_fila_crea_una_nueva() {
+        when(repo.findFirstByOrderByIdAsc()).thenReturn(Optional.empty());
+        when(repo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        adaptador().guardarAjustes(true, "gpt-4o", "https://x", "42");
+
+        var capt = org.mockito.ArgumentCaptor.forClass(ConfiguracionOmnicanalEntity.class);
+        verify(repo).save(capt.capture());
+        assertTrue(capt.getValue().isIaHabilitada());
+        assertEquals("gpt-4o", capt.getValue().getOpenaiModelo());
+    }
+
+    @Test
+    void guardar_token_lo_cifra_y_se_puede_descifrar_de_vuelta() {
+        when(repo.findFirstByOrderByIdAsc()).thenReturn(Optional.empty());
+        when(repo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        adaptador().guardarLiwaToken("mi-token-liwa");
+
+        var capt = org.mockito.ArgumentCaptor.forClass(ConfiguracionOmnicanalEntity.class);
+        verify(repo).save(capt.capture());
+        String cifrado = capt.getValue().getLiwaApiToken();
+        assertFalse("mi-token-liwa".equals(cifrado));
+        assertEquals("mi-token-liwa", cifrador.descifrar(cifrado));
+    }
+
+    @Test
+    void guardar_token_vacio_lo_deja_en_null() {
+        when(repo.findFirstByOrderByIdAsc()).thenReturn(Optional.empty());
+        when(repo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        adaptador().guardarLiwaToken("  ");
+
+        var capt = org.mockito.ArgumentCaptor.forClass(ConfiguracionOmnicanalEntity.class);
+        verify(repo).save(capt.capture());
+        assertNull(capt.getValue().getLiwaApiToken());
     }
 }

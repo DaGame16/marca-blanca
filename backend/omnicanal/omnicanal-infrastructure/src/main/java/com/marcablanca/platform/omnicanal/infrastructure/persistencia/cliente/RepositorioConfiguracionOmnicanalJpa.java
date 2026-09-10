@@ -39,6 +39,24 @@ class RepositorioConfiguracionOmnicanalJpa implements RepositorioConfiguracionOm
                 entidad.getOpenaiModelo());
     }
 
+    @Override
+    public void guardarAjustes(boolean iaHabilitada, String openaiModelo, String liwaBaseUrl,
+                               String liwaCustomFieldAds) {
+        ConfiguracionOmnicanalEntity e = repo.findFirstByOrderByIdAsc()
+                .orElseGet(ConfiguracionOmnicanalEntity::nueva);
+        e.aplicarAjustes(iaHabilitada, openaiModelo, liwaBaseUrl, liwaCustomFieldAds);
+        repo.save(e);
+    }
+
+    @Override
+    public void guardarLiwaToken(String tokenPlano) {
+        ConfiguracionOmnicanalEntity e = repo.findFirstByOrderByIdAsc()
+                .orElseGet(ConfiguracionOmnicanalEntity::nueva);
+        e.aplicarLiwaTokenCifrado(
+                (tokenPlano == null || tokenPlano.isBlank()) ? null : cifrador.cifrar(tokenPlano));
+        repo.save(e);
+    }
+
     /**
      * El JSON de la columna es un override PARCIAL: cada campo ausente cae al
      * perfil por defecto. JSON invalido o vacio => perfil por defecto entero

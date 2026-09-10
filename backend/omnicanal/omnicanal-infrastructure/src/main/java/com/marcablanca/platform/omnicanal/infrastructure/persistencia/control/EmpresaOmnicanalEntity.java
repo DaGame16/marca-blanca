@@ -47,7 +47,24 @@ class EmpresaOmnicanalEntity {
     protected EmpresaOmnicanalEntity() {
     }
 
+    EmpresaOmnicanalEntity(Long empresaId, String webhookSecret) {
+        this.uuid = UUID.randomUUID();
+        this.empresaId = empresaId;
+        this.webhookSecret = webhookSecret;
+        this.creadoEn = OffsetDateTime.now();
+        this.actualizadoEn = OffsetDateTime.now();
+    }
+
+    void rotarSecreto(String nuevoSecreto) {
+        this.webhookSecret = nuevoSecreto;
+        this.actualizadoEn = OffsetDateTime.now();
+    }
+
     Long getEmpresaId() {
         return empresaId;
+    }
+
+    String getWebhookSecret() {
+        return webhookSecret;
     }
 }

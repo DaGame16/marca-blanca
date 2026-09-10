@@ -12,6 +12,12 @@ public interface RepositorioConfiguracionOmnicanal {
 
     ConfiguracionDeTenant deLaEmpresaActiva();
 
+    /** Ajustes editables por el tenant (no incluye el token). Sobrescribe la fila (upsert). */
+    void guardarAjustes(boolean iaHabilitada, String openaiModelo, String liwaBaseUrl, String liwaCustomFieldAds);
+
+    /** Define el token de LIWA (se guarda cifrado). null o vacio => lo borra. */
+    void guardarLiwaToken(String tokenPlano);
+
     /**
      * @param perfil        prompt de IA + datos de LIWA (nunca null).
      * @param liwaApiToken   token de la cuenta LIWA, ya descifrado; null si no hay.
