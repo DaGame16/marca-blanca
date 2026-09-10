@@ -1,8 +1,6 @@
 package com.marcablanca.platform.correo.infrastructure;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.encrypt.Encryptors;
-import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -19,20 +17,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class CifradorDeCorreo {
 
-    private final TextEncryptor encryptor;
+    private final CifradorAesGcm cifrador;
 
     public CifradorDeCorreo(@Value("${app.correo.clave-maestra:solo-para-desarrollo-local-cambiar-siempre}") String claveMaestra) {
-        // Encryptors.text exige un salt hexadecimal -- no es secreto (va junto a lo
-        // cifrado, como un IV), solo tiene que ser fijo para que cifrar/descifrar
-        // usen la misma derivacion de llave.
-        this.encryptor = Encryptors.text(claveMaestra, "d3d1a2c5b6e7f809");
+        // Salt hexadecimal fijo -- no es secreto (va junto a lo cifrado, como un
+        // IV), solo tiene que ser estable para que cifrar/descifrar deriven la
+        // misma llave. El cifrado real (AES-256-GCM) vive en CifradorAesGcm.
+        this.cifrador = new CifradorAesGcm(claveMaestra, "d3d1a2c5b6e7f809");
     }
 
     public String cifrar(String texto) {
-        return texto == null ? null : encryptor.encrypt(texto);
+        return texto == null ? null : cifrador.cifrar(texto);
     }
 
     public String descifrar(String textoCifrado) {
-        return textoCifrado == null ? null : encryptor.decrypt(textoCifrado);
+        return textoCifrado == null ? null : cifrador.descifrar(textoCifrado);
     }
 }
