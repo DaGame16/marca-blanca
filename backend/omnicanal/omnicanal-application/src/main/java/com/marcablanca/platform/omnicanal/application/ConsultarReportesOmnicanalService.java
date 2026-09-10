@@ -10,6 +10,8 @@ import java.util.Map;
 
 public class ConsultarReportesOmnicanalService implements ConsultarReportesOmnicanal {
 
+    private static final String MOTIVO_SOPORTE = "soporte";
+
     private final RepositorioAnalisis repositorioAnalisis;
     private final RepositorioCasos repositorioCasos;
 
@@ -37,9 +39,9 @@ public class ConsultarReportesOmnicanalService implements ConsultarReportesOmnic
 
     @Override
     public ResumenSoporteOmnicanal resumenSoporteOmnicanal(OffsetDateTime desde, OffsetDateTime hasta) {
-        long total = repositorioAnalisis.contarPorMotivo("soporte", desde, hasta);
-        long resueltos = repositorioAnalisis.contarPorMotivoYResultado("soporte", "resuelto", desde, hasta);
-        long escalados = repositorioAnalisis.contarPorMotivoYResultado("soporte", "escalado", desde, hasta);
+        long total = repositorioAnalisis.contarPorMotivo(MOTIVO_SOPORTE, desde, hasta);
+        long resueltos = repositorioAnalisis.contarPorMotivoYResultado(MOTIVO_SOPORTE, "resuelto", desde, hasta);
+        long escalados = repositorioAnalisis.contarPorMotivoYResultado(MOTIVO_SOPORTE, "escalado", desde, hasta);
         return new ResumenSoporteOmnicanal(total, resueltos, escalados, total - resueltos - escalados);
     }
 

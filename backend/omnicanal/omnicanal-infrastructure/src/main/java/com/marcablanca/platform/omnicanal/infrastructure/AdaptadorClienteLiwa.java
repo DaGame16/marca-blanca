@@ -1,17 +1,17 @@
 package com.marcablanca.platform.omnicanal.infrastructure;
 
-import tools.jackson.databind.JsonNode;
 import com.marcablanca.platform.omnicanal.application.port.out.ClienteLiwa;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConfiguracionOmnicanal;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConfiguracionOmnicanal.ConfiguracionDeTenant;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.JsonNode;
 
 import java.util.Optional;
 
 /**
- * Unico archivo que llama a la API externa de LIWA (backfill de atribucion de
- * ads). Base, token y custom field salen de la configuracion de la empresa
+ * El unico archivo que llama a la API externa de LIWA (backfill de atribucion
+ * de ads). Base, token y custom field salen de la configuracion de la empresa
  * activa (RepositorioConfiguracionOmnicanal); sin token configurado no se
  * consulta nada.
  */
@@ -38,11 +38,12 @@ class AdaptadorClienteLiwa implements ClienteLiwa {
                     .retrieve()
                     .body(JsonNode.class);
 
-            if (respuesta.has("error")) {
+            if (respuesta == null || respuesta.has("error")) {
                 return Optional.empty();
             }
             return Optional.of("1".equals(respuesta.path("value").asString(null)));
-        } catch (Exception e) {
+        } catch (RuntimeException _) {
+            // Error de red / respuesta inesperada de LIWA: el backfill sigue con el resto.
             return Optional.empty();
         }
     }

@@ -81,7 +81,8 @@ class RepositorioConfiguracionOmnicanalJpa implements RepositorioConfiguracionOm
                     lista(n, "lugaresConocidos", base.lugaresConocidos()),
                     mapa(n, "abreviaturasLugar", base.abreviaturasLugar()),
                     lista(n, "lugaresVacios", base.lugaresVacios()));
-        } catch (Exception e) {
+        } catch (RuntimeException _) {
+            // JSON corrupto en perfil_analisis -> perfil por defecto, no se tumba la ingesta.
             return base;
         }
     }

@@ -7,8 +7,8 @@ import java.util.regex.Pattern;
 
 /**
  * Decide que turno es contenido real de atencion y cual es ruido (menu,
- * encuesta, acuse automatico, despedida). Es la logica mas fina de todo el
- * modulo -- portada tal cual del pipeline anterior, cada regla tiene un motivo
+ * encuesta, acuse automatico, despedida). Es la logica mas fina del modulo
+ * entero -- portada tal cual del pipeline anterior, cada regla tiene un motivo
  * de negocio concreto detras.
  *
  * El vocabulario que cambia por empresa (opciones de menu, marcadores de

@@ -52,7 +52,7 @@ class RepositorioAnalisisJpa implements RepositorioAnalisis {
     public Optional<AnalisisDeCaso> buscarPorId(String uuid) {
         try {
             return analisis.findByUuid(java.util.UUID.fromString(uuid)).map(this::mapear);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException _) {
             return Optional.empty();
         }
     }
@@ -81,7 +81,7 @@ class RepositorioAnalisisJpa implements RepositorioAnalisis {
         }
         try {
             return AbandonadoPor.valueOf(texto.strip().toUpperCase());
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException _) {
             return null;
         }
     }

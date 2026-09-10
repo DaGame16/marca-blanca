@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -38,74 +39,102 @@ public class IngestarConversacionArchivadaService implements IngestarConversacio
     @Override
     public Ingesta ejecutar(Map<String, Object> payload) {
         FiltroDeRelevancia filtro = new FiltroDeRelevancia(configuracion.deLaEmpresaActiva().perfil());
+        DatosPayload datos = DatosPayload.de(payload);
 
-        String idContacto = String.valueOf(payload.getOrDefault("user_id", "desconocido"));
-        String historial = String.valueOf(payload.getOrDefault("chat_history_details_large", ""));
-        boolean esDeAds = "1".equals(payload.get("ads"));
-        String nombreContacto = payload.get("contact_name") != null ? payload.get("contact_name").toString() : null;
-
-        var existente = repositorioConversaciones.buscarPorIdContacto(idContacto);
-        List<TurnoParseado> turnosDelPayload = ParseadorDeTurnos.parsear(historial);
-        List<TurnoParseado> turnosNuevos = existente.isPresent()
-                ? filtrarTurnosNuevos(existente.get().id(), turnosDelPayload)
-                : turnosDelPayload;
+        Optional<Conversacion> existente = repositorioConversaciones.buscarPorIdContacto(datos.idContacto());
+        List<TurnoParseado> turnosDelPayload = ParseadorDeTurnos.parsear(datos.historial());
+        List<TurnoParseado> turnosNuevos = existente
+                .map(c -> filtrarTurnosNuevos(c.id(), turnosDelPayload))
+                .orElse(turnosDelPayload);
 
         if (existente.isPresent() && turnosNuevos.isEmpty()) {
-            repositorioConversaciones.marcarSoloArchivado(existente.get().id(), esDeAds);
-            return new Ingesta(idContacto, List.of());
+            repositorioConversaciones.marcarSoloArchivado(existente.get().id(), datos.esDeAds());
+            return new Ingesta(datos.idContacto(), List.of());
         }
 
-        Conversacion conversacion = existente.isPresent()
-                ? repositorioConversaciones.actualizar(existente.get().id(), historial, payload, esDeAds,
-                        OffsetDateTime.now())
-                : repositorioConversaciones.crear(idContacto, nombreContacto, historial, payload, esDeAds);
-
+        Conversacion conversacion = persistirConversacion(existente, datos, payload);
         int ordenInicial = repositorioConversaciones.siguienteOrden(conversacion.id());
-        if (!turnosNuevos.isEmpty()) {
-            List<TurnoParseadoConOrden> paraGuardar = new ArrayList<>();
-            for (int i = 0; i < turnosNuevos.size(); i++) {
-                TurnoParseado t = turnosNuevos.get(i);
-                paraGuardar.add(new TurnoParseadoConOrden(ordenInicial + i, t.autor(), t.nombre(), t.mensaje(), t.fecha()));
-            }
-            repositorioConversaciones.guardarTurnos(conversacion.id(), ordenInicial, paraGuardar);
-        }
+        persistirTurnos(conversacion.id(), ordenInicial, turnosNuevos);
 
+        List<Caso> casosCreados = segmentarEnCasos(filtro, turnosNuevos, conversacion.id(), ordenInicial,
+                datos.esDeAds());
+        return new Ingesta(datos.idContacto(), casosCreados);
+    }
+
+    private Conversacion persistirConversacion(Optional<Conversacion> existente, DatosPayload datos,
+                                               Map<String, Object> payload) {
+        return existente.isPresent()
+                ? repositorioConversaciones.actualizar(existente.get().id(), datos.historial(), payload, datos.esDeAds(),
+                        OffsetDateTime.now())
+                : repositorioConversaciones.crear(datos.idContacto(), datos.nombreContacto(), datos.historial(), payload,
+                        datos.esDeAds());
+    }
+
+    private List<Caso> segmentarEnCasos(FiltroDeRelevancia filtro, List<TurnoParseado> turnosNuevos, Long conversacionId,
+                                        int ordenInicial, boolean esDeAds) {
         List<Integer> cortes = turnosNuevos.isEmpty() ? List.of() : DetectorDeCortes.detectarCortes(turnosNuevos);
         List<Caso> casosCreados = new ArrayList<>();
-
         for (int i = 0; i < cortes.size(); i++) {
-            int inicioRelativo = cortes.get(i);
-            int finRelativo = (i + 1 < cortes.size() ? cortes.get(i + 1) - 1 : turnosNuevos.size() - 1);
-            List<TurnoParseado> segmento = turnosNuevos.subList(inicioRelativo, finRelativo + 1);
+            casoDelCorte(filtro, turnosNuevos, cortes, i, conversacionId, ordenInicial, esDeAds)
+                    .ifPresent(casosCreados::add);
+        }
+        return casosCreados;
+    }
 
-            List<Integer> indicesRelevantes = new ArrayList<>();
-            for (int j = 0; j < segmento.size(); j++) {
-                if (!filtro.esTurnoDeEncuesta(segmento.get(j).mensaje())) {
-                    indicesRelevantes.add(j);
-                }
-            }
-            if (indicesRelevantes.isEmpty()) {
-                continue;
-            }
-            if (!filtro.segmentoTieneContenidoReal(segmento)) {
-                continue;
-            }
+    /** Campos del payload de LIWA que usa la ingesta, ya con sus defaults aplicados. */
+    private record DatosPayload(String idContacto, String historial, boolean esDeAds, String nombreContacto) {
+        static DatosPayload de(Map<String, Object> payload) {
+            Object contactName = payload.get("contact_name");
+            return new DatosPayload(
+                    String.valueOf(payload.getOrDefault("user_id", "desconocido")),
+                    String.valueOf(payload.getOrDefault("chat_history_details_large", "")),
+                    "1".equals(payload.get("ads")),
+                    contactName != null ? contactName.toString() : null);
+        }
+    }
 
-            int ultimoIndiceRelevante = indicesRelevantes.get(indicesRelevantes.size() - 1);
-            int finRelativoRelevante = inicioRelativo + ultimoIndiceRelevante;
+    private void persistirTurnos(Long conversacionId, int ordenInicial, List<TurnoParseado> turnosNuevos) {
+        if (turnosNuevos.isEmpty()) {
+            return;
+        }
+        List<TurnoParseadoConOrden> paraGuardar = new ArrayList<>();
+        for (int i = 0; i < turnosNuevos.size(); i++) {
+            TurnoParseado t = turnosNuevos.get(i);
+            paraGuardar.add(new TurnoParseadoConOrden(ordenInicial + i, t.autor(), t.nombre(), t.mensaje(), t.fecha()));
+        }
+        repositorioConversaciones.guardarTurnos(conversacionId, ordenInicial, paraGuardar);
+    }
 
-            Caso caso = repositorioCasos.crear(conversacion.id(), ordenInicial + inicioRelativo,
-                    ordenInicial + finRelativoRelevante, esDeAds);
-            casosCreados.add(caso);
+    /**
+     * Un segmento (entre dos cortes) se vuelve caso solo si tiene contenido
+     * real; si la encuesta quedo al final, se recorta el rango del caso.
+     */
+    private Optional<Caso> casoDelCorte(FiltroDeRelevancia filtro, List<TurnoParseado> turnosNuevos,
+                                        List<Integer> cortes, int i, Long conversacionId, int ordenInicial,
+                                        boolean esDeAds) {
+        int inicioRelativo = cortes.get(i);
+        int finRelativo = (i + 1 < cortes.size() ? cortes.get(i + 1) - 1 : turnosNuevos.size() - 1);
+        List<TurnoParseado> segmento = turnosNuevos.subList(inicioRelativo, finRelativo + 1);
+
+        int ultimoRelevante = -1;
+        for (int j = 0; j < segmento.size(); j++) {
+            if (!filtro.esTurnoDeEncuesta(segmento.get(j).mensaje())) {
+                ultimoRelevante = j;
+            }
+        }
+        if (ultimoRelevante < 0 || !filtro.segmentoTieneContenidoReal(segmento)) {
+            return Optional.empty();
         }
 
-        return new Ingesta(idContacto, casosCreados);
+        int finRelativoRelevante = inicioRelativo + ultimoRelevante;
+        return Optional.of(repositorioCasos.crear(conversacionId, ordenInicial + inicioRelativo,
+                ordenInicial + finRelativoRelevante, esDeAds));
     }
 
     private List<TurnoParseado> filtrarTurnosNuevos(Long conversacionId, List<TurnoParseado> turnosDelPayload) {
         List<Turno> existentes = repositorioConversaciones.listarTurnos(conversacionId);
         Set<String> firmasExistentes = new HashSet<>();
-        for (var t : existentes) {
+        for (Turno t : existentes) {
             firmasExistentes.add(firma(t.nombreAutor(), t.ocurridoEn(), t.mensaje()));
         }
         return turnosDelPayload.stream()

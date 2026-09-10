@@ -92,7 +92,7 @@ public final class ParseadorDeTurnos {
             return java.time.LocalDateTime.of(anio, mes, dia, hora, minuto)
                     .atZone(ZoneId.systemDefault())
                     .toOffsetDateTime();
-        } catch (Exception e) {
+        } catch (RuntimeException _) {
             return null;
         }
     }
