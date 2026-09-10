@@ -20,10 +20,9 @@ public class ConfiguracionOmnicanal {
 
     @Bean
     public RecibirConversacionArchivada recibirConversacionArchivada(
-            ResolverEmpresaPorWebhookSecreto resolverEmpresa, RepositorioConversaciones repositorioConversaciones,
-            RepositorioCasos repositorioCasos, AnalizadorDeConversacion analizadorDeConversacion,
-            RepositorioAnalisisEscritor escritorAnalisis) {
-        return new RecibirConversacionArchivadaService(resolverEmpresa, repositorioConversaciones, repositorioCasos,
+            RepositorioConversaciones repositorioConversaciones, RepositorioCasos repositorioCasos,
+            AnalizadorDeConversacion analizadorDeConversacion, RepositorioAnalisisEscritor escritorAnalisis) {
+        return new RecibirConversacionArchivadaService(repositorioConversaciones, repositorioCasos,
                 analizadorDeConversacion, escritorAnalisis);
     }
 

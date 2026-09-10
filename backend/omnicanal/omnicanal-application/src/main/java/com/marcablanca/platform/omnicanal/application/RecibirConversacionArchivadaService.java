@@ -5,7 +5,6 @@ import com.marcablanca.platform.omnicanal.application.port.out.AnalizadorDeConve
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioCasos;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConversaciones;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConversaciones.TurnoParseadoConOrden;
-import com.marcablanca.platform.omnicanal.application.port.out.ResolverEmpresaPorWebhookSecreto;
 import com.marcablanca.platform.omnicanal.domain.*;
 
 import java.time.OffsetDateTime;
@@ -16,9 +15,12 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Orquesta la ingesta completa: resolver empresa por el secreto, parsear,
- * deduplicar contra lo ya guardado, segmentar en casos, y disparar el
- * analisis IA de cada caso nuevo.
+ * Orquesta la ingesta completa: parsear, deduplicar contra lo ya guardado,
+ * segmentar en casos, y disparar el analisis IA de cada caso nuevo.
+ *
+ * La empresa (tenant) ya viene resuelta en ContextoEmpresaActual -- la puso
+ * el filtro del webhook a partir del secreto del header, antes de llegar
+ * aca. Este servicio no ve el secreto.
  *
  * El payload crudo se pasa TAL CUAL (Map) al puerto -- convertirlo a JSON
  * es un detalle de como se guarda, no algo que le corresponda decidir a la
@@ -27,18 +29,15 @@ import java.util.Set;
  */
 public class RecibirConversacionArchivadaService implements RecibirConversacionArchivada {
 
-    private final ResolverEmpresaPorWebhookSecreto resolverEmpresa;
     private final RepositorioConversaciones repositorioConversaciones;
     private final RepositorioCasos repositorioCasos;
     private final AnalizadorDeConversacion analizadorDeConversacion;
     private final RepositorioAnalisisEscritor escritorAnalisis;
 
-    public RecibirConversacionArchivadaService(ResolverEmpresaPorWebhookSecreto resolverEmpresa,
-                                                RepositorioConversaciones repositorioConversaciones,
+    public RecibirConversacionArchivadaService(RepositorioConversaciones repositorioConversaciones,
                                                 RepositorioCasos repositorioCasos,
                                                 AnalizadorDeConversacion analizadorDeConversacion,
                                                 RepositorioAnalisisEscritor escritorAnalisis) {
-        this.resolverEmpresa = resolverEmpresa;
         this.repositorioConversaciones = repositorioConversaciones;
         this.repositorioCasos = repositorioCasos;
         this.analizadorDeConversacion = analizadorDeConversacion;
@@ -46,10 +45,7 @@ public class RecibirConversacionArchivadaService implements RecibirConversacionA
     }
 
     @Override
-    public void ejecutar(String webhookSecret, Map<String, Object> payload) {
-        resolverEmpresa.resolverIdentificadorEmpresa(webhookSecret)
-                .orElseThrow(WebhookSecretoInvalidoException::new);
-
+    public void ejecutar(Map<String, Object> payload) {
         String idContacto = String.valueOf(payload.getOrDefault("user_id", "desconocido"));
         String historial = String.valueOf(payload.getOrDefault("chat_history_details_large", ""));
         boolean esDeAds = "1".equals(payload.get("ads"));
