@@ -11,7 +11,7 @@ import java.util.Map;
  *
  * Las conversaciones de una empresa distinta de la que armo el pipeline
  * original (GuajiraNet-ISP) traen otro vocabulario -- otro nombre, otro rubro,
- * otros municipios, otras opciones de menu. Este perfil saca todo eso del
+ * otros municipios, otras opciones de menu. Este perfil saca ese vocabulario del
  * codigo y lo vuelve un dato por tenant. El perfil por defecto (ISP) vive en
  * -infrastructure (PerfilDeAnalisisPredeterminado): el dominio solo define la
  * forma.

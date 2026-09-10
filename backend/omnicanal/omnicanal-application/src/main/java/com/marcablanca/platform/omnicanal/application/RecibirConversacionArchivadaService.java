@@ -9,8 +9,8 @@ import com.marcablanca.platform.omnicanal.domain.Caso;
 import java.util.Map;
 
 /**
- * Orquesta la ingesta del webhook: primero persiste todo (conversacion,
- * turnos, casos) de forma ATOMICA vía IngestarConversacionArchivada, y luego
+ * Orquesta la ingesta del webhook: primero persiste el bloque completo
+ * (conversacion, turnos, casos) de forma ATOMICA vía IngestarConversacionArchivada, y luego
  * dispara el analisis IA de cada caso nuevo -- ese analisis llama a OpenAI, va
  * FUERA de la transaccion, y un caso que falla no tumba la respuesta 200 al
  * webhook (se reintenta despues con GestionarReprocesamiento).
@@ -43,9 +43,10 @@ public class RecibirConversacionArchivadaService implements RecibirConversacionA
             try {
                 escritorAnalisis.analizarYGuardar(caso, analizadorDeConversacion, repositorioConversaciones,
                         repositorioCasos, ingesta.idContacto());
-            } catch (Exception ignored) {
+            } catch (RuntimeException _) {
                 // El caso queda con procesada=false -- se reintenta despues via
-                // GestionarReprocesamiento. No se propaga.
+                // GestionarReprocesamiento. No se propaga: un caso fallido no
+                // debe tumbar la respuesta 200 al webhook.
             }
         }
     }

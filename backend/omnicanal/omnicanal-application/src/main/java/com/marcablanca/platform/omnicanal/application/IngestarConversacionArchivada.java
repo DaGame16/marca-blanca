@@ -19,6 +19,9 @@ public interface IngestarConversacionArchivada {
 
     /** @param idContacto  el user_id del payload; @param casosNuevos  casos a analizar. */
     record Ingesta(String idContacto, List<Caso> casosNuevos) {
+        public Ingesta {
+            casosNuevos = List.copyOf(casosNuevos);
+        }
     }
 
     Ingesta ejecutar(Map<String, Object> payload);

@@ -33,7 +33,7 @@ class RepositorioConversacionesJpa implements RepositorioConversaciones {
     private String aJson(Map<String, Object> valor) {
         try {
             return json.writeValueAsString(valor);
-        } catch (JacksonException e) {
+        } catch (JacksonException _) {
             return "{}";
         }
     }

@@ -25,64 +25,22 @@ public final class PerfilDeAnalisisPredeterminado {
     private PerfilDeAnalisisPredeterminado() {
     }
 
-    public static final PerfilDeAnalisisOmnicanal ISP = new PerfilDeAnalisisOmnicanal(
-            "GuajiraNet",
-            PROMPT_SISTEMA(),
-            PLANTILLA_PROMPT(),
-            "https://chat.liwa.co",
-            "587226",
-            List.of(
-                    "si", "no", "oficinas", "contratos", "promociones", "planes y promociones",
-                    "soporte tecnico", "facturacion", "retiros", "pqr", "medios de pago",
-                    "pagos y cartera", "reajuste del servicio", "sucesion", "traslado",
-                    "san juan", "fonseca", "albania", "distraccion", "hatonuevo", "riohacha",
-                    "barrancas", "maicao", "villanueva", "urumita", "el molino", "molino",
-                    "dibulla", "buenavista", "la jagua", "uribia", "manaure"),
-            List.of(
-                    "gracias por comunicarse con nosotros",
-                    "gracias por comunicarnos",
-                    "por favor diligencia este enlace",
-                    "diligenciar el siguiente formulario"),
-            List.of(
-                    "gracias por preferirnos",
-                    "esperamos poder servirte nuevamente",
-                    "guajiranet conectando sueño",
-                    "somos guajiranet conectando",
-                    "recuerde somos guajiranet"),
-            List.of(
-                    "Riohacha", "Albania", "Barrancas", "Dibulla", "Distracción",
-                    "Fonseca", "Hatonuevo", "La Jagua del Pilar", "Maicao", "Manaure",
-                    "Molino", "San Juan del Cesar", "Uribia", "Urumita", "Villanueva",
-                    "Buenavista",
-                    "Valledupar", "Aguachica", "Agustín Codazzi", "Astrea", "Becerril",
-                    "Bosconia", "Chimichagua", "Chiriguaná", "Curumaní", "El Copey",
-                    "El Paso", "Gamarra", "González", "La Gloria", "La Jagua de Ibirico",
-                    "La Paz", "Manaure Balcón del Cesar", "Pailitas", "Pelaya",
-                    "Pueblo Bello", "Río de Oro", "San Alberto", "San Diego",
-                    "San Martín", "Tamalameque", "Guacoche"),
-            Map.of(
-                    "san juan", "San Juan del Cesar",
-                    "sanjuan", "San Juan del Cesar",
-                    "codazzi", "Agustín Codazzi",
-                    "la jagua", "La Jagua de Ibirico"),
-            List.of("null", "n/a", "na", "ninguno", "no aplica", "la guajira", "guajira", "cesar"));
+    private static final String SAN_JUAN = "San Juan del Cesar";
 
-    private static String PROMPT_SISTEMA() {
-        return "Eres un auditor de calidad de servicio al cliente para GuajiraNet, un proveedor de internet (ISP) "
-                + "en La Guajira, Colombia. Tu criterio debe ser el de un supervisor exigente: NO das por resuelto "
-                + "nada que no se haya resuelto de verdad en el texto. Distingues con precisión entre un mensaje "
-                + "automático de cortesía y una respuesta real. Pero una respuesta NEGATIVA clara (ej. \"no hay "
-                + "cobertura\") SÍ resuelve la duda del cliente. Nunca inventas datos que no estén en la conversación. "
-                + "Respondes ÚNICAMENTE con un objeto JSON válido, sin texto adicional ni bloques de código.";
-    }
+    private static final String PROMPT_SISTEMA =
+            "Eres un auditor de calidad de servicio al cliente para GuajiraNet, un proveedor de internet (ISP) "
+            + "en La Guajira, Colombia. Tu criterio debe ser el de un supervisor exigente: NO das por resuelto "
+            + "nada que no se haya resuelto de verdad en el texto. Distingues con precisión entre un mensaje "
+            + "automático de cortesía y una respuesta real. Pero una respuesta NEGATIVA clara (ej. \"no hay "
+            + "cobertura\") SÍ resuelve la duda del cliente. Nunca inventas datos que no estén en la conversación. "
+            + "Respondes ÚNICAMENTE con un objeto JSON válido, sin texto adicional ni bloques de código.";
 
     /**
      * Prompt del mensaje "user" -- integro del liwa-webhook de NestJS
      * (analisis-ia.service.ts, construirPrompt). El unico %s es donde se
-     * inyecta la conversacion; los \"\"\" delimitan ese bloque.
+     * inyecta la conversacion; las tres comillas delimitan ese bloque.
      */
-    private static String PLANTILLA_PROMPT() {
-        return """
+    private static final String PLANTILLA_PROMPT = """
                 Analiza esta conversación de atención al cliente de GuajiraNet, proveedor de internet.
 
                 La conversación es un CASO CERRADO E INDEPENDIENTE. No uses ni inventes información de otras conversaciones del mismo cliente. No supongas que una conversación quedó resuelta solo porque existe un cierre técnico, una encuesta o un mensaje automático.
@@ -97,9 +55,9 @@ public final class PerfilDeAnalisisPredeterminado {
                 =====================================================
                 CONVERSACIÓN
                 =====================================================
-                \"\"\"
+                \"""
                 %s
-                \"\"\"
+                \"""
 
                 =====================================================
                 1. REGLA CENTRAL DE "resultado"
@@ -249,5 +207,46 @@ public final class PerfilDeAnalisisPredeterminado {
                 - "tipo_ultimo_mensaje_empresa" describe SIEMPRE el último mensaje de la empresa, aunque "resultado" sea "resuelto".
                 - Un "gracias por su pago" es "resuelto" salvo que el cliente haya pedido explícitamente un dato de pago (monto, cuenta, llave, QR, link, medio alternativo) que nunca se entregó — en ese caso puntual sigue "no_resuelto". Fuera de esa excepción, no seas más estricto de lo necesario: si la empresa sí despejó la duda del cliente en algún punto del chat, eso es "resuelto".
                 """.strip();
-    }
+
+    public static final PerfilDeAnalisisOmnicanal ISP = new PerfilDeAnalisisOmnicanal(
+            "GuajiraNet",
+            PROMPT_SISTEMA,
+            PLANTILLA_PROMPT,
+            "https://chat.liwa.co",
+            "587226",
+            List.of(
+                    "si", "no", "oficinas", "contratos", "promociones", "planes y promociones",
+                    "soporte tecnico", "facturacion", "retiros", "pqr", "medios de pago",
+                    "pagos y cartera", "reajuste del servicio", "sucesion", "traslado",
+                    "san juan", "fonseca", "albania", "distraccion", "hatonuevo", "riohacha",
+                    "barrancas", "maicao", "villanueva", "urumita", "el molino", "molino",
+                    "dibulla", "buenavista", "la jagua", "uribia", "manaure"),
+            List.of(
+                    "gracias por comunicarse con nosotros",
+                    "gracias por comunicarnos",
+                    "por favor diligencia este enlace",
+                    "diligenciar el siguiente formulario"),
+            List.of(
+                    "gracias por preferirnos",
+                    "esperamos poder servirte nuevamente",
+                    "guajiranet conectando sueño",
+                    "somos guajiranet conectando",
+                    "recuerde somos guajiranet"),
+            List.of(
+                    "Riohacha", "Albania", "Barrancas", "Dibulla", "Distracción",
+                    "Fonseca", "Hatonuevo", "La Jagua del Pilar", "Maicao", "Manaure",
+                    "Molino", SAN_JUAN, "Uribia", "Urumita", "Villanueva",
+                    "Buenavista",
+                    "Valledupar", "Aguachica", "Agustín Codazzi", "Astrea", "Becerril",
+                    "Bosconia", "Chimichagua", "Chiriguaná", "Curumaní", "El Copey",
+                    "El Paso", "Gamarra", "González", "La Gloria", "La Jagua de Ibirico",
+                    "La Paz", "Manaure Balcón del Cesar", "Pailitas", "Pelaya",
+                    "Pueblo Bello", "Río de Oro", "San Alberto", "San Diego",
+                    "San Martín", "Tamalameque", "Guacoche"),
+            Map.of(
+                    "san juan", SAN_JUAN,
+                    "sanjuan", SAN_JUAN,
+                    "codazzi", "Agustín Codazzi",
+                    "la jagua", "La Jagua de Ibirico"),
+            List.of("null", "n/a", "na", "ninguno", "no aplica", "la guajira", "guajira", "cesar"));
 }

@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Unico archivo de todo el modulo que sabe que existe OpenAI. El prompt de
+ * El unico archivo del modulo que sabe que existe OpenAI. El prompt de
  * negocio (motivos, categorias, criterio de "resuelto"/"escalado", etc.) ya
  * NO vive aca: llega en el PerfilDeAnalisisOmnicanal de la empresa activa
  * (RepositorioConfiguracionOmnicanal), con el perfil ISP por defecto para
@@ -33,13 +33,15 @@ public class AdaptadorOpenAI implements AnalizadorDeConversacion {
     private static final Logger log = LoggerFactory.getLogger(AdaptadorOpenAI.class);
 
     private static final int MAX_INTENTOS = 4;
+    private static final String CLAVE_CONTENT = "content";
+    private static final String CAMPO_TEMAS = "temas";
 
     // Catalogos del prompt: si la IA devuelve algo fuera de estos, se guarda
     // null (o el default de motivo). Mismos valores que el liwa-webhook original.
+    private static final String MOTIVO_POR_DEFECTO = "información";
     private static final List<String> RESULTADOS_PERMITIDOS = List.of("resuelto", "no_resuelto", "escalado");
     private static final List<String> MOTIVOS_PERMITIDOS =
-            List.of("soporte", "facturación", "reconexión", "ventas", "PQR", "cobertura", "información");
-    private static final String MOTIVO_POR_DEFECTO = "información";
+            List.of("soporte", "facturación", "reconexión", "ventas", "PQR", "cobertura", MOTIVO_POR_DEFECTO);
     private static final List<String> AREAS_PERMITIDAS =
             List.of("comercial", "soporte", "facturación", "retención/PQR");
     private static final List<String> CATEGORIAS_OFICINA_PERMITIDAS = List.of(
@@ -114,8 +116,8 @@ public class AdaptadorOpenAI implements AnalizadorDeConversacion {
                         "response_format", Map.of("type", "json_object"),
                         "temperature", 0,
                         "messages", List.of(
-                                Map.of("role", "system", "content", promptSistema),
-                                Map.of("role", "user", "content", promptUsuario)));
+                                Map.of("role", "system", CLAVE_CONTENT, promptSistema),
+                                Map.of("role", "user", CLAVE_CONTENT, promptUsuario)));
 
                 JsonNode respuesta = restClient.post()
                         .uri("/chat/completions")
@@ -125,7 +127,8 @@ public class AdaptadorOpenAI implements AnalizadorDeConversacion {
                         .retrieve()
                         .body(JsonNode.class);
 
-                String contenido = respuesta.path("choices").path(0).path("message").path("content").asString(null);
+                String contenido = respuesta == null ? null
+                        : respuesta.path("choices").path(0).path("message").path(CLAVE_CONTENT).asString(null);
                 if (contenido == null) {
                     throw new IllegalStateException("Respuesta de OpenAI sin contenido");
                 }
@@ -144,14 +147,15 @@ public class AdaptadorOpenAI implements AnalizadorDeConversacion {
 
     /** Respeta el header Retry-After si viene; si no, backoff exponencial con jitter. */
     private static long esperaMs(org.springframework.web.client.HttpStatusCodeException e, int intento) {
-        String retryAfter = e.getResponseHeaders() == null ? null : e.getResponseHeaders().getFirst("Retry-After");
+        HttpHeaders headers = e.getResponseHeaders();
+        String retryAfter = headers == null ? null : headers.getFirst("Retry-After");
         if (retryAfter != null) {
             try {
                 long segundos = Long.parseLong(retryAfter.trim());
                 if (segundos > 0) {
                     return Math.min(30000, segundos * 1000);
                 }
-            } catch (NumberFormatException ignored) {
+            } catch (NumberFormatException _) {
                 // Retry-After tambien puede venir como fecha HTTP; en ese caso se ignora
                 // y se cae al backoff exponencial.
             }
@@ -163,7 +167,7 @@ public class AdaptadorOpenAI implements AnalizadorDeConversacion {
     private void esperar(long ms) {
         try {
             Thread.sleep(ms);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException _) {
             Thread.currentThread().interrupt();
         }
     }
@@ -178,8 +182,8 @@ public class AdaptadorOpenAI implements AnalizadorDeConversacion {
             String motivo = sanitizarEnum(textoONull(n, "motivo_contacto"), MOTIVOS_PERMITIDOS);
 
             List<String> temas = new ArrayList<>();
-            if (n.has("temas") && n.get("temas").isArray()) {
-                n.get("temas").forEach(t -> temas.add(t.asString()));
+            if (n.has(CAMPO_TEMAS) && n.get(CAMPO_TEMAS).isArray()) {
+                n.get(CAMPO_TEMAS).forEach(t -> temas.add(t.asString()));
             }
 
             return new ResultadoAnalisisIa(
@@ -199,8 +203,8 @@ public class AdaptadorOpenAI implements AnalizadorDeConversacion {
                     temas.stream().limit(6).toList(), boolONull(n, "oportunidad_venta"),
                     boolONull(n, "venta_confirmada_en_texto"), boolONull(n, "trato_inadecuado"),
                     n.path("gestion_pendiente").asBoolean(false), n.path("revisar_limite").asBoolean(false));
-        } catch (Exception e) {
-            throw new IllegalStateException("No se pudo parsear la respuesta de OpenAI: " + e.getMessage(), e);
+        } catch (RuntimeException ex) {
+            throw new IllegalStateException("No se pudo parsear la respuesta de OpenAI: " + ex.getMessage(), ex);
         }
     }
 

@@ -30,7 +30,7 @@ public class ConsultarConversacionesService implements ConsultarConversaciones {
     public Pagina<Conversacion> listarRecientes(String idContacto, Integer pagina, Integer porPagina,
                                                  OffsetDateTime desde, OffsetDateTime hasta) {
         int p = pagina == null ? 1 : Math.max(1, pagina);
-        int pp = porPagina == null ? 20 : Math.min(100, Math.max(1, porPagina));
+        int pp = porPagina == null ? 20 : Math.clamp(porPagina, 1, 100);
         return repositorioConversaciones.listarRecientes(idContacto, p, pp, desde, hasta);
     }
 

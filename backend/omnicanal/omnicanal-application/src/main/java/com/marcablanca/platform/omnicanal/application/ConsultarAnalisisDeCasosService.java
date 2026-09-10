@@ -27,7 +27,7 @@ public class ConsultarAnalisisDeCasosService implements ConsultarAnalisisDeCasos
                                           String resultado, String motivoContacto, Boolean abandono,
                                           String abandonadoPor) {
         int p = pagina == null ? 1 : Math.max(1, pagina);
-        int pp = porPagina == null ? 20 : Math.min(100, Math.max(1, porPagina));
+        int pp = porPagina == null ? 20 : Math.clamp(porPagina, 1, 100);
         return repositorioAnalisis.listar(p, pp, desde, hasta, resultado, motivoContacto, abandono, abandonadoPor);
     }
 
