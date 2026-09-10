@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Component
@@ -43,6 +44,29 @@ class RepositorioCasosJpa implements RepositorioCasos {
     @Override
     public List<Caso> listarSinReanalizar(OffsetDateTime desde, OffsetDateTime hasta) {
         return casos.listarSinReanalizar(desde, hasta).stream().map(this::mapear).toList();
+    }
+
+    @Override
+    public List<Caso> listarPorConversacion(Long conversacionId) {
+        return casos.findByConversacionIdOrderByArchivadaEnDesc(conversacionId).stream().map(this::mapear).toList();
+    }
+
+    @Override
+    public void marcarEsDeAds(Long casoId, boolean esDeAds) {
+        casos.marcarEsDeAds(casoId, esDeAds);
+    }
+
+    private static final Map<String, String> FORMATO_PERIODO = Map.of(
+            "dia", "YYYY-MM-DD",
+            "semana", "IYYY-IW",
+            "mes", "YYYY-MM");
+
+    @Override
+    public List<ConteoPorPeriodo> serieTemporal(String agrupacion, OffsetDateTime desde, OffsetDateTime hasta) {
+        String formato = FORMATO_PERIODO.getOrDefault(agrupacion, FORMATO_PERIODO.get("dia"));
+        return casos.serieTemporal(formato, desde, hasta).stream()
+                .map(f -> new ConteoPorPeriodo(f.getPeriodo(), f.getTotal()))
+                .toList();
     }
 
     @Override

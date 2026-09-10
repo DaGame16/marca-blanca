@@ -18,6 +18,17 @@ public interface RepositorioCasos {
 
     List<Caso> listarSinReanalizar(OffsetDateTime desde, OffsetDateTime hasta);
 
+    /** Casos de un contacto (via su conversacion), del mas reciente al mas viejo. */
+    List<Caso> listarPorConversacion(Long conversacionId);
+
+    void marcarEsDeAds(Long casoId, boolean esDeAds);
+
+    /** Volumen de casos por periodo. `agrupacion`: "dia" | "semana" | "mes". */
+    List<ConteoPorPeriodo> serieTemporal(String agrupacion, OffsetDateTime desde, OffsetDateTime hasta);
+
+    record ConteoPorPeriodo(String periodo, long total) {
+    }
+
     long contarPendientes(OffsetDateTime desde, OffsetDateTime hasta);
 
     long contarSinReanalizar(OffsetDateTime desde, OffsetDateTime hasta);

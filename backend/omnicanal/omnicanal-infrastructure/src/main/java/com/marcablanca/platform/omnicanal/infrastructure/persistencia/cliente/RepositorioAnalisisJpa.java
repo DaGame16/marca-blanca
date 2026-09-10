@@ -44,6 +44,11 @@ class RepositorioAnalisisJpa implements RepositorioAnalisis {
     }
 
     @Override
+    public void marcarEsDeAdsPorCaso(Long casoId, boolean esDeAds) {
+        analisis.marcarEsDeAdsPorCaso(casoId, esDeAds);
+    }
+
+    @Override
     public Optional<AnalisisDeCaso> buscarPorId(String uuid) {
         try {
             return analisis.findByUuid(java.util.UUID.fromString(uuid)).map(this::mapear);
@@ -62,10 +67,23 @@ class RepositorioAnalisisJpa implements RepositorioAnalisis {
                                           String resultadoTexto, String motivoContacto, Boolean abandono,
                                           String abandonadoPorTexto) {
         Resultado resultado = resultadoTexto == null ? null : Resultado.valueOf(resultadoTexto.toUpperCase());
-        var page = analisis.buscar(resultado, motivoContacto, abandono, desde, hasta,
+        AbandonadoPor abandonadoPor = aAbandonadoPor(abandonadoPorTexto);
+        var page = analisis.buscar(resultado, motivoContacto, abandono, abandonadoPor, desde, hasta,
                 PageRequest.of(pagina - 1, porPagina));
         return new Pagina<>(page.getTotalElements(), pagina, porPagina, Math.max(1, page.getTotalPages()),
                 page.getContent().stream().map(this::mapear).toList());
+    }
+
+    /** "asesor" / "cliente" (como los manda la API) -> enum; texto invalido => sin filtro. */
+    static AbandonadoPor aAbandonadoPor(String texto) {
+        if (texto == null || texto.isBlank()) {
+            return null;
+        }
+        try {
+            return AbandonadoPor.valueOf(texto.strip().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     @Override
@@ -81,25 +99,25 @@ class RepositorioAnalisisJpa implements RepositorioAnalisis {
     @Override
     public long contarPorMotivoYResultado(String motivoContacto, String resultadoTexto, OffsetDateTime desde,
                                            OffsetDateTime hasta) {
-        return analisis.countByMotivoContactoAndResultadoAndProcesadoEnBetween(motivoContacto,
+        return analisis.contarPorMotivoYResultado(motivoContacto,
                 Resultado.valueOf(resultadoTexto.toUpperCase()), desde, hasta);
     }
 
     @Override
     public long contarPorMotivo(String motivoContacto, OffsetDateTime desde, OffsetDateTime hasta) {
-        return analisis.countByMotivoContacto(motivoContacto);
+        return analisis.contarPorMotivo(motivoContacto, desde, hasta);
     }
 
     @Override
     public long contarOportunidadVenta(boolean confirmadaEnTexto, OffsetDateTime desde, OffsetDateTime hasta) {
         return confirmadaEnTexto
-                ? analisis.countByOportunidadVentaAndVentaConfirmadaEnTexto(true, true)
-                : analisis.countByOportunidadVenta(true);
+                ? analisis.contarVentasConfirmadasEnTexto(desde, hasta)
+                : analisis.contarOportunidadesDeVenta(desde, hasta);
     }
 
     @Override
     public long contarPorAds(String campo, OffsetDateTime desde, OffsetDateTime hasta) {
-        return analisis.countByEsDeAds(true);
+        return analisis.contarConAds(desde, hasta);
     }
 
     @Override

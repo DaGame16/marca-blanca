@@ -67,6 +67,18 @@ class RepositorioConversacionesJpa implements RepositorioConversaciones {
     }
 
     @Override
+    public List<RefContacto> contactos() {
+        return conversaciones.contactos().stream()
+                .map(p -> new RefContacto(p.getId(), p.getIdContacto()))
+                .toList();
+    }
+
+    @Override
+    public void marcarVieneDeAds(Long conversacionId, boolean vieneDeAds) {
+        conversaciones.marcarVieneDeAds(conversacionId, vieneDeAds);
+    }
+
+    @Override
     public List<Turno> listarTurnos(Long conversacionId) {
         return turnos.findByConversacionIdOrderByOrdenAsc(conversacionId).stream().map(this::mapearTurno).toList();
     }

@@ -17,15 +17,18 @@ public class OmnicanalController {
     private final ConsultarAnalisisDeCasos consultarAnalisisDeCasos;
     private final ConsultarReportesOmnicanal consultarReportesOmnicanal;
     private final GestionarReprocesamiento gestionarReprocesamiento;
+    private final EjecutarBackfillDeAds ejecutarBackfillDeAds;
 
     public OmnicanalController(ConsultarConversaciones consultarConversaciones,
                                 ConsultarAnalisisDeCasos consultarAnalisisDeCasos,
                                 ConsultarReportesOmnicanal consultarReportesOmnicanal,
-                                GestionarReprocesamiento gestionarReprocesamiento) {
+                                GestionarReprocesamiento gestionarReprocesamiento,
+                                EjecutarBackfillDeAds ejecutarBackfillDeAds) {
         this.consultarConversaciones = consultarConversaciones;
         this.consultarAnalisisDeCasos = consultarAnalisisDeCasos;
         this.consultarReportesOmnicanal = consultarReportesOmnicanal;
         this.gestionarReprocesamiento = gestionarReprocesamiento;
+        this.ejecutarBackfillDeAds = ejecutarBackfillDeAds;
     }
 
     private OffsetDateTime aInicioDelDia(LocalDate fecha) {
@@ -114,6 +117,16 @@ public class OmnicanalController {
     public Object estadoReproceso(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
         return gestionarReprocesamiento.estadoReproceso(aInicioDelDia(desde), aFinDelDia(hasta));
+    }
+
+    /**
+     * Reconstruye "viene de ads" consultando LIWA por contacto. Corre en
+     * linea (accion puntual del tenant); para una empresa con muchos contactos
+     * puede tardar -- si hace falta se le agrega paginado/resumabilidad.
+     */
+    @PostMapping("/analisis-ia/backfill-ads")
+    public Object backfillAds() {
+        return ejecutarBackfillDeAds.ejecutar();
     }
 
     @GetMapping("/analisis-ia/pendientes")

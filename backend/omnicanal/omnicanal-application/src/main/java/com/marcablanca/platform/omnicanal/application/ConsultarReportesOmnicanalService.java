@@ -22,7 +22,10 @@ public class ConsultarReportesOmnicanalService implements ConsultarReportesOmnic
     public EstadisticasOmnicanal estadisticas(String agrupacion, OffsetDateTime desde, OffsetDateTime hasta) {
         String agr = agrupacion == null ? "dia" : agrupacion;
         long total = repositorioCasos.contarTotal(desde, hasta);
-        return new EstadisticasOmnicanal(desde, hasta, agr, total, List.of());
+        List<PuntoSerie> serie = repositorioCasos.serieTemporal(agr, desde, hasta).stream()
+                .map(p -> new PuntoSerie(p.periodo(), p.total()))
+                .toList();
+        return new EstadisticasOmnicanal(desde, hasta, agr, total, serie);
     }
 
     @Override
