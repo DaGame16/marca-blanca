@@ -2,6 +2,8 @@ package com.marcablanca.platform.omnicanal.infrastructure.persistencia.control;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-/** PENDIENTE -- ver nota en EmpresaOmnicanalEntity. No registrado en el escaneo todavia. */
+import java.util.Optional;
+
 public interface EmpresaRefDeOmnicanalJpaRepository extends JpaRepository<EmpresaRefDeOmnicanal, Long> {
+    Optional<EmpresaRefDeOmnicanal> findByIdentificador(String identificador);
 }

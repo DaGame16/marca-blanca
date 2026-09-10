@@ -19,6 +19,18 @@ app:
     # Angular (ng serve). En otros ambientes se sobreescribe con la variable de
     # entorno CORS_ALLOWED_ORIGINS (nunca usar "*", las peticiones van con credenciales).
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
+  omnicanal:
+    # Llave de cifrado (AES) para el token de LIWA en omnicanal.tbl_configuracion_omnicanal.
+    # Secreto de INFRAESTRUCTURA -- en QA/PROD viene de OMNICANAL_CLAVE_MAESTRA.
+    clave-maestra: ${OMNICANAL_CLAVE_MAESTRA:solo-para-desarrollo-local-cambiar-siempre}
+    # Base publica del backend, para armar la URL del webhook que la empresa
+    # pega en LIWA. En QA/PROD, el dominio real (https://...).
+    webhook-url-base: ${OMNICANAL_WEBHOOK_URL_BASE:http://localhost:8080}
+    # API key de OpenAI (una sola para la plataforma). Sin esto, el analisis IA
+    # queda apagado aunque una empresa lo prenda. Modelo por defecto si el tenant
+    # no configura el suyo.
+    openai-api-key: ${OMNICANAL_OPENAI_API_KEY:}
+    openai-modelo: ${OMNICANAL_OPENAI_MODELO:gpt-4.1-mini}
   aprovisionamiento:
     sondeo-ms: ${APROV_SONDEO_MS:5000}
     plantilla: ${APROV_PLANTILLA:db_plantilla_maestra}

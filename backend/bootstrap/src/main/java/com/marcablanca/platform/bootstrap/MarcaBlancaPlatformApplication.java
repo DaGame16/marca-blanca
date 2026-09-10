@@ -16,7 +16,8 @@ import org.springframework.boot.persistence.autoconfigure.EntityScan;
         "com.marcablanca.platform.empresas.infrastructure",
         "com.marcablanca.platform.identidadvisual.infrastructure",
         "com.marcablanca.platform.modulosempresa.infrastructure",
-        "com.marcablanca.platform.aprovisionamiento.infrastructure.persistencia"
+        "com.marcablanca.platform.aprovisionamiento.infrastructure.persistencia",
+        "com.marcablanca.platform.omnicanal.infrastructure.persistencia.control"
 })
 
 

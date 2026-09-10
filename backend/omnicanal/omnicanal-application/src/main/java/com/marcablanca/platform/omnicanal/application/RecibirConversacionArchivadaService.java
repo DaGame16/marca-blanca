@@ -3,9 +3,9 @@ package com.marcablanca.platform.omnicanal.application;
 import com.marcablanca.platform.omnicanal.application.port.in.RecibirConversacionArchivada;
 import com.marcablanca.platform.omnicanal.application.port.out.AnalizadorDeConversacion;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioCasos;
+import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConfiguracionOmnicanal;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConversaciones;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConversaciones.TurnoParseadoConOrden;
-import com.marcablanca.platform.omnicanal.application.port.out.ResolverEmpresaPorWebhookSecreto;
 import com.marcablanca.platform.omnicanal.domain.*;
 
 import java.time.OffsetDateTime;
@@ -16,9 +16,12 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Orquesta la ingesta completa: resolver empresa por el secreto, parsear,
- * deduplicar contra lo ya guardado, segmentar en casos, y disparar el
- * analisis IA de cada caso nuevo.
+ * Orquesta la ingesta completa: parsear, deduplicar contra lo ya guardado,
+ * segmentar en casos, y disparar el analisis IA de cada caso nuevo.
+ *
+ * La empresa (tenant) ya viene resuelta en ContextoEmpresaActual -- la puso
+ * el filtro del webhook a partir del secreto del header, antes de llegar
+ * aca. Este servicio no ve el secreto.
  *
  * El payload crudo se pasa TAL CUAL (Map) al puerto -- convertirlo a JSON
  * es un detalle de como se guarda, no algo que le corresponda decidir a la
@@ -27,28 +30,27 @@ import java.util.Set;
  */
 public class RecibirConversacionArchivadaService implements RecibirConversacionArchivada {
 
-    private final ResolverEmpresaPorWebhookSecreto resolverEmpresa;
     private final RepositorioConversaciones repositorioConversaciones;
     private final RepositorioCasos repositorioCasos;
     private final AnalizadorDeConversacion analizadorDeConversacion;
     private final RepositorioAnalisisEscritor escritorAnalisis;
+    private final RepositorioConfiguracionOmnicanal configuracion;
 
-    public RecibirConversacionArchivadaService(ResolverEmpresaPorWebhookSecreto resolverEmpresa,
-                                                RepositorioConversaciones repositorioConversaciones,
+    public RecibirConversacionArchivadaService(RepositorioConversaciones repositorioConversaciones,
                                                 RepositorioCasos repositorioCasos,
                                                 AnalizadorDeConversacion analizadorDeConversacion,
-                                                RepositorioAnalisisEscritor escritorAnalisis) {
-        this.resolverEmpresa = resolverEmpresa;
+                                                RepositorioAnalisisEscritor escritorAnalisis,
+                                                RepositorioConfiguracionOmnicanal configuracion) {
         this.repositorioConversaciones = repositorioConversaciones;
         this.repositorioCasos = repositorioCasos;
         this.analizadorDeConversacion = analizadorDeConversacion;
         this.escritorAnalisis = escritorAnalisis;
+        this.configuracion = configuracion;
     }
 
     @Override
-    public void ejecutar(String webhookSecret, Map<String, Object> payload) {
-        resolverEmpresa.resolverIdentificadorEmpresa(webhookSecret)
-                .orElseThrow(WebhookSecretoInvalidoException::new);
+    public void ejecutar(Map<String, Object> payload) {
+        FiltroDeRelevancia filtro = new FiltroDeRelevancia(configuracion.deLaEmpresaActiva().perfil());
 
         String idContacto = String.valueOf(payload.getOrDefault("user_id", "desconocido"));
         String historial = String.valueOf(payload.getOrDefault("chat_history_details_large", ""));
@@ -91,14 +93,14 @@ public class RecibirConversacionArchivadaService implements RecibirConversacionA
 
             List<Integer> indicesRelevantes = new ArrayList<>();
             for (int j = 0; j < segmento.size(); j++) {
-                if (!FiltroDeRelevancia.esTurnoDeEncuesta(segmento.get(j).mensaje())) {
+                if (!filtro.esTurnoDeEncuesta(segmento.get(j).mensaje())) {
                     indicesRelevantes.add(j);
                 }
             }
             if (indicesRelevantes.isEmpty()) {
                 continue;
             }
-            if (!FiltroDeRelevancia.segmentoTieneContenidoReal(segmento)) {
+            if (!filtro.segmentoTieneContenidoReal(segmento)) {
                 continue;
             }
 

@@ -40,6 +40,10 @@ class EmpresaRefDeOmnicanal {
         return id;
     }
 
+    UUID getUuid() {
+        return uuid;
+    }
+
     String getIdentificador() {
         return identificador;
     }

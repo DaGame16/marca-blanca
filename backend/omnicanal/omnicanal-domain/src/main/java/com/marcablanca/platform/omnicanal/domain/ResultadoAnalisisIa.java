@@ -12,4 +12,13 @@ public record ResultadoAnalisisIa(
         Boolean fcr, String esfuerzoCliente, List<String> temas,
         Boolean oportunidadVenta, Boolean ventaConfirmadaEnTexto, Boolean tratoInadecuado,
         boolean gestionPendiente, boolean revisarLimite) {
+
+    /** Copia con el municipio ya normalizado (NormalizadorDeMunicipio) antes de persistir. */
+    public ResultadoAnalisisIa conMunicipio(String municipioNormalizado) {
+        return new ResultadoAnalisisIa(razonamiento, motivoContacto, submotivo, categoriaOficina,
+                municipioNormalizado, barrio, areaDestino, resumenMotivo, resumenDesenlace,
+                sentimientoInicial, sentimientoFinal, resultado, tipoUltimoMensajeEmpresa,
+                fcr, esfuerzoCliente, temas, oportunidadVenta, ventaConfirmadaEnTexto, tratoInadecuado,
+                gestionPendiente, revisarLimite);
+    }
 }

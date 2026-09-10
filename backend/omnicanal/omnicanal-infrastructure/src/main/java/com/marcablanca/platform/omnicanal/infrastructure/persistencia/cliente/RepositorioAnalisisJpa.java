@@ -27,7 +27,9 @@ class RepositorioAnalisisJpa implements RepositorioAnalisis {
                          OffsetDateTime primeraRespuestaEn, OffsetDateTime cerradoEn, OffsetDateTime procesadoEn,
                          boolean esDeAds, String modeloIaUsado) {
         AnalisisEntity e = analisis.findByCasoId(casoId).orElseGet(() -> AnalisisEntity.nueva(casoId, idContacto));
-        e.setCampos(r.areaDestino(), NormalizadorDeMunicipio.normalizar(r.municipio()), r.barrio(),
+        // El municipio ya viene normalizado desde RepositorioAnalisisEscritor
+        // (con el perfil de la empresa activa) -- no se re-normaliza aca.
+        e.setCampos(r.areaDestino(), r.municipio(), r.barrio(),
                 r.categoriaOficina(), r.motivoContacto(), r.submotivo(), r.resumenMotivo(), r.resumenDesenlace(),
                 r.sentimientoInicial(), r.sentimientoFinal(), r.resultado(), r.fcr(), r.esfuerzoCliente(), r.temas(),
                 banderasCalidad, r.oportunidadVenta(), r.ventaConfirmadaEnTexto(), r.revisarLimite(), abandono,

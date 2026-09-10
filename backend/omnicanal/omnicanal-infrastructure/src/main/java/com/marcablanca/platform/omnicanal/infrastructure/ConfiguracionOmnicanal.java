@@ -3,6 +3,7 @@ package com.marcablanca.platform.omnicanal.infrastructure;
 import com.marcablanca.platform.omnicanal.application.*;
 import com.marcablanca.platform.omnicanal.application.port.in.*;
 import com.marcablanca.platform.omnicanal.application.port.out.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,17 +15,18 @@ import org.springframework.context.annotation.Configuration;
 public class ConfiguracionOmnicanal {
 
     @Bean
-    public RepositorioAnalisisEscritor repositorioAnalisisEscritor(RepositorioAnalisis repositorioAnalisis) {
-        return new RepositorioAnalisisEscritor(repositorioAnalisis);
+    public RepositorioAnalisisEscritor repositorioAnalisisEscritor(RepositorioAnalisis repositorioAnalisis,
+            RepositorioConfiguracionOmnicanal configuracionOmnicanal) {
+        return new RepositorioAnalisisEscritor(repositorioAnalisis, configuracionOmnicanal);
     }
 
     @Bean
     public RecibirConversacionArchivada recibirConversacionArchivada(
-            ResolverEmpresaPorWebhookSecreto resolverEmpresa, RepositorioConversaciones repositorioConversaciones,
-            RepositorioCasos repositorioCasos, AnalizadorDeConversacion analizadorDeConversacion,
-            RepositorioAnalisisEscritor escritorAnalisis) {
-        return new RecibirConversacionArchivadaService(resolverEmpresa, repositorioConversaciones, repositorioCasos,
-                analizadorDeConversacion, escritorAnalisis);
+            RepositorioConversaciones repositorioConversaciones, RepositorioCasos repositorioCasos,
+            AnalizadorDeConversacion analizadorDeConversacion, RepositorioAnalisisEscritor escritorAnalisis,
+            RepositorioConfiguracionOmnicanal configuracionOmnicanal) {
+        return new RecibirConversacionArchivadaService(repositorioConversaciones, repositorioCasos,
+                analizadorDeConversacion, escritorAnalisis, configuracionOmnicanal);
     }
 
     @Bean
@@ -42,6 +44,13 @@ public class ConfiguracionOmnicanal {
     public ConsultarReportesOmnicanal consultarReportesOmnicanal(RepositorioAnalisis repositorioAnalisis,
                                                                    RepositorioCasos repositorioCasos) {
         return new ConsultarReportesOmnicanalService(repositorioAnalisis, repositorioCasos);
+    }
+
+    @Bean
+    public ConfigurarOmnicanal configurarOmnicanal(RepositorioConfiguracionOmnicanal configuracionOmnicanal,
+            RegistroRuteoOmnicanal registroRuteoOmnicanal,
+            @Value("${app.omnicanal.webhook-url-base:http://localhost:8080}") String webhookUrlBase) {
+        return new ConfigurarOmnicanalService(configuracionOmnicanal, registroRuteoOmnicanal, webhookUrlBase);
     }
 
     @Bean

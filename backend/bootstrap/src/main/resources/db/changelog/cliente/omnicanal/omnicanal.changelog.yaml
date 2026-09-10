@@ -8,3 +8,4 @@ databaseChangeLog:
   - include: {file: 0007-crear-tabla-conversaciones-analizadas.yaml, relativeToChangelogFile: true}
   - include: {file: 0008-crear-tabla-seguimientos-ia.yaml, relativeToChangelogFile: true}
   - include: {file: 0009-otorgar-privilegios.yaml, relativeToChangelogFile: true}
+  - include: {file: 0010-crear-tabla-configuracion-omnicanal.yaml, relativeToChangelogFile: true}

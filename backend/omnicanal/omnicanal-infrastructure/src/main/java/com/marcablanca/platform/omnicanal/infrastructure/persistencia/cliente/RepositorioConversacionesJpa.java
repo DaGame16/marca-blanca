@@ -3,9 +3,10 @@ package com.marcablanca.platform.omnicanal.infrastructure.persistencia.cliente;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConversaciones;
 import com.marcablanca.platform.omnicanal.domain.Conversacion;
 import com.marcablanca.platform.omnicanal.domain.Turno;
-import com.marcablanca.platform.omnicanal.infrastructure.JsonUtil;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -17,10 +18,24 @@ class RepositorioConversacionesJpa implements RepositorioConversaciones {
 
     private final ConversacionJpaRepository conversaciones;
     private final TurnoJpaRepository turnos;
+    private final ObjectMapper json;
 
-    RepositorioConversacionesJpa(ConversacionJpaRepository conversaciones, TurnoJpaRepository turnos) {
+    RepositorioConversacionesJpa(ConversacionJpaRepository conversaciones, TurnoJpaRepository turnos, ObjectMapper json) {
         this.conversaciones = conversaciones;
         this.turnos = turnos;
+        this.json = json;
+    }
+
+    /**
+     * datos_crudos es NOT NULL y guarda el payload de LIWA para auditoria: si por
+     * lo que sea no serializa, se guarda "{}" en vez de tumbar la ingesta.
+     */
+    private String aJson(Map<String, Object> valor) {
+        try {
+            return json.writeValueAsString(valor);
+        } catch (JacksonException e) {
+            return "{}";
+        }
     }
 
     @Override
@@ -32,7 +47,7 @@ class RepositorioConversacionesJpa implements RepositorioConversaciones {
     public Conversacion crear(String idContacto, String nombreContacto, String historialChatCompleto,
                                Map<String, Object> datosCrudos, boolean esDeAds) {
         var e = new ConversacionEntity(idContacto, nombreContacto, historialChatCompleto,
-                JsonUtil.aJson(datosCrudos), esDeAds);
+                aJson(datosCrudos), esDeAds);
         return mapear(conversaciones.save(e));
     }
 
@@ -40,7 +55,7 @@ class RepositorioConversacionesJpa implements RepositorioConversaciones {
     public Conversacion actualizar(Long id, String historialChatCompleto, Map<String, Object> datosCrudos,
                                     boolean esDeAds, OffsetDateTime archivadaEn) {
         var e = conversaciones.findById(id).orElseThrow();
-        e.actualizar(historialChatCompleto, JsonUtil.aJson(datosCrudos), esDeAds, archivadaEn);
+        e.actualizar(historialChatCompleto, aJson(datosCrudos), esDeAds, archivadaEn);
         return mapear(conversaciones.save(e));
     }
 
