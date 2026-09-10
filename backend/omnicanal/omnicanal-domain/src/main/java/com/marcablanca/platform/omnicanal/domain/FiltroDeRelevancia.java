@@ -7,19 +7,17 @@ import java.util.regex.Pattern;
 
 /**
  * Decide que turno es contenido real de atencion y cual es ruido (menu,
- * encuesta, acuse automatico, despedida). Es la logica mas fina de todo
- * el modulo -- portada tal cual, cada regla tiene un motivo de negocio
- * concreto detras.
+ * encuesta, acuse automatico, despedida). Es la logica mas fina de todo el
+ * modulo -- portada tal cual del pipeline anterior, cada regla tiene un motivo
+ * de negocio concreto detras.
+ *
+ * El vocabulario que cambia por empresa (opciones de menu, marcadores de
+ * encuesta, frases-marca de cierre, nombre comercial como "saludo") llega en
+ * el PerfilDeAnalisisOmnicanal. Las reglas genericas (acuses de recibo,
+ * patrones de menu numerado, "quiero informacion", despedidas de cortesia) son
+ * las mismas para cualquier empresa y siguen aca como patrones fijos.
  */
 public final class FiltroDeRelevancia {
-
-    private static final Set<String> OPCIONES_MENU = Set.of(
-            "si", "no", "oficinas", "contratos", "promociones", "planes y promociones",
-            "soporte tecnico", "facturacion", "retiros", "pqr", "medios de pago",
-            "pagos y cartera", "reajuste del servicio", "sucesion", "traslado",
-            "san juan", "fonseca", "albania", "distraccion", "hatonuevo", "riohacha",
-            "barrancas", "maicao", "villanueva", "urumita", "el molino", "molino",
-            "dibulla", "buenavista", "la jagua", "uribia", "manaure");
 
     private static final Pattern PATRON_MENU_1 =
             Pattern.compile("\\b(marca|marque|selecciona|seleccione|digita|digite|escribe|escriba)\\b[^.]{0,80}\\b(opcion|numero)\\b");
@@ -31,8 +29,9 @@ public final class FiltroDeRelevancia {
             "\\b(en breve|en un momento|pronto|ya mismo)\\b[^.]*\\b(asesor|agente|te atende|lo atende|le atende|atendemos|comunicamos)");
     private static final Pattern PATRON_ACUSE_2 = Pattern.compile(
             "un asesor (se comunicara|te contactara|lo contactara|le contactara|te atendera|lo atendera|le atendera)");
-    private static final Pattern PATRON_SALUDO = Pattern.compile(
-            "\\b(hola+|buenas?|buenos|dias|tardes|noches|hey|saludos|cordial saludo|bienvenido|bienvenida|guajiranet|un gusto saludarte|estimado|estimada|senor|senora|amigo|amiga)\\b");
+    private static final String SALUDO_BASE =
+            "hola+|buenas?|buenos|dias|tardes|noches|hey|saludos|cordial saludo|bienvenido|bienvenida|"
+                    + "un gusto saludarte|estimado|estimada|senor|senora|amigo|amiga";
     private static final Pattern PATRON_ATENTOS = Pattern.compile(
             "\\b(estaremos atentos|quedamos atentos|cualquier (inquietud|cosa|duda) (estamos|quedamos) (atentos|pendientes))\\b");
     private static final Pattern PATRON_DESPEDIDA = Pattern.compile(
@@ -40,7 +39,24 @@ public final class FiltroDeRelevancia {
     private static final Pattern PATRON_FORM =
             Pattern.compile("docs\\.google\\.com/forms|forms\\.gle/", Pattern.CASE_INSENSITIVE);
 
-    private FiltroDeRelevancia() {
+    private final Set<String> opcionesMenu;
+    private final List<String> marcadoresEncuesta;
+    private final List<String> frasesMarcaRuido;
+    private final Pattern patronSaludo;
+
+    public FiltroDeRelevancia(PerfilDeAnalisisOmnicanal perfil) {
+        // Las tres colecciones se comparan contra texto YA normalizado (sin
+        // acentos, minusculas), asi que sus entradas se normalizan aca: da igual
+        // si el perfil las trae con tildes/mayusculas.
+        this.opcionesMenu = perfil.opcionesMenu().stream()
+                .map(FiltroDeRelevancia::normalizar).collect(java.util.stream.Collectors.toUnmodifiableSet());
+        this.marcadoresEncuesta = perfil.marcadoresEncuesta().stream()
+                .map(FiltroDeRelevancia::normalizar).toList();
+        this.frasesMarcaRuido = perfil.frasesMarcaRuido().stream()
+                .map(FiltroDeRelevancia::normalizar).toList();
+        String nombre = normalizar(perfil.nombreEmpresa() == null ? "" : perfil.nombreEmpresa());
+        String alternativas = nombre.isBlank() ? SALUDO_BASE : SALUDO_BASE + "|" + Pattern.quote(nombre);
+        this.patronSaludo = Pattern.compile("\\b(" + alternativas + ")\\b");
     }
 
     public static String normalizar(String texto) {
@@ -48,16 +64,20 @@ public final class FiltroDeRelevancia {
         return sinAcentos.toLowerCase().strip().replaceAll("\\s+", " ");
     }
 
-    public static boolean esTurnoDeEncuesta(String mensaje) {
+    public boolean esTurnoDeEncuesta(String mensaje) {
         String t = normalizar(mensaje);
-        return PATRON_FORM.matcher(t).find()
-                || t.contains("gracias por comunicarse con nosotros")
-                || t.contains("gracias por comunicarnos")
-                || t.contains("por favor diligencia este enlace")
-                || t.contains("diligenciar el siguiente formulario");
+        if (PATRON_FORM.matcher(t).find()) {
+            return true;
+        }
+        for (String marcador : marcadoresEncuesta) {
+            if (t.contains(marcador)) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    public static boolean esTurnoNoRelevante(String mensaje) {
+    public boolean esTurnoNoRelevante(String mensaje) {
         String t = normalizar(mensaje);
         if (t.isEmpty()) {
             return true;
@@ -90,27 +110,30 @@ public final class FiltroDeRelevancia {
         }
 
         String opcion = t.replaceAll("[^a-z0-9 ]", "").strip();
-        if (OPCIONES_MENU.contains(opcion)) {
+        if (opcionesMenu.contains(opcion)) {
             return true;
         }
 
-        String restante = PATRON_SALUDO.matcher(t).replaceAll("").replaceAll("[^a-z0-9]", "");
+        String restante = patronSaludo.matcher(t).replaceAll("").replaceAll("[^a-z0-9]", "");
         if (restante.length() <= 2 && !t.contains("?")) {
             return true;
         }
 
         boolean esSoloColetillaDeAtentos = PATRON_ATENTOS.matcher(t).find() && t.length() <= 100;
         boolean esSoloDespedidaCortes = PATRON_DESPEDIDA.matcher(t).find() && t.length() <= 100;
+        if (esSoloColetillaDeAtentos || esSoloDespedidaCortes) {
+            return true;
+        }
 
-        return esSoloColetillaDeAtentos || esSoloDespedidaCortes
-                || t.contains("gracias por preferirnos")
-                || t.contains("esperamos poder servirte nuevamente")
-                || t.contains("guajiranet conectando sueño")
-                || t.contains("somos guajiranet conectando")
-                || t.contains("recuerde somos guajiranet");
+        for (String frase : frasesMarcaRuido) {
+            if (t.contains(frase)) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    public static boolean segmentoTieneContenidoReal(List<TurnoParseado> turnos) {
+    public boolean segmentoTieneContenidoReal(List<TurnoParseado> turnos) {
         return turnos.stream().anyMatch(t -> !esTurnoNoRelevante(t.mensaje()));
     }
 }

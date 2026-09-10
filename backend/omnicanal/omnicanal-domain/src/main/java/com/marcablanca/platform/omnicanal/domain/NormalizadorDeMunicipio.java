@@ -3,34 +3,34 @@ package com.marcablanca.platform.omnicanal.domain;
 import java.util.List;
 import java.util.Map;
 
-/** Fuzzy-matching de municipios de La Guajira/Cesar contra lo que devuelve la IA en texto libre. */
+/**
+ * Fuzzy-matching de lugares (municipios/zonas de cobertura) contra lo que
+ * devuelve la IA en texto libre. La lista de lugares conocidos, sus
+ * abreviaturas y los valores que cuentan como "sin lugar" llegan en el
+ * PerfilDeAnalisisOmnicanal -- son datos de cada empresa. El algoritmo
+ * (Levenshtein con tolerancia, busqueda por ventana, capitalizacion) es el
+ * mismo para todas.
+ */
 public final class NormalizadorDeMunicipio {
 
-    private static final List<String> MUNICIPIOS_CONOCIDOS = List.of(
-            "Riohacha", "Albania", "Barrancas", "Dibulla", "Distracción",
-            "Fonseca", "Hatonuevo", "La Jagua del Pilar", "Maicao", "Manaure",
-            "Molino", "San Juan del Cesar", "Uribia", "Urumita", "Villanueva",
-            "Buenavista",
-            "Valledupar", "Aguachica", "Agustín Codazzi", "Astrea", "Becerril",
-            "Bosconia", "Chimichagua", "Chiriguaná", "Curumaní", "El Copey",
-            "El Paso", "Gamarra", "González", "La Gloria", "La Jagua de Ibirico",
-            "La Paz", "Manaure Balcón del Cesar", "Pailitas", "Pelaya",
-            "Pueblo Bello", "Río de Oro", "San Alberto", "San Diego",
-            "San Martín", "Tamalameque", "Guacoche");
+    private final List<String> lugaresConocidos;
+    private final Map<String, String> abreviaturas;
+    private final List<String> vacios;
 
-    private static final Map<String, String> ABREVIATURAS = Map.of(
-            "san juan", "San Juan del Cesar",
-            "sanjuan", "San Juan del Cesar",
-            "codazzi", "Agustín Codazzi",
-            "la jagua", "La Jagua de Ibirico");
-
-    private static final List<String> VACIOS = List.of(
-            "null", "n/a", "na", "ninguno", "no aplica", "la guajira", "guajira", "cesar");
-
-    private NormalizadorDeMunicipio() {
+    public NormalizadorDeMunicipio(PerfilDeAnalisisOmnicanal perfil) {
+        // lugaresConocidos se normaliza al vuelo dentro del fuzzy-match y su
+        // nombre crudo (con tildes) es el valor de salida, asi que se guarda tal
+        // cual. En cambio las claves de abreviaturas y los "vacios" se comparan
+        // contra texto ya normalizado -> se normalizan aca.
+        this.lugaresConocidos = List.copyOf(perfil.lugaresConocidos());
+        this.abreviaturas = perfil.abreviaturasLugar().entrySet().stream()
+                .collect(java.util.stream.Collectors.toUnmodifiableMap(
+                        e -> FiltroDeRelevancia.normalizar(e.getKey()), Map.Entry::getValue));
+        this.vacios = perfil.lugaresVacios().stream()
+                .map(FiltroDeRelevancia::normalizar).toList();
     }
 
-    public static String normalizar(String crudo) {
+    public String normalizar(String crudo) {
         if (crudo == null) {
             return null;
         }
@@ -40,11 +40,11 @@ public final class NormalizadorDeMunicipio {
         }
 
         String normalizado = FiltroDeRelevancia.normalizar(limpio);
-        if (VACIOS.contains(normalizado)) {
+        if (vacios.contains(normalizado)) {
             return null;
         }
 
-        String abreviatura = ABREVIATURAS.get(normalizado);
+        String abreviatura = abreviaturas.get(normalizado);
         if (abreviatura != null) {
             return abreviatura;
         }
@@ -72,10 +72,10 @@ public final class NormalizadorDeMunicipio {
         return sb.toString().strip();
     }
 
-    private static String buscarCoincidenciaCompleta(String normalizado, double tolerancia) {
+    private String buscarCoincidenciaCompleta(String normalizado, double tolerancia) {
         String mejor = null;
         int menorDistancia = Integer.MAX_VALUE;
-        for (String lugar : MUNICIPIOS_CONOCIDOS) {
+        for (String lugar : lugaresConocidos) {
             String objetivo = FiltroDeRelevancia.normalizar(lugar);
             if (normalizado.isEmpty() || objetivo.isEmpty() || normalizado.charAt(0) != objetivo.charAt(0)) {
                 continue;
@@ -90,10 +90,10 @@ public final class NormalizadorDeMunicipio {
         return mejor;
     }
 
-    private static String buscarCoincidenciaPorVentana(String normalizado, double tolerancia) {
+    private String buscarCoincidenciaPorVentana(String normalizado, double tolerancia) {
         String mejor = null;
         int menorDistancia = Integer.MAX_VALUE;
-        for (String lugar : MUNICIPIOS_CONOCIDOS) {
+        for (String lugar : lugaresConocidos) {
             String objetivo = FiltroDeRelevancia.normalizar(lugar);
             int largo = objetivo.length();
             if (normalizado.length() < largo || largo == 0) {

@@ -2,6 +2,9 @@ package com.marcablanca.platform.omnicanal.infrastructure;
 
 import com.marcablanca.platform.omnicanal.domain.PerfilDeAnalisisOmnicanal;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * El perfil que se usa cuando una empresa no configuro el suyo en
  * omnicanal.tbl_configuracion_omnicanal. Es, palabra por palabra, el
@@ -11,6 +14,11 @@ import com.marcablanca.platform.omnicanal.domain.PerfilDeAnalisisOmnicanal;
  *
  * Vive en -infrastructure a proposito: el dominio define la forma
  * (PerfilDeAnalisisOmnicanal), no los datos de ninguna empresa.
+ *
+ * Las frases/opciones se dejan tal cual se escribieron (con tildes, "sueño"):
+ * FiltroDeRelevancia las normaliza en su constructor antes de comparar. El
+ * pipeline original tenia un bug aca -- comparaba "sueño" literal contra texto
+ * ya sin acentos y nunca casaba; ahora si.
  */
 public final class PerfilDeAnalisisPredeterminado {
 
@@ -22,7 +30,42 @@ public final class PerfilDeAnalisisPredeterminado {
             PROMPT_SISTEMA(),
             PLANTILLA_PROMPT(),
             "https://chat.liwa.co",
-            "587226");
+            "587226",
+            List.of(
+                    "si", "no", "oficinas", "contratos", "promociones", "planes y promociones",
+                    "soporte tecnico", "facturacion", "retiros", "pqr", "medios de pago",
+                    "pagos y cartera", "reajuste del servicio", "sucesion", "traslado",
+                    "san juan", "fonseca", "albania", "distraccion", "hatonuevo", "riohacha",
+                    "barrancas", "maicao", "villanueva", "urumita", "el molino", "molino",
+                    "dibulla", "buenavista", "la jagua", "uribia", "manaure"),
+            List.of(
+                    "gracias por comunicarse con nosotros",
+                    "gracias por comunicarnos",
+                    "por favor diligencia este enlace",
+                    "diligenciar el siguiente formulario"),
+            List.of(
+                    "gracias por preferirnos",
+                    "esperamos poder servirte nuevamente",
+                    "guajiranet conectando sueño",
+                    "somos guajiranet conectando",
+                    "recuerde somos guajiranet"),
+            List.of(
+                    "Riohacha", "Albania", "Barrancas", "Dibulla", "Distracción",
+                    "Fonseca", "Hatonuevo", "La Jagua del Pilar", "Maicao", "Manaure",
+                    "Molino", "San Juan del Cesar", "Uribia", "Urumita", "Villanueva",
+                    "Buenavista",
+                    "Valledupar", "Aguachica", "Agustín Codazzi", "Astrea", "Becerril",
+                    "Bosconia", "Chimichagua", "Chiriguaná", "Curumaní", "El Copey",
+                    "El Paso", "Gamarra", "González", "La Gloria", "La Jagua de Ibirico",
+                    "La Paz", "Manaure Balcón del Cesar", "Pailitas", "Pelaya",
+                    "Pueblo Bello", "Río de Oro", "San Alberto", "San Diego",
+                    "San Martín", "Tamalameque", "Guacoche"),
+            Map.of(
+                    "san juan", "San Juan del Cesar",
+                    "sanjuan", "San Juan del Cesar",
+                    "codazzi", "Agustín Codazzi",
+                    "la jagua", "La Jagua de Ibirico"),
+            List.of("null", "n/a", "na", "ninguno", "no aplica", "la guajira", "guajira", "cesar"));
 
     private static String PROMPT_SISTEMA() {
         return "Eres un auditor de calidad de servicio al cliente para GuajiraNet, un proveedor de internet (ISP) "

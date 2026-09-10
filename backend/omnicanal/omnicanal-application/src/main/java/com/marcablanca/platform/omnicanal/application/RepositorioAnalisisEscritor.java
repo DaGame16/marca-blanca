@@ -3,6 +3,8 @@ package com.marcablanca.platform.omnicanal.application;
 import com.marcablanca.platform.omnicanal.application.port.out.AnalizadorDeConversacion;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioAnalisis;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioCasos;
+import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConfiguracionOmnicanal;
+import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConfiguracionOmnicanal.ConfiguracionDeTenant;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConversaciones;
 import com.marcablanca.platform.omnicanal.domain.*;
 
@@ -12,20 +14,28 @@ import java.util.List;
 
 /**
  * Pieza compartida entre ingesta y reprocesamiento: dado un Caso, arma los
- * turnos relevantes, llama al puerto de IA, calcula abandono, y guarda.
- * Se separo para no duplicarla entre los 2 servicios que la usan.
+ * turnos relevantes (con el vocabulario de la empresa activa), llama al puerto
+ * de IA, calcula abandono, normaliza el municipio y guarda. Se separo para no
+ * duplicarla entre los 2 servicios que la usan.
  */
 public class RepositorioAnalisisEscritor {
 
     private final RepositorioAnalisis repositorioAnalisis;
+    private final RepositorioConfiguracionOmnicanal configuracion;
 
-    public RepositorioAnalisisEscritor(RepositorioAnalisis repositorioAnalisis) {
+    public RepositorioAnalisisEscritor(RepositorioAnalisis repositorioAnalisis,
+                                       RepositorioConfiguracionOmnicanal configuracion) {
         this.repositorioAnalisis = repositorioAnalisis;
+        this.configuracion = configuracion;
     }
 
     public void analizarYGuardar(Caso caso, AnalizadorDeConversacion analizador,
                                   RepositorioConversaciones repoConversaciones, RepositorioCasos repoCasos,
                                   String idContactoConocido) {
+        ConfiguracionDeTenant cfg = configuracion.deLaEmpresaActiva();
+        FiltroDeRelevancia filtro = new FiltroDeRelevancia(cfg.perfil());
+        NormalizadorDeMunicipio normalizadorMunicipio = new NormalizadorDeMunicipio(cfg.perfil());
+
         List<Turno> turnosDelCaso = repoConversaciones.listarTurnos(caso.conversacionId()).stream()
                 .filter(t -> t.orden() >= caso.turnoOrdenInicio() && t.orden() <= caso.turnoOrdenFin())
                 .sorted(java.util.Comparator.comparingInt(Turno::orden))
@@ -44,9 +54,9 @@ public class RepositorioAnalisisEscritor {
                 .toList();
 
         List<TurnoParseado> relevantes = paraCalculo.stream()
-                .filter(t -> !FiltroDeRelevancia.esTurnoNoRelevante(t.mensaje())).toList();
+                .filter(t -> !filtro.esTurnoNoRelevante(t.mensaje())).toList();
         if (relevantes.isEmpty()) {
-            relevantes = paraCalculo.stream().filter(t -> !FiltroDeRelevancia.esTurnoDeEncuesta(t.mensaje())).toList();
+            relevantes = paraCalculo.stream().filter(t -> !filtro.esTurnoDeEncuesta(t.mensaje())).toList();
         }
         if (relevantes.isEmpty()) {
             repositorioAnalisis.eliminarPorCaso(caso.id());
@@ -57,7 +67,8 @@ public class RepositorioAnalisisEscritor {
         var metricas = calcularMetricasDeTiempo(relevantes);
         String ultimoEnHablar = relevantes.get(relevantes.size() - 1).esCliente() ? "cliente" : "asesor_o_bot";
 
-        ResultadoAnalisisIa r = analizador.analizar(relevantes);
+        var ia = analizador.analizar(relevantes);
+        ResultadoAnalisisIa r = ia.resultado().conMunicipio(normalizadorMunicipio.normalizar(ia.resultado().municipio()));
 
         var abandonoCalculado = calcularAbandono(r.resultado(), ultimoEnHablar, r.tipoUltimoMensajeEmpresa());
         boolean sinRespuesta = abandonoCalculado.abandonadoPor() == AbandonadoPor.ASESOR
@@ -73,7 +84,7 @@ public class RepositorioAnalisisEscritor {
 
         repositorioAnalisis.guardar(caso.id(), idContactoConocido, r, abandonoCalculado.abandono(),
                 abandonoCalculado.abandonadoPor(), banderas, metricas.primerMensaje(), metricas.primeraRespuesta(),
-                metricas.cierre(), caso.archivadaEn(), caso.esDeAds(), "gpt-4.1-mini");
+                metricas.cierre(), caso.archivadaEn(), caso.esDeAds(), ia.modeloUsado());
 
         repoCasos.marcarProcesada(caso.id(), true);
     }

@@ -47,7 +47,7 @@ public class AdaptadorOpenAI implements AnalizadorDeConversacion {
     }
 
     @Override
-    public ResultadoAnalisisIa analizar(List<TurnoParseado> turnosRelevantes) {
+    public AnalisisDeIa analizar(List<TurnoParseado> turnosRelevantes) {
         ConfiguracionDeTenant cfg = configuracion.deLaEmpresaActiva();
 
         if (!cfg.iaHabilitada() || apiKey == null || apiKey.isBlank()) {
@@ -66,7 +66,7 @@ public class AdaptadorOpenAI implements AnalizadorDeConversacion {
 
         String contenido = llamarConReintentos(cfg.perfil().promptSistema(),
                 cfg.perfil().prompt(textoConversacion), modelo);
-        return parsearRespuesta(contenido);
+        return new AnalisisDeIa(parsearRespuesta(contenido), modelo);
     }
 
     private String llamarConReintentos(String promptSistema, String promptUsuario, String modelo) {

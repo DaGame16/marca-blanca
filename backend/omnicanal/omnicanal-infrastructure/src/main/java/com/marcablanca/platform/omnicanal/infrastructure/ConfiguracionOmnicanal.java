@@ -14,16 +14,18 @@ import org.springframework.context.annotation.Configuration;
 public class ConfiguracionOmnicanal {
 
     @Bean
-    public RepositorioAnalisisEscritor repositorioAnalisisEscritor(RepositorioAnalisis repositorioAnalisis) {
-        return new RepositorioAnalisisEscritor(repositorioAnalisis);
+    public RepositorioAnalisisEscritor repositorioAnalisisEscritor(RepositorioAnalisis repositorioAnalisis,
+            RepositorioConfiguracionOmnicanal configuracionOmnicanal) {
+        return new RepositorioAnalisisEscritor(repositorioAnalisis, configuracionOmnicanal);
     }
 
     @Bean
     public RecibirConversacionArchivada recibirConversacionArchivada(
             RepositorioConversaciones repositorioConversaciones, RepositorioCasos repositorioCasos,
-            AnalizadorDeConversacion analizadorDeConversacion, RepositorioAnalisisEscritor escritorAnalisis) {
+            AnalizadorDeConversacion analizadorDeConversacion, RepositorioAnalisisEscritor escritorAnalisis,
+            RepositorioConfiguracionOmnicanal configuracionOmnicanal) {
         return new RecibirConversacionArchivadaService(repositorioConversaciones, repositorioCasos,
-                analizadorDeConversacion, escritorAnalisis);
+                analizadorDeConversacion, escritorAnalisis, configuracionOmnicanal);
     }
 
     @Bean

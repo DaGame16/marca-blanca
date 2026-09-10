@@ -1,5 +1,6 @@
 package com.marcablanca.platform.omnicanal.infrastructure.persistencia.cliente;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConfiguracionOmnicanal;
@@ -7,6 +8,9 @@ import com.marcablanca.platform.omnicanal.domain.PerfilDeAnalisisOmnicanal;
 import com.marcablanca.platform.omnicanal.infrastructure.CifradorOmnicanal;
 import com.marcablanca.platform.omnicanal.infrastructure.PerfilDeAnalisisPredeterminado;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Map;
 
 @Component
 class RepositorioConfiguracionOmnicanalJpa implements RepositorioConfiguracionOmnicanal {
@@ -52,7 +56,13 @@ class RepositorioConfiguracionOmnicanalJpa implements RepositorioConfiguracionOm
                     texto(n, "promptSistema", base.promptSistema()),
                     texto(n, "plantillaPrompt", base.plantillaPrompt()),
                     texto(n, "liwaBaseUrl", base.liwaBaseUrl()),
-                    texto(n, "liwaCustomFieldAds", base.liwaCustomFieldAds()));
+                    texto(n, "liwaCustomFieldAds", base.liwaCustomFieldAds()),
+                    lista(n, "opcionesMenu", base.opcionesMenu()),
+                    lista(n, "marcadoresEncuesta", base.marcadoresEncuesta()),
+                    lista(n, "frasesMarcaRuido", base.frasesMarcaRuido()),
+                    lista(n, "lugaresConocidos", base.lugaresConocidos()),
+                    mapa(n, "abreviaturasLugar", base.abreviaturasLugar()),
+                    lista(n, "lugaresVacios", base.lugaresVacios()));
         } catch (Exception e) {
             return base;
         }
@@ -61,5 +71,23 @@ class RepositorioConfiguracionOmnicanalJpa implements RepositorioConfiguracionOm
     private static String texto(JsonNode n, String campo, String porDefecto) {
         JsonNode v = n.get(campo);
         return (v == null || v.isNull() || v.asText().isBlank()) ? porDefecto : v.asText();
+    }
+
+    private List<String> lista(JsonNode n, String campo, List<String> porDefecto) {
+        JsonNode v = n.get(campo);
+        if (v == null || v.isNull() || !v.isArray()) {
+            return porDefecto;
+        }
+        return mapper.convertValue(v, new TypeReference<List<String>>() {
+        });
+    }
+
+    private Map<String, String> mapa(JsonNode n, String campo, Map<String, String> porDefecto) {
+        JsonNode v = n.get(campo);
+        if (v == null || v.isNull() || !v.isObject()) {
+            return porDefecto;
+        }
+        return mapper.convertValue(v, new TypeReference<Map<String, String>>() {
+        });
     }
 }

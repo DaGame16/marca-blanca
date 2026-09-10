@@ -3,6 +3,7 @@ package com.marcablanca.platform.omnicanal.application;
 import com.marcablanca.platform.omnicanal.application.port.in.RecibirConversacionArchivada;
 import com.marcablanca.platform.omnicanal.application.port.out.AnalizadorDeConversacion;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioCasos;
+import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConfiguracionOmnicanal;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConversaciones;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConversaciones.TurnoParseadoConOrden;
 import com.marcablanca.platform.omnicanal.domain.*;
@@ -33,19 +34,24 @@ public class RecibirConversacionArchivadaService implements RecibirConversacionA
     private final RepositorioCasos repositorioCasos;
     private final AnalizadorDeConversacion analizadorDeConversacion;
     private final RepositorioAnalisisEscritor escritorAnalisis;
+    private final RepositorioConfiguracionOmnicanal configuracion;
 
     public RecibirConversacionArchivadaService(RepositorioConversaciones repositorioConversaciones,
                                                 RepositorioCasos repositorioCasos,
                                                 AnalizadorDeConversacion analizadorDeConversacion,
-                                                RepositorioAnalisisEscritor escritorAnalisis) {
+                                                RepositorioAnalisisEscritor escritorAnalisis,
+                                                RepositorioConfiguracionOmnicanal configuracion) {
         this.repositorioConversaciones = repositorioConversaciones;
         this.repositorioCasos = repositorioCasos;
         this.analizadorDeConversacion = analizadorDeConversacion;
         this.escritorAnalisis = escritorAnalisis;
+        this.configuracion = configuracion;
     }
 
     @Override
     public void ejecutar(Map<String, Object> payload) {
+        FiltroDeRelevancia filtro = new FiltroDeRelevancia(configuracion.deLaEmpresaActiva().perfil());
+
         String idContacto = String.valueOf(payload.getOrDefault("user_id", "desconocido"));
         String historial = String.valueOf(payload.getOrDefault("chat_history_details_large", ""));
         boolean esDeAds = "1".equals(payload.get("ads"));
@@ -87,14 +93,14 @@ public class RecibirConversacionArchivadaService implements RecibirConversacionA
 
             List<Integer> indicesRelevantes = new ArrayList<>();
             for (int j = 0; j < segmento.size(); j++) {
-                if (!FiltroDeRelevancia.esTurnoDeEncuesta(segmento.get(j).mensaje())) {
+                if (!filtro.esTurnoDeEncuesta(segmento.get(j).mensaje())) {
                     indicesRelevantes.add(j);
                 }
             }
             if (indicesRelevantes.isEmpty()) {
                 continue;
             }
-            if (!FiltroDeRelevancia.segmentoTieneContenidoReal(segmento)) {
+            if (!filtro.segmentoTieneContenidoReal(segmento)) {
                 continue;
             }
 
