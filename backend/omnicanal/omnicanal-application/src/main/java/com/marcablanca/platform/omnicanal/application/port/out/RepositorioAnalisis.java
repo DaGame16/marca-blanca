@@ -15,6 +15,9 @@ public interface RepositorioAnalisis {
 
     void eliminarPorCaso(Long casoId);
 
+    /** Marca es_de_ads en el analisis de un caso, si existe (backfill de ads). */
+    void marcarEsDeAdsPorCaso(Long casoId, boolean esDeAds);
+
     Optional<AnalisisDeCaso> buscarPorId(String uuid);
 
     Optional<AnalisisDeCaso> buscarPorCasoId(Long casoId);

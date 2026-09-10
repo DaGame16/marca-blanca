@@ -8,9 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Golden test: el perfil ISP por defecto tiene que reproducir, palabra por
- * palabra, el prompt que el pipeline original mandaba a OpenAI. Si algo de esto
- * se rompe, cambia el analisis de TODAS las empresas que no configuraron su
+ * Golden test: el perfil ISP por defecto tiene que reproducir el prompt del
+ * pipeline original (liwa-webhook del ERP en NestJS). Si algo de esto se
+ * rompe, cambia el análisis de TODAS las empresas que no configuraron su
  * propio perfil.
  */
 class PerfilDeAnalisisPredeterminadoTest {
@@ -25,26 +25,26 @@ class PerfilDeAnalisisPredeterminadoTest {
     }
 
     @Test
-    void prompt_de_sistema_conserva_el_criterio_del_pipeline_original() {
+    void prompt_de_sistema_con_tildes_y_criterio_del_pipeline() {
         String s = isp.promptSistema();
         assertTrue(s.startsWith("Eres un auditor de calidad de servicio al cliente para GuajiraNet, "
                 + "un proveedor de internet (ISP) en La Guajira, Colombia."));
-        assertTrue(s.contains("NO das por resuelto nada que no se haya resuelto de verdad"));
-        assertTrue(s.contains("Respondes UNICAMENTE con un objeto JSON valido"));
+        assertTrue(s.contains("Distingues con precisión entre un mensaje automático de cortesía"));
+        assertTrue(s.contains("Respondes ÚNICAMENTE con un objeto JSON válido"));
     }
 
     @Test
-    void plantilla_de_prompt_conserva_taxonomia_y_formato_de_salida() {
+    void plantilla_conserva_las_reglas_largas_del_prompt_original() {
         String p = isp.plantillaPrompt();
-        assertTrue(p.contains("Analiza esta conversacion de atencion al cliente de GuajiraNet, proveedor de internet."));
-        // Los continuadores de linea "\" del text block no dejan saltos partidos.
-        assertTrue(p.contains("Valores: \"resuelto\", \"no_resuelto\", \"escalado\"."));
-        assertTrue(p.contains("categoria_oficina (uno o null): CONTRATOS, PLANES Y PROMOCIONES, TRASLADO, "
-                + "FACTURACION, RETIROS, MEDIOS DE PAGO, PAGOS Y CARTERA, PQR, SUCESION, REAJUSTE DEL SERVICIO."));
-        assertTrue(p.contains("motivo_contacto (uno): soporte, facturacion, reconexion, ventas, PQR, "
-                + "cobertura, informacion."));
-        assertTrue(p.contains("\"revisar_limite\": true|false"));
-        assertTrue(p.contains("%s"), "la plantilla debe tener el marcador de la conversacion");
+        assertTrue(p.contains("Analiza esta conversación de atención al cliente de GuajiraNet, proveedor de internet."));
+        assertTrue(p.contains("EVALÚA TODA LA CONVERSACIÓN, NO SOLO EL ÚLTIMO MENSAJE."));
+        assertTrue(p.contains("REGLA DURA — la plantilla de remisión a soporte SIEMPRE es \"escalado\""));
+        assertTrue(p.contains("OJO — no confundas el mensaje automático inicial con el último mensaje real"));
+        assertTrue(p.contains("VALIDACIÓN FINAL:"));
+        assertTrue(p.contains("categoria_oficina — exactamente uno o null:"));
+        assertTrue(p.contains("motivo_contacto — exactamente uno:"));
+        assertTrue(p.contains("\"revisar_limite\": true | false"));
+        assertTrue(p.contains("%s"), "la plantilla debe tener el marcador de la conversación");
     }
 
     @Test
@@ -52,5 +52,14 @@ class PerfilDeAnalisisPredeterminadoTest {
         String armado = isp.prompt("[CLIENTE] Juan (hoy): no tengo internet");
         assertTrue(armado.contains("[CLIENTE] Juan (hoy): no tengo internet"));
         assertFalse(armado.contains("%s"));
+        // el bloque de la conversación queda entre los delimitadores de tres comillas
+        assertTrue(armado.contains("\"\"\"\n[CLIENTE] Juan (hoy): no tengo internet\n\"\"\""));
+    }
+
+    @Test
+    void plantilla_esta_recortada_como_el_trim_del_original() {
+        String p = isp.plantillaPrompt();
+        assertFalse(p.startsWith("\n") || p.startsWith(" "));
+        assertFalse(p.endsWith("\n") || p.endsWith(" "));
     }
 }

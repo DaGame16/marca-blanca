@@ -20,6 +20,14 @@ public interface RepositorioConversaciones {
 
     void marcarSoloArchivado(Long id, boolean esDeAds);
 
+    /** (conversacionId, idContacto) de cada contacto -- para el backfill de ads. */
+    record RefContacto(Long conversacionId, String idContacto) {
+    }
+
+    List<RefContacto> contactos();
+
+    void marcarVieneDeAds(Long conversacionId, boolean vieneDeAds);
+
     List<Turno> listarTurnos(Long conversacionId);
 
     int siguienteOrden(Long conversacionId);

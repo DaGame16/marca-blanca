@@ -6,6 +6,8 @@ import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConfig
 import com.marcablanca.platform.omnicanal.domain.Resultado;
 import com.marcablanca.platform.omnicanal.domain.ResultadoAnalisisIa;
 import com.marcablanca.platform.omnicanal.domain.TurnoParseado;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -28,8 +30,25 @@ import java.util.Map;
 @Component
 public class AdaptadorOpenAI implements AnalizadorDeConversacion {
 
+    private static final Logger log = LoggerFactory.getLogger(AdaptadorOpenAI.class);
+
     private static final int MAX_INTENTOS = 4;
+
+    // Catalogos del prompt: si la IA devuelve algo fuera de estos, se guarda
+    // null (o el default de motivo). Mismos valores que el liwa-webhook original.
     private static final List<String> RESULTADOS_PERMITIDOS = List.of("resuelto", "no_resuelto", "escalado");
+    private static final List<String> MOTIVOS_PERMITIDOS =
+            List.of("soporte", "facturación", "reconexión", "ventas", "PQR", "cobertura", "información");
+    private static final String MOTIVO_POR_DEFECTO = "información";
+    private static final List<String> AREAS_PERMITIDAS =
+            List.of("comercial", "soporte", "facturación", "retención/PQR");
+    private static final List<String> CATEGORIAS_OFICINA_PERMITIDAS = List.of(
+            "CONTRATOS", "PLANES Y PROMOCIONES", "TRASLADO", "FACTURACIÓN", "RETIROS",
+            "MEDIOS DE PAGO", "PAGOS Y CARTERA", "PQR", "SUCESIÓN", "REAJUSTE DEL SERVICIO");
+    private static final List<String> SENTIMIENTOS_PERMITIDOS = List.of("positivo", "neutral", "negativo");
+    private static final List<String> ESFUERZOS_PERMITIDOS = List.of("bajo", "medio", "alto");
+    private static final List<String> TIPOS_ULTIMO_MENSAJE_EMPRESA = List.of(
+            "promesa_incumplida", "pidio_datos", "respuesta_real", "despedida", "otro", "ninguno");
 
     private final RestClient restClient = RestClient.create("https://api.openai.com/v1");
 
@@ -66,9 +85,23 @@ public class AdaptadorOpenAI implements AnalizadorDeConversacion {
                 .map(t -> "[" + t.autor().name() + "] " + t.nombre() + " (" + t.fechaTexto() + "): " + t.mensaje())
                 .reduce((a, b) -> a + "\n\n" + b).orElse("");
 
-        String contenido = llamarConReintentos(cfg.perfil().promptSistema(),
-                cfg.perfil().prompt(textoConversacion), modelo);
-        return new AnalisisDeIa(parsearRespuesta(contenido), modelo);
+        String promptSistema = cfg.perfil().promptSistema();
+        String promptUsuario = cfg.perfil().prompt(textoConversacion);
+
+        ResultadoAnalisisIa r = parsearRespuesta(llamarConReintentos(promptSistema, promptUsuario, modelo));
+
+        // "resultado" es la base de abandono/fcr/reportes. Si viene fuera de
+        // catalogo (raro con temperature=0), vale un segundo intento antes de
+        // resignarse a guardar null -- igual que en el liwa-webhook original.
+        if (r.resultado() == null) {
+            log.warn("La IA devolvio un 'resultado' fuera de catalogo -- reintentando una vez.");
+            r = parsearRespuesta(llamarConReintentos(promptSistema, promptUsuario, modelo));
+            if (r.resultado() == null) {
+                log.warn("La IA volvio a devolver un 'resultado' fuera de catalogo -- se guarda como null.");
+            }
+        }
+
+        return new AnalisisDeIa(r, modelo);
     }
 
     private String llamarConReintentos(String promptSistema, String promptUsuario, String modelo) {
@@ -103,10 +136,28 @@ public class AdaptadorOpenAI implements AnalizadorDeConversacion {
                 if (!reintentable || intento == MAX_INTENTOS) {
                     throw ultimoError;
                 }
-                esperar(Math.min(30000, 1000L * (1L << (intento - 1))));
+                esperar(esperaMs(e, intento));
             }
         }
         throw ultimoError;
+    }
+
+    /** Respeta el header Retry-After si viene; si no, backoff exponencial con jitter. */
+    private static long esperaMs(org.springframework.web.client.HttpStatusCodeException e, int intento) {
+        String retryAfter = e.getResponseHeaders() == null ? null : e.getResponseHeaders().getFirst("Retry-After");
+        if (retryAfter != null) {
+            try {
+                long segundos = Long.parseLong(retryAfter.trim());
+                if (segundos > 0) {
+                    return Math.min(30000, segundos * 1000);
+                }
+            } catch (NumberFormatException ignored) {
+                // Retry-After tambien puede venir como fecha HTTP; en ese caso se ignora
+                // y se cae al backoff exponencial.
+            }
+        }
+        long base = Math.min(30000, 1000L * (1L << (intento - 1)));
+        return base + java.util.concurrent.ThreadLocalRandom.current().nextInt(300);
     }
 
     private void esperar(long ms) {
@@ -117,14 +168,14 @@ public class AdaptadorOpenAI implements AnalizadorDeConversacion {
         }
     }
 
-    private ResultadoAnalisisIa parsearRespuesta(String contenidoJson) {
+    ResultadoAnalisisIa parsearRespuesta(String contenidoJson) {
         try {
             JsonNode n = mapper.readTree(contenidoJson);
-            String resultadoTexto = n.path("resultado").asString(null);
-            Resultado resultado = null;
-            if (resultadoTexto != null && RESULTADOS_PERMITIDOS.contains(resultadoTexto.toLowerCase())) {
-                resultado = Resultado.valueOf(resultadoTexto.toUpperCase());
-            }
+
+            String resultadoTexto = sanitizarEnum(textoONull(n, "resultado"), RESULTADOS_PERMITIDOS);
+            Resultado resultado = resultadoTexto == null ? null : Resultado.valueOf(resultadoTexto.toUpperCase());
+
+            String motivo = sanitizarEnum(textoONull(n, "motivo_contacto"), MOTIVOS_PERMITIDOS);
 
             List<String> temas = new ArrayList<>();
             if (n.has("temas") && n.get("temas").isArray()) {
@@ -132,17 +183,46 @@ public class AdaptadorOpenAI implements AnalizadorDeConversacion {
             }
 
             return new ResultadoAnalisisIa(
-                    textoONull(n, "razonamiento"), textoONull(n, "motivo_contacto"), textoONull(n, "submotivo"),
-                    textoONull(n, "categoria_oficina"), textoONull(n, "municipio"), textoONull(n, "barrio"),
-                    textoONull(n, "area_destino"), textoONull(n, "resumen_motivo"), textoONull(n, "resumen_desenlace"),
-                    textoONull(n, "sentimiento_inicial"), textoONull(n, "sentimiento_final"), resultado,
-                    textoONull(n, "tipo_ultimo_mensaje_empresa"), boolONull(n, "fcr"), textoONull(n, "esfuerzo_cliente"),
+                    textoONull(n, "razonamiento"),
+                    motivo != null ? motivo : MOTIVO_POR_DEFECTO,
+                    textoONull(n, "submotivo"),
+                    sanitizarEnum(textoONull(n, "categoria_oficina"), CATEGORIAS_OFICINA_PERMITIDAS),
+                    textoONull(n, "municipio"), textoONull(n, "barrio"),
+                    sanitizarEnum(textoONull(n, "area_destino"), AREAS_PERMITIDAS),
+                    textoONull(n, "resumen_motivo"), textoONull(n, "resumen_desenlace"),
+                    sanitizarEnum(textoONull(n, "sentimiento_inicial"), SENTIMIENTOS_PERMITIDOS),
+                    sanitizarEnum(textoONull(n, "sentimiento_final"), SENTIMIENTOS_PERMITIDOS),
+                    resultado,
+                    sanitizarEnum(textoONull(n, "tipo_ultimo_mensaje_empresa"), TIPOS_ULTIMO_MENSAJE_EMPRESA),
+                    boolONull(n, "fcr"),
+                    sanitizarEnum(textoONull(n, "esfuerzo_cliente"), ESFUERZOS_PERMITIDOS),
                     temas.stream().limit(6).toList(), boolONull(n, "oportunidad_venta"),
                     boolONull(n, "venta_confirmada_en_texto"), boolONull(n, "trato_inadecuado"),
                     n.path("gestion_pendiente").asBoolean(false), n.path("revisar_limite").asBoolean(false));
         } catch (Exception e) {
             throw new IllegalStateException("No se pudo parsear la respuesta de OpenAI: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Devuelve el valor CANONICO del catalogo (respetando su capitalizacion)
+     * si el texto de la IA coincide sin importar mayusculas/espacios; null si
+     * no esta en el catalogo. Igual que sanitizarEnum del liwa-webhook.
+     */
+    static String sanitizarEnum(String valor, List<String> permitidos) {
+        if (valor == null) {
+            return null;
+        }
+        String t = valor.trim().toLowerCase();
+        if (t.isEmpty()) {
+            return null;
+        }
+        for (String p : permitidos) {
+            if (p.toLowerCase().equals(t)) {
+                return p;
+            }
+        }
+        return null;
     }
 
     private String textoONull(JsonNode n, String campo) {

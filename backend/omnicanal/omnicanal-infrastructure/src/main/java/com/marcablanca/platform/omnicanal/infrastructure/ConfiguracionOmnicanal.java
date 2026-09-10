@@ -20,18 +20,33 @@ public class ConfiguracionOmnicanal {
         return new RepositorioAnalisisEscritor(repositorioAnalisis, configuracionOmnicanal);
     }
 
+    /**
+     * Solo las escrituras de la ingesta van en transaccion (base del cliente);
+     * el analisis IA que dispara despues RecibirConversacionArchivadaService
+     * queda FUERA, para no tener una conexion tomada mientras espera a OpenAI.
+     */
     @Bean
-    public RecibirConversacionArchivada recibirConversacionArchivada(
+    public IngestarConversacionArchivada ingestarConversacionArchivada(
             RepositorioConversaciones repositorioConversaciones, RepositorioCasos repositorioCasos,
-            AnalizadorDeConversacion analizadorDeConversacion, RepositorioAnalisisEscritor escritorAnalisis,
             RepositorioConfiguracionOmnicanal configuracionOmnicanal) {
-        return new RecibirConversacionArchivadaService(repositorioConversaciones, repositorioCasos,
-                analizadorDeConversacion, escritorAnalisis, configuracionOmnicanal);
+        return new IngestarConversacionArchivadaTransaccional(
+                new IngestarConversacionArchivadaService(repositorioConversaciones, repositorioCasos,
+                        configuracionOmnicanal));
     }
 
     @Bean
-    public ConsultarConversaciones consultarConversaciones(RepositorioConversaciones repositorioConversaciones) {
-        return new ConsultarConversacionesService(repositorioConversaciones);
+    public RecibirConversacionArchivada recibirConversacionArchivada(
+            IngestarConversacionArchivada ingestarConversacionArchivada,
+            AnalizadorDeConversacion analizadorDeConversacion, RepositorioAnalisisEscritor escritorAnalisis,
+            RepositorioConversaciones repositorioConversaciones, RepositorioCasos repositorioCasos) {
+        return new RecibirConversacionArchivadaService(ingestarConversacionArchivada, analizadorDeConversacion,
+                escritorAnalisis, repositorioConversaciones, repositorioCasos);
+    }
+
+    @Bean
+    public ConsultarConversaciones consultarConversaciones(RepositorioConversaciones repositorioConversaciones,
+            RepositorioCasos repositorioCasos, RepositorioAnalisis repositorioAnalisis) {
+        return new ConsultarConversacionesService(repositorioConversaciones, repositorioCasos, repositorioAnalisis);
     }
 
     @Bean
@@ -51,6 +66,13 @@ public class ConfiguracionOmnicanal {
             RegistroRuteoOmnicanal registroRuteoOmnicanal,
             @Value("${app.omnicanal.webhook-url-base:http://localhost:8080}") String webhookUrlBase) {
         return new ConfigurarOmnicanalService(configuracionOmnicanal, registroRuteoOmnicanal, webhookUrlBase);
+    }
+
+    @Bean
+    public EjecutarBackfillDeAds ejecutarBackfillDeAds(RepositorioConversaciones repositorioConversaciones,
+            RepositorioCasos repositorioCasos, RepositorioAnalisis repositorioAnalisis, ClienteLiwa clienteLiwa) {
+        return new EjecutarBackfillDeAdsService(repositorioConversaciones, repositorioCasos, repositorioAnalisis,
+                clienteLiwa);
     }
 
     @Bean
