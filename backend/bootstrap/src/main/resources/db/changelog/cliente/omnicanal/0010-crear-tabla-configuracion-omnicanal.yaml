@@ -1,0 +1,61 @@
+databaseChangeLog:
+  - changeSet:
+      id: omnicanal-0010-crear-tabla-configuracion-omnicanal
+      author: leidi
+      comment: >
+        Configuracion de omnicanal por empresa, en la base de CADA empresa (no
+        en la de control -- alli solo vive el ruteo webhook_secret -> empresa).
+        Fila unica. liwa_api_token va cifrado (AES, ver CifradorOmnicanal).
+        perfil_analisis es un JSON con el prompt de IA y los datos de LIWA; si
+        esta vacio se usa el perfil ISP por defecto (PerfilDeAnalisisPredeterminado).
+        Los privilegios de guajiranet_app / guajiranet_lectura los hereda del
+        ALTER DEFAULT PRIVILEGES del changeset omnicanal-0009.
+      changes:
+        - createTable:
+            schemaName: omnicanal
+            tableName: tbl_configuracion_omnicanal
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints: {primaryKey: true, primaryKeyName: pk_configuracion_omnicanal}
+              - column:
+                  name: uuid
+                  type: UUID
+                  defaultValueComputed: gen_random_uuid()
+                  constraints: {nullable: false, unique: true, uniqueConstraintName: uq_configuracion_omnicanal_uuid}
+              - column: {name: liwa_api_token, type: TEXT}
+              - column: {name: liwa_base_url, type: VARCHAR(255)}
+              - column: {name: liwa_custom_field_ads, type: VARCHAR(60)}
+              - column:
+                  name: ia_habilitada
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints: {nullable: false}
+              - column: {name: openai_modelo, type: VARCHAR(80)}
+              - column: {name: perfil_analisis, type: JSONB}
+              - column:
+                  name: fila_unica
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints: {nullable: false, unique: true, uniqueConstraintName: uq_configuracion_omnicanal_fila_unica}
+              - column:
+                  name: creado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints: {nullable: false}
+              - column:
+                  name: actualizado_en
+                  type: TIMESTAMP WITH TIME ZONE
+                  defaultValueComputed: now()
+                  constraints: {nullable: false}
+        - sql:
+            comment: fila_unica solo puede valer true -- garantiza una sola fila de config.
+            sql: >
+              ALTER TABLE omnicanal.tbl_configuracion_omnicanal
+              ADD CONSTRAINT ck_configuracion_omnicanal_fila_unica CHECK (fila_unica)
+      rollback:
+        - dropTable:
+            schemaName: omnicanal
+            tableName: tbl_configuracion_omnicanal
