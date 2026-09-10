@@ -466,6 +466,12 @@ export class MisModulosComponent implements OnInit {
   }
 
   rutaPanel(codigo: string): string {
-    return codigo === '3cx' ? '/panel/pbx-3cx' : `/panel/${codigo}`;
+    if (codigo === '3cx') {
+      return '/panel/pbx-3cx';
+    }
+    if (codigo === 'omnicanal') {
+      return '/panel/omnicanal/liwa';
+    }
+    return `/panel/${codigo}`;
   }
 }
