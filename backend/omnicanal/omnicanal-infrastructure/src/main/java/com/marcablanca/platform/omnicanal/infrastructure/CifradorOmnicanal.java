@@ -18,6 +18,11 @@ public class CifradorOmnicanal {
 
     private final TextEncryptor encryptor;
 
+    // Encryptors.text esta deprecado en Spring Security 6 (su KDF es viejo), pero
+    // no hay reemplazo 1:1 en la API publica y CifradorDeCorreo usa exactamente
+    // lo mismo. Cambiarlo altera el formato del texto cifrado ya guardado -> es
+    // una migracion que toca correo y omnicanal a la vez, fuera de este cambio.
+    @SuppressWarnings("deprecation")
     public CifradorOmnicanal(
             @Value("${app.omnicanal.clave-maestra:solo-para-desarrollo-local-cambiar-siempre}") String claveMaestra) {
         // Salt hexadecimal fijo -- no es secreto (va junto a lo cifrado, como un IV),

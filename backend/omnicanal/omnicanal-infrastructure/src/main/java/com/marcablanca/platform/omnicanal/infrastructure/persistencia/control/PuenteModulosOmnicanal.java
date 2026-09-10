@@ -2,7 +2,6 @@ package com.marcablanca.platform.omnicanal.infrastructure.persistencia.control;
 
 import com.marcablanca.platform.empresas.application.ContextoEmpresaActual;
 import com.marcablanca.platform.modulosempresa.application.port.in.ListarModulosDeEmpresa;
-import com.marcablanca.platform.modulosempresa.domain.ModuloDeEmpresa;
 import com.marcablanca.platform.omnicanal.application.port.out.ModuloOmnicanalHabilitado;
 import org.springframework.stereotype.Component;
 
