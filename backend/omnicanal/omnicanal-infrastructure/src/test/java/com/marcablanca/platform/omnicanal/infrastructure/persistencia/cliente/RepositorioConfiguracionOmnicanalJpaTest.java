@@ -1,6 +1,6 @@
 package com.marcablanca.platform.omnicanal.infrastructure.persistencia.cliente;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConfiguracionOmnicanal.ConfiguracionDeTenant;
 import com.marcablanca.platform.omnicanal.infrastructure.CifradorOmnicanal;
 import com.marcablanca.platform.omnicanal.infrastructure.PerfilDeAnalisisPredeterminado;

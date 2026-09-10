@@ -1,8 +1,8 @@
 package com.marcablanca.platform.omnicanal.infrastructure.persistencia.cliente;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConfiguracionOmnicanal;
 import com.marcablanca.platform.omnicanal.domain.PerfilDeAnalisisOmnicanal;
 import com.marcablanca.platform.omnicanal.infrastructure.CifradorOmnicanal;
@@ -70,7 +70,7 @@ class RepositorioConfiguracionOmnicanalJpa implements RepositorioConfiguracionOm
 
     private static String texto(JsonNode n, String campo, String porDefecto) {
         JsonNode v = n.get(campo);
-        return (v == null || v.isNull() || v.asText().isBlank()) ? porDefecto : v.asText();
+        return (v == null || v.isNull() || v.asString().isBlank()) ? porDefecto : v.asString();
     }
 
     private List<String> lista(JsonNode n, String campo, List<String> porDefecto) {

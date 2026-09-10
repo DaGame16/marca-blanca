@@ -1,7 +1,5 @@
 package com.marcablanca.platform.omnicanal.infrastructure.seguridad;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.marcablanca.platform.omnicanal.application.port.out.AnalizadorDeConversacion;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConfiguracionOmnicanal;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConfiguracionOmnicanal.ConfiguracionDeTenant;
@@ -13,6 +11,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,18 +32,20 @@ public class AdaptadorOpenAI implements AnalizadorDeConversacion {
     private static final List<String> RESULTADOS_PERMITIDOS = List.of("resuelto", "no_resuelto", "escalado");
 
     private final RestClient restClient = RestClient.create("https://api.openai.com/v1");
-    private final ObjectMapper mapper = new ObjectMapper();
 
+    private final ObjectMapper mapper;
     private final String apiKey;
     private final String modeloPorDefecto;
     private final RepositorioConfiguracionOmnicanal configuracion;
 
     public AdaptadorOpenAI(@Value("${app.omnicanal.openai-api-key:}") String apiKey,
                            @Value("${app.omnicanal.openai-modelo:gpt-4.1-mini}") String modeloPorDefecto,
-                           RepositorioConfiguracionOmnicanal configuracion) {
+                           RepositorioConfiguracionOmnicanal configuracion,
+                           ObjectMapper mapper) {
         this.apiKey = apiKey;
         this.modeloPorDefecto = modeloPorDefecto;
         this.configuracion = configuracion;
+        this.mapper = mapper;
     }
 
     @Override
@@ -90,7 +92,7 @@ public class AdaptadorOpenAI implements AnalizadorDeConversacion {
                         .retrieve()
                         .body(JsonNode.class);
 
-                String contenido = respuesta.path("choices").path(0).path("message").path("content").asText(null);
+                String contenido = respuesta.path("choices").path(0).path("message").path("content").asString(null);
                 if (contenido == null) {
                     throw new IllegalStateException("Respuesta de OpenAI sin contenido");
                 }
@@ -118,7 +120,7 @@ public class AdaptadorOpenAI implements AnalizadorDeConversacion {
     private ResultadoAnalisisIa parsearRespuesta(String contenidoJson) {
         try {
             JsonNode n = mapper.readTree(contenidoJson);
-            String resultadoTexto = n.path("resultado").asText(null);
+            String resultadoTexto = n.path("resultado").asString(null);
             Resultado resultado = null;
             if (resultadoTexto != null && RESULTADOS_PERMITIDOS.contains(resultadoTexto.toLowerCase())) {
                 resultado = Resultado.valueOf(resultadoTexto.toUpperCase());
@@ -126,7 +128,7 @@ public class AdaptadorOpenAI implements AnalizadorDeConversacion {
 
             List<String> temas = new ArrayList<>();
             if (n.has("temas") && n.get("temas").isArray()) {
-                n.get("temas").forEach(t -> temas.add(t.asText()));
+                n.get("temas").forEach(t -> temas.add(t.asString()));
             }
 
             return new ResultadoAnalisisIa(
@@ -145,7 +147,7 @@ public class AdaptadorOpenAI implements AnalizadorDeConversacion {
 
     private String textoONull(JsonNode n, String campo) {
         JsonNode v = n.get(campo);
-        return (v == null || v.isNull()) ? null : v.asText();
+        return (v == null || v.isNull()) ? null : v.asString();
     }
 
     private Boolean boolONull(JsonNode n, String campo) {

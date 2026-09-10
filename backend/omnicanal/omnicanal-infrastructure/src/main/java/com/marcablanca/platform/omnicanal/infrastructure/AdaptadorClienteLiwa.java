@@ -1,6 +1,6 @@
 package com.marcablanca.platform.omnicanal.infrastructure;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import com.marcablanca.platform.omnicanal.application.port.out.ClienteLiwa;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConfiguracionOmnicanal;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConfiguracionOmnicanal.ConfiguracionDeTenant;
@@ -41,7 +41,7 @@ class AdaptadorClienteLiwa implements ClienteLiwa {
             if (respuesta.has("error")) {
                 return Optional.empty();
             }
-            return Optional.of("1".equals(respuesta.path("value").asText(null)));
+            return Optional.of("1".equals(respuesta.path("value").asString(null)));
         } catch (Exception e) {
             return Optional.empty();
         }
