@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -19,6 +19,7 @@ import { ConsolaAuthService } from '../../../core/consola/consola-auth.service';
   standalone: true,
   imports: [
     ReactiveFormsModule,
+    RouterLink,
     MatButtonModule,
     MatFormFieldModule,
     MatIconModule,
@@ -28,6 +29,11 @@ import { ConsolaAuthService } from '../../../core/consola/consola-auth.service';
   template: `
     <div class="pagina">
       <div class="tarjeta">
+        <a routerLink="/" class="volver">
+          <mat-icon>arrow_back</mat-icon>
+          Volver al inicio
+        </a>
+
         <div class="marca">
           <mat-icon>shield_person</mat-icon>
           <div>
@@ -170,6 +176,32 @@ import { ConsolaAuthService } from '../../../core/consola/consola-auth.service';
         color: #b3261e;
         font-size: 13px;
         margin: 0 0 14px;
+      }
+
+      .volver {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 20px;
+        font-size: 0.85rem;
+        color: #64748b;
+        text-decoration: none;
+      }
+
+      .volver:hover {
+        color: #0e7490;
+      }
+
+      .volver:focus-visible {
+        outline: 2px solid #0e7490;
+        outline-offset: 2px;
+        border-radius: 4px;
+      }
+
+      .volver mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
       }
 
       .error mat-icon {
