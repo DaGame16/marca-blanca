@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -16,9 +16,9 @@ import { VistaConfig } from '../models/liwa.model';
   imports: [CommonModule, FormsModule, MatIconModule],
   template: `
     <section class="tarjeta">
-      <div class="cargando" *ngIf="cargando"><mat-icon class="spin">progress_activity</mat-icon> Cargando configuración…</div>
+      <div class="cargando" *ngIf="cargando()"><mat-icon class="spin">progress_activity</mat-icon> Cargando configuración…</div>
 
-      <ng-container *ngIf="!cargando && config">
+      <ng-container *ngIf="!cargando() && config() as config">
         <div class="bloque">
           <h2><mat-icon>smart_toy</mat-icon> Inteligencia artificial</h2>
           <p class="ayuda">Controla si los casos archivados se analizan automáticamente con IA (motivo, sentimiento, resolución, oportunidades de venta).</p>
@@ -123,7 +123,7 @@ import { VistaConfig } from '../models/liwa.model';
         </div>
       </ng-container>
 
-      <p class="error" *ngIf="!cargando && !config">No se pudo cargar la configuración del módulo.</p>
+      <p class="error" *ngIf="!cargando() && !config()">No se pudo cargar la configuración del módulo.</p>
     </section>
   `,
   styles: [`
@@ -181,8 +181,8 @@ export class LiwaConfigPanelComponent implements OnInit {
   // normal sin que el usuario tenga que recargar la pagina.
   @Output() guardado = new EventEmitter<void>();
 
-  cargando = true;
-  config: VistaConfig | null = null;
+  cargando = signal(true);
+  config = signal<VistaConfig | null>(null);
   form = { iaHabilitada: false, openaiModelo: '' as string | null, liwaBaseUrl: '' as string | null, liwaCustomFieldAds: '' as string | null };
 
   tokenNuevo = '';
@@ -200,19 +200,20 @@ export class LiwaConfigPanelComponent implements OnInit {
   }
 
   private async cargar(): Promise<void> {
-    this.cargando = true;
+    this.cargando.set(true);
     try {
-      this.config = await this.liwa.obtenerConfig();
+      const config = await this.liwa.obtenerConfig();
+      this.config.set(config);
       this.form = {
-        iaHabilitada: this.config.iaHabilitada,
-        openaiModelo: this.config.openaiModelo,
-        liwaBaseUrl: this.config.liwaBaseUrl,
-        liwaCustomFieldAds: this.config.liwaCustomFieldAds,
+        iaHabilitada: config.iaHabilitada,
+        openaiModelo: config.openaiModelo,
+        liwaBaseUrl: config.liwaBaseUrl,
+        liwaCustomFieldAds: config.liwaCustomFieldAds,
       };
     } catch {
-      this.config = null;
+      this.config.set(null);
     } finally {
-      this.cargando = false;
+      this.cargando.set(false);
     }
   }
 
@@ -225,7 +226,7 @@ export class LiwaConfigPanelComponent implements OnInit {
     this.limpiarMensajes();
     this.guardando = true;
     try {
-      this.config = await this.liwa.actualizarConfig(this.form);
+      this.config.set(await this.liwa.actualizarConfig(this.form));
       this.mensajeOk = 'Configuración guardada.';
     } catch {
       this.mensajeError = 'No se pudo guardar la configuración.';
@@ -241,7 +242,7 @@ export class LiwaConfigPanelComponent implements OnInit {
     try {
       await this.liwa.guardarTokenLiwa(this.tokenNuevo.trim());
       this.tokenNuevo = '';
-      const noTeniaToken = !this.config?.liwaTokenConfigurado;
+      const noTeniaToken = !this.config()?.liwaTokenConfigurado;
       await this.cargar();
       this.mensajeOk = 'Token guardado.';
       if (noTeniaToken) {
@@ -274,7 +275,7 @@ export class LiwaConfigPanelComponent implements OnInit {
     this.limpiarMensajes();
     this.rotando = true;
     try {
-      this.config = await this.liwa.rotarSecretoWebhook();
+      this.config.set(await this.liwa.rotarSecretoWebhook());
       this.mensajeOk = 'Secreto rotado -- actualízalo también en Liwa.';
     } catch {
       this.mensajeError = 'No se pudo rotar el secreto.';
