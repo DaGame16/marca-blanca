@@ -30,6 +30,7 @@ const CODIGO_A_TEMA_PAGINA: Record<number, TemaPagina> = { 1: 'clasico', 2: 'com
           <span class="nav-section">CONFIGURACIÓN</span>
           <a routerLink="/mi-marca" routerLinkActive="active"><mat-icon>palette</mat-icon><span>Identidad de marca</span></a>
           <a routerLink="/tema-login" routerLinkActive="active"><mat-icon>dashboard_customize</mat-icon><span>Experiencia de acceso</span></a>
+          <a routerLink="/panel/omnicanal/liwa/config" routerLinkActive="active"><mat-icon>settings</mat-icon><span>Configuración de Liwa</span></a>
         </nav>
         <div class="sidebar-help"><mat-icon>support</mat-icon><div><strong>¿Necesitas ayuda?</strong><span>Consulta con soporte</span></div></div>
         <button class="logout-button" type="button" (click)="auth.logout()"><mat-icon>logout</mat-icon><span>Cerrar sesión</span></button>
@@ -120,6 +121,9 @@ export class ShellComponent {
     }
     if (path.includes('usuarios')) {
       return 'Usuarios y accesos';
+    }
+    if (path.includes('panel/omnicanal/liwa/config')) {
+      return 'Configuración de Liwa';
     }
     if (path.includes('panel/omnicanal')) {
       return 'Omnicanal';

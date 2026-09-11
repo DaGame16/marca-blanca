@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -127,7 +127,7 @@ import { VistaConfig } from '../models/liwa.model';
     </section>
   `,
   styles: [`
-    .tarjeta { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; max-width: 720px; display: flex; flex-direction: column; gap: 28px; }
+    .tarjeta { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
     .cargando { display: flex; align-items: center; gap: 8px; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
     .spin { animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -176,6 +176,11 @@ import { VistaConfig } from '../models/liwa.model';
   `],
 })
 export class LiwaConfigPanelComponent implements OnInit {
+  // Se emite cuando el token de Liwa queda configurado por primera vez --
+  // el panel del modulo lo usa para pasar de "sin configurar" a la vista
+  // normal sin que el usuario tenga que recargar la pagina.
+  @Output() guardado = new EventEmitter<void>();
+
   cargando = true;
   config: VistaConfig | null = null;
   form = { iaHabilitada: false, openaiModelo: '' as string | null, liwaBaseUrl: '' as string | null, liwaCustomFieldAds: '' as string | null };
@@ -236,8 +241,12 @@ export class LiwaConfigPanelComponent implements OnInit {
     try {
       await this.liwa.guardarTokenLiwa(this.tokenNuevo.trim());
       this.tokenNuevo = '';
+      const noTeniaToken = !this.config?.liwaTokenConfigurado;
       await this.cargar();
       this.mensajeOk = 'Token guardado.';
+      if (noTeniaToken) {
+        this.guardado.emit();
+      }
     } catch {
       this.mensajeError = 'No se pudo guardar el token.';
     } finally {

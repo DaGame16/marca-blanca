@@ -56,6 +56,12 @@ export const routes: Routes = [
         canActivate: [moduloActivoGuard('omnicanal')],
       },
       { path: 'panel/pbx-3cx', component: Pbx3cxPanelComponent },
+      {
+        path: 'panel/omnicanal/liwa/config',
+        loadComponent: () =>
+          import('./features/omnicanal-liwa/pages/config/omnicanal-liwa-config-page.component').then((m) => m.OmnicanalLiwaConfigPageComponent),
+        canActivate: [moduloActivoGuard('omnicanal')],
+      },
     ],
   },
   { path: '**', redirectTo: '' },
