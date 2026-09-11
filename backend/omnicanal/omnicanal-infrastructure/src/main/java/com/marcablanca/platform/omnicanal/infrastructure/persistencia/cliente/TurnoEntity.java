@@ -23,7 +23,7 @@ class TurnoEntity {
     @Column(nullable = false)
     private Integer orden;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = ConversorAutorTurno.class)
     @Column(nullable = false, length = 20)
     private AutorTurno autor;
 
