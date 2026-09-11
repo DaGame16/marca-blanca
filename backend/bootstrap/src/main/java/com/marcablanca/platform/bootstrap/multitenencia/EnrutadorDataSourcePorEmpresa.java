@@ -61,8 +61,16 @@ public class EnrutadorDataSourcePorEmpresa extends AbstractRoutingDataSource {
         EmpresaConexion conexion = resolverConexionDeEmpresa.ejecutar(identificadorEmpresa);
 
         HikariDataSource dataSource = new HikariDataSource();
+        // preferQueryMode=simple: con el protocolo "extended" (default de
+        // pgjdbc), Postgres intenta inferir el tipo de cada parametro del
+        // lado del servidor -- y falla ("could not determine data type of
+        // parameter $N") en JPQL con patrones "(:x is null or col = :x)"
+        // porque Hibernate genera un placeholder DISTINTO para cada
+        // aparicion de :x, y el que solo se usa en "is null" no tiene de
+        // donde sacar el tipo. En modo simple, pgjdbc manda los valores
+        // como literales (sin bind server-side), evitando el problema.
         dataSource.setJdbcUrl("jdbc:postgresql://" + conexion.host() + ":" + conexion.puerto()
-                + "/" + conexion.nombreBd());
+                + "/" + conexion.nombreBd() + "?preferQueryMode=simple");
         dataSource.setUsername("guajiranet_app");
         dataSource.setPassword("guajiranet_app");
         dataSource.setPoolName("tenant-" + identificadorEmpresa);
