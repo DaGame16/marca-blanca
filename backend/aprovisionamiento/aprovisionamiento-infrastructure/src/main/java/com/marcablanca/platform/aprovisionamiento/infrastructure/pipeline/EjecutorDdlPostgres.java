@@ -165,6 +165,12 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
 
         String correo = empresa.getCorreo();
         String contrasenaTemporal = generarContrasenaTemporal();
+        // TEMPORAL -- SOLO PARA PRUEBAS: sin SMTP funcionando (Render bloquea
+        // salida SMTP en el plan free) esta es la unica forma de ver la
+        // contraseña generada. QUITAR antes de que esto maneje datos reales
+        // -- una contraseña en texto plano en logs es un problema de
+        // seguridad real, no solo un detalle de estilo.
+        log.warn("[SOLO PRUEBAS] Contrasena temporal para {}: {}", correo, contrasenaTemporal);
         sembrarUsuarioAdmin(empresa, correo, contrasenaTemporal);
 
         String nombreEmpresa = empresa.getNombreComercial() != null
