@@ -35,7 +35,12 @@ server {
         # Necesario para que el handshake TLS funcione cuando el backend es
         # https (Render enruta por SNI en su borde) -- inofensivo si es http.
         proxy_ssl_server_name on;
-        proxy_set_header Host $host;
+        # CRITICO en Render: su borde enruta por el header Host, no por IP.
+        # Mandar el Host ORIGINAL (el del frontend) hacia el backend hace que
+        # Render piense que la request es PARA el frontend otra vez -> la
+        # devuelve al mismo sitio -> loop -> 508 Loop Detected. Hay que
+        # mandarle el host real del backend al que se esta conectando.
+        proxy_set_header Host ${BACKEND_HOST};
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
