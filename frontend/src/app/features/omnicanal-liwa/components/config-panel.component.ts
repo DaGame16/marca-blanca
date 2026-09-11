@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -16,37 +16,12 @@ import { VistaConfig } from '../models/liwa.model';
   imports: [CommonModule, FormsModule, MatIconModule],
   template: `
     <section class="tarjeta">
-      <div class="cargando" *ngIf="cargando"><mat-icon class="spin">progress_activity</mat-icon> Cargando configuración…</div>
+      <div class="cargando" *ngIf="cargando()"><mat-icon class="spin">progress_activity</mat-icon> Cargando configuración…</div>
 
-      <ng-container *ngIf="!cargando && config">
-        <div class="bloque">
-          <h2><mat-icon>smart_toy</mat-icon> Inteligencia artificial</h2>
-          <p class="ayuda">Controla si los casos archivados se analizan automáticamente con IA (motivo, sentimiento, resolución, oportunidades de venta).</p>
-
-          <label class="check-grande">
-            <input type="checkbox" [(ngModel)]="form.iaHabilitada" />
-            <span>Analizar conversaciones con IA</span>
-          </label>
-
-          <div class="campo">
-            <label>Modelo de OpenAI</label>
-            <input type="text" [(ngModel)]="form.openaiModelo" placeholder="gpt-4o-mini" [disabled]="!form.iaHabilitada" />
-          </div>
-        </div>
-
+      <ng-container *ngIf="!cargando() && config() as config">
         <div class="bloque">
           <h2><mat-icon>hub</mat-icon> Integración con Liwa</h2>
           <p class="ayuda">Datos del bot de WhatsApp que archiva las conversaciones para analizar.</p>
-
-          <div class="campo">
-            <label>URL base de Liwa</label>
-            <input type="text" [(ngModel)]="form.liwaBaseUrl" placeholder="https://api.liwa.co" />
-          </div>
-
-          <div class="campo">
-            <label>Campo personalizado para Ads</label>
-            <input type="text" [(ngModel)]="form.liwaCustomFieldAds" placeholder="Nombre del custom field que marca leads de Meta Ads" />
-          </div>
 
           <div class="campo">
             <label>Token de Liwa</label>
@@ -123,11 +98,11 @@ import { VistaConfig } from '../models/liwa.model';
         </div>
       </ng-container>
 
-      <p class="error" *ngIf="!cargando && !config">No se pudo cargar la configuración del módulo.</p>
+      <p class="error" *ngIf="!cargando() && !config()">No se pudo cargar la configuración del módulo.</p>
     </section>
   `,
   styles: [`
-    .tarjeta { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; max-width: 720px; display: flex; flex-direction: column; gap: 28px; }
+    .tarjeta { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
     .cargando { display: flex; align-items: center; gap: 8px; padding: 24px; color: #94a3b8; font-size: 0.85rem; }
     .spin { animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -176,8 +151,13 @@ import { VistaConfig } from '../models/liwa.model';
   `],
 })
 export class LiwaConfigPanelComponent implements OnInit {
-  cargando = true;
-  config: VistaConfig | null = null;
+  // Se emite cuando el token de Liwa queda configurado por primera vez --
+  // el panel del modulo lo usa para pasar de "sin configurar" a la vista
+  // normal sin que el usuario tenga que recargar la pagina.
+  @Output() guardado = new EventEmitter<void>();
+
+  cargando = signal(true);
+  config = signal<VistaConfig | null>(null);
   form = { iaHabilitada: false, openaiModelo: '' as string | null, liwaBaseUrl: '' as string | null, liwaCustomFieldAds: '' as string | null };
 
   tokenNuevo = '';
@@ -195,19 +175,20 @@ export class LiwaConfigPanelComponent implements OnInit {
   }
 
   private async cargar(): Promise<void> {
-    this.cargando = true;
+    this.cargando.set(true);
     try {
-      this.config = await this.liwa.obtenerConfig();
+      const config = await this.liwa.obtenerConfig();
+      this.config.set(config);
       this.form = {
-        iaHabilitada: this.config.iaHabilitada,
-        openaiModelo: this.config.openaiModelo,
-        liwaBaseUrl: this.config.liwaBaseUrl,
-        liwaCustomFieldAds: this.config.liwaCustomFieldAds,
+        iaHabilitada: config.iaHabilitada,
+        openaiModelo: config.openaiModelo,
+        liwaBaseUrl: config.liwaBaseUrl,
+        liwaCustomFieldAds: config.liwaCustomFieldAds,
       };
     } catch {
-      this.config = null;
+      this.config.set(null);
     } finally {
-      this.cargando = false;
+      this.cargando.set(false);
     }
   }
 
@@ -220,7 +201,7 @@ export class LiwaConfigPanelComponent implements OnInit {
     this.limpiarMensajes();
     this.guardando = true;
     try {
-      this.config = await this.liwa.actualizarConfig(this.form);
+      this.config.set(await this.liwa.actualizarConfig(this.form));
       this.mensajeOk = 'Configuración guardada.';
     } catch {
       this.mensajeError = 'No se pudo guardar la configuración.';
@@ -236,8 +217,12 @@ export class LiwaConfigPanelComponent implements OnInit {
     try {
       await this.liwa.guardarTokenLiwa(this.tokenNuevo.trim());
       this.tokenNuevo = '';
+      const noTeniaToken = !this.config()?.liwaTokenConfigurado;
       await this.cargar();
       this.mensajeOk = 'Token guardado.';
+      if (noTeniaToken) {
+        this.guardado.emit();
+      }
     } catch {
       this.mensajeError = 'No se pudo guardar el token.';
     } finally {
@@ -265,7 +250,7 @@ export class LiwaConfigPanelComponent implements OnInit {
     this.limpiarMensajes();
     this.rotando = true;
     try {
-      this.config = await this.liwa.rotarSecretoWebhook();
+      this.config.set(await this.liwa.rotarSecretoWebhook());
       this.mensajeOk = 'Secreto rotado -- actualízalo también en Liwa.';
     } catch {
       this.mensajeError = 'No se pudo rotar el secreto.';

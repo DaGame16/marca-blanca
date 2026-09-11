@@ -35,7 +35,12 @@ export interface CambiarContrasenaRequest {
   contrasenaNueva: string;
 }
 
-// Modelo de usuario para el frontend (derivado de la respuesta de login)
+// Modelo de usuario para el frontend (derivado de la respuesta de login).
+// "correo" no viene en LoginResponse/RefreshResponse (el backend solo manda
+// el id) -- se guarda aparte, del propio formulario de login, porque es lo
+// unico que tenemos para mostrar algo mas legible que un UUID en la barra
+// superior. En un refresh de token se conserva el que ya habia.
 export interface UserInfo {
   usuarioId: string;
+  correo?: string;
 }

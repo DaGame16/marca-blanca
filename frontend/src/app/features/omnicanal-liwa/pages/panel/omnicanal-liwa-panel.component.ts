@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -19,7 +19,7 @@ import { LiwaAsesoresPanelComponent } from '../../components/asesores-panel.comp
 import { LiwaCaseReportsPanelComponent } from '../../components/case-reports-panel.component';
 import { LiwaConfigPanelComponent } from '../../components/config-panel.component';
 
-type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesores' | 'ads' | 'config';
+type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesores' | 'ads';
 
 // Traducción de pages/reportes/liwa.tsx (guajiranet) al patrón Angular
 // standalone de marca-blanca. Orquesta el selector de vistas y el filtro de
@@ -59,7 +59,20 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
     LiwaConfigPanelComponent,
   ],
   template: `
-    <div class="liwa-page">
+    <div class="liwa-page" *ngIf="verificandoConfig()">
+      <div class="cargando-config"><mat-icon class="spin">progress_activity</mat-icon> Cargando módulo…</div>
+    </div>
+
+    <div class="liwa-page" *ngIf="!verificandoConfig() && !configurado()">
+      <div class="sin-configurar">
+        <mat-icon>settings_suggest</mat-icon>
+        <h2>Configura el módulo antes de empezar</h2>
+        <p>Todavía no tienes un token de Liwa configurado -- sin eso, el módulo no puede sincronizar conversaciones. Complétalo aquí para empezar a ver tus datos.</p>
+      </div>
+      <app-liwa-config-panel (guardado)="alConfigurar()" />
+    </div>
+
+    <div class="liwa-page" *ngIf="!verificandoConfig() && configurado()">
       <header class="liwa-header">
         <div class="titulo">
           <div class="icono-titulo"><mat-icon>forum</mat-icon></div>
@@ -105,9 +118,6 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
         <button type="button" [class.activo]="vista === 'indicadores'" (click)="vista = 'indicadores'">KPIs</button>
         <button type="button" [class.activo]="vista === 'asesores'" (click)="vista = 'asesores'">Asesores</button>
         <button type="button" class="ads" [class.activo]="vista === 'ads'" (click)="vista = 'ads'">Meta Ads</button>
-        <button type="button" class="config" [class.activo]="vista === 'config'" (click)="vista = 'config'">
-          <mat-icon inline>settings</mat-icon> Configuración
-        </button>
       </nav>
 
       <ng-container [ngSwitch]="vista">
@@ -122,9 +132,6 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
         </div>
         <div *ngSwitchCase="'ads'">
           <app-liwa-ads-panel [desde]="desde || undefined" [hasta]="hasta || undefined" />
-        </div>
-        <div *ngSwitchCase="'config'">
-          <app-liwa-config-panel />
         </div>
         <div *ngSwitchCase="'analisis'" class="analisis-stack">
           <app-liwa-resumen-analisis-panel [desde]="desde || undefined" [hasta]="hasta || undefined" />
@@ -171,6 +178,15 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
   `,
   styles: [`
     .liwa-page { padding: 20px; display: flex; flex-direction: column; gap: 16px; background: #f8fafc; min-height: 100%; }
+
+    .cargando-config { display: flex; align-items: center; gap: 8px; justify-content: center; padding: 60px; color: #64748b; font-size: 0.85rem; }
+    .cargando-config .spin { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .sin-configurar { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; max-width: 520px; margin: 0 auto; padding: 24px 0 4px; }
+    .sin-configurar mat-icon { font-size: 40px; width: 40px; height: 40px; color: #f59e0b; }
+    .sin-configurar h2 { margin: 0; font-size: 1.15rem; font-weight: 800; color: #0f172a; }
+    .sin-configurar p { margin: 0; font-size: 0.82rem; color: #64748b; line-height: 1.5; }
     .liwa-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
     .titulo { display: flex; align-items: center; gap: 12px; }
     .icono-titulo {
@@ -224,6 +240,12 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
   `],
 })
 export class OmnicanalLiwaPanelComponent implements OnInit, OnDestroy {
+  // Sin token de Liwa no hay nada que sincronizar -- en vez de mostrar el
+  // dashboard vacio con un error de carga, se muestra directo la pantalla
+  // de configuracion hasta que quede lista.
+  verificandoConfig = signal(true);
+  configurado = signal(false);
+
   vista: Vista = 'conversaciones';
   desde = this.fechaHaceNDias(30);
   hasta = '';
@@ -251,6 +273,32 @@ export class OmnicanalLiwaPanelComponent implements OnInit, OnDestroy {
   constructor(private readonly liwa: LiwaService) {}
 
   ngOnInit(): void {
+    void this.verificarConfigYArrancar();
+  }
+
+  private async verificarConfigYArrancar(): Promise<void> {
+    try {
+      const config = await this.liwa.obtenerConfig();
+      this.configurado.set(config.liwaTokenConfigurado);
+    } catch {
+      this.configurado.set(false);
+    } finally {
+      this.verificandoConfig.set(false);
+    }
+
+    if (!this.configurado()) return;
+    this.arrancarCargaDeDatos();
+  }
+
+  // Se llama cuando LiwaConfigPanelComponent avisa que el token ya quedo
+  // configurado (Output "guardado") mientras se estaba en la vista de
+  // "sin configurar" -- pasa a la vista normal sin recargar la pagina.
+  alConfigurar(): void {
+    this.configurado.set(true);
+    this.arrancarCargaDeDatos();
+  }
+
+  private arrancarCargaDeDatos(): void {
     this.recargarConDebounce();
     this.recargarAnalisisConDebounce();
     // Respaldo por si el backend no emite ningún evento en tiempo real

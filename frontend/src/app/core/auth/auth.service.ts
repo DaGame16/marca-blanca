@@ -35,7 +35,7 @@ export class AuthService {
   login(request: LoginRequest): Observable<LoginResponse> {
     return this.http
       .post<LoginResponse>(`${environment.apiUrl}/auth/login`, request)
-      .pipe(tap((res: LoginResponse) => this.storeSession(res, request.identificadorEmpresa)));
+      .pipe(tap((res: LoginResponse) => this.storeSession(res, request.identificadorEmpresa, request.correo)));
   }
 
   refresh(): Observable<RefreshResponse> {
@@ -88,12 +88,14 @@ export class AuthService {
     return localStorage.getItem(EMPRESA_KEY);
   }
 
-  private storeSession(res: LoginResponse | RefreshResponse, identificadorEmpresa: string): void {
+  private storeSession(res: LoginResponse | RefreshResponse, identificadorEmpresa: string, correo?: string): void {
     localStorage.setItem(TOKEN_KEY, res.token);
     localStorage.setItem(REFRESH_TOKEN_KEY, res.refreshToken);
     localStorage.setItem(EMPRESA_KEY, identificadorEmpresa);
 
-    const userInfo: UserInfo = { usuarioId: res.usuarioId };
+    // En un refresh no llega correo nuevo -- se conserva el que ya estaba
+    // guardado en vez de perderlo.
+    const userInfo: UserInfo = { usuarioId: res.usuarioId, correo: correo ?? this.currentUserSignal()?.correo };
     localStorage.setItem(USER_KEY, JSON.stringify(userInfo));
     this.currentUserSignal.set(userInfo);
     this.debeCambiarContrasena.set(res.debeCambiarContrasena);

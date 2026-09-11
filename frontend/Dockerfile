@@ -20,7 +20,13 @@ RUN pnpm exec ng build --configuration production
 FROM nginx:alpine AS runtime
 
 COPY --from=build /app/dist/mi-proyecto-frontend/browser /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# La imagen base de nginx corre envsubst sobre /etc/nginx/templates/*.template
+# al arrancar (docker-entrypoint.d) y deja el resultado en conf.d -- asi
+# BACKEND_HOST se puede fijar por variable de entorno sin reconstruir la
+# imagen (ej. en Render, donde el host interno del backend no se conoce
+# hasta el deploy). Default para docker-compose local.
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+ENV BACKEND_HOST=backend:8080
 
 EXPOSE 80
 
