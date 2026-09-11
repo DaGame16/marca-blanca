@@ -22,7 +22,7 @@ services:
     volumes:
       - marca-blanca-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U guajiranet_owner -d db_portal_guajiranet_control"]
+      test: [ "CMD-SHELL", "pg_isready -U guajiranet_owner -d db_portal_guajiranet_control" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -58,6 +58,15 @@ services:
       # cambia. Las claves SMTP en si las administra un admin desde la
       # consola de operacion (/consola/correo), sin tocar el backend.
       APP_CORREO_CLAVE_MAESTRA: ${CORREO_CLAVE_MAESTRA:-solo-para-desarrollo-local-cambiar-siempre}
+      # Cifra/descifra el token de LIWA guardado en omnicanal.tbl_configuracion_omnicanal
+      # (ver modulo omnicanal, CifradorOmnicanal) -- secreto de INFRAESTRUCTURA, no el
+      # token de LIWA de ninguna empresa en particular.
+      OMNICANAL_CLAVE_MAESTRA: ${OMNICANAL_CLAVE_MAESTRA:-solo-para-desarrollo-local-cambiar-siempre}
+      # Key de OpenAI para el analisis IA de omnicanal -- compartida por toda la
+      # plataforma (no es un dato de ninguna empresa cliente). Sin esto, el analisis
+      # IA queda deshabilitado en silencio (ver AdaptadorOpenAI).
+      OMNICANAL_OPENAI_API_KEY: ${OMNICANAL_OPENAI_API_KEY:-}
+      OMNICANAL_OPENAI_MODELO: ${OMNICANAL_OPENAI_MODELO:-gpt-4.1-mini}
     ports:
       - "8080:8080"
 
