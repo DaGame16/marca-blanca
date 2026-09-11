@@ -143,19 +143,19 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
             <app-liwa-table
               [chats]="chats"
               [contactosAnalizados]="contactosAnalizados"
-              (onSeleccionar)="seleccionarChat($event.id)"
+              (seleccionado)="seleccionarChat($event.id)"
             />
           </div>
 
-          <app-liwa-conversation-drawer [chat]="chatSeleccionado" (onClose)="seleccionarChat(null)" />
+          <app-liwa-conversation-drawer [chat]="chatSeleccionado" (close)="seleccionarChat(null)" />
 
           <app-liwa-summary-modal
             *ngIf="modalResumen"
             [mode]="modalResumen"
             [chats]="chats"
             [contactosAnalizados]="contactosAnalizados"
-            (onClose)="modalResumen = null"
-            (onSeleccionar)="seleccionarChat($event.id)"
+            (close)="modalResumen = null"
+            (seleccionado)="seleccionarChat($event.id)"
           />
         </div>
       </ng-container>
@@ -328,13 +328,14 @@ export class OmnicanalLiwaPanelComponent implements OnInit, OnDestroy {
     this.chats = chats;
     this.estadisticas = estadisticas;
     this.cargando = false;
-    this.error = fallaronChats && fallaronEstadisticas
-      ? 'No se pudo cargar el reporte. Intenta de nuevo.'
-      : fallaronChats
-        ? 'No se pudieron cargar las conversaciones. Los KPIs de arriba pueden no reflejar la tabla.'
-        : fallaronEstadisticas
-          ? 'No se pudo cargar el resumen agregado del backend.'
-          : null;
+    this.error = this.mensajeDeErrorCarga(fallaronChats, fallaronEstadisticas);
+  }
+
+  private mensajeDeErrorCarga(fallaronChats: boolean, fallaronEstadisticas: boolean): string | null {
+    if (fallaronChats && fallaronEstadisticas) return 'No se pudo cargar el reporte. Intenta de nuevo.';
+    if (fallaronChats) return 'No se pudieron cargar las conversaciones. Los KPIs de arriba pueden no reflejar la tabla.';
+    if (fallaronEstadisticas) return 'No se pudo cargar el resumen agregado del backend.';
+    return null;
   }
 
   private async cargarContactosAnalizados(): Promise<void> {

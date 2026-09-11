@@ -10,7 +10,7 @@ import {
 import { LiwaConversationDrawerComponent } from './conversation-drawer.component';
 
 function formatTiempo(ms: number | null): string {
-  if (ms == null || !isFinite(ms)) return '—';
+  if (ms == null || !Number.isFinite(ms)) return '—';
   const minutos = Math.round(ms / 60000);
   if (minutos < 1) return '<1 min';
   if (minutos < 60) return `${minutos} min`;
@@ -21,7 +21,11 @@ function formatTiempo(ms: number | null): string {
 
 function texto(v: unknown): string {
   if (v == null) return '';
-  return typeof v === 'string' ? v : String(v);
+  if (typeof v === 'string') return v;
+  if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+  // Nunca deberia llegar un objeto hasta aca -- si pasa, mejor un string
+  // vacio que "[object Object]" en pantalla.
+  return '';
 }
 
 interface StatsAsesor {
@@ -226,7 +230,7 @@ interface StatsAsesor {
         </div>
       </div>
 
-      <app-liwa-conversation-drawer [chat]="chatAbierto" (onClose)="chatAbierto = null" />
+      <app-liwa-conversation-drawer [chat]="chatAbierto" (close)="chatAbierto = null" />
     </section>
   `,
   styles: [`

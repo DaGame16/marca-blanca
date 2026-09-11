@@ -29,7 +29,7 @@ import { formatearNumero } from '../data/liwa.service';
           <tr *ngIf="!chats.length">
             <td colspan="6" class="vacio">No hay conversaciones en este rango.</td>
           </tr>
-          <tr *ngFor="let c of chats" (click)="onSeleccionar.emit(c)" class="fila">
+          <tr *ngFor="let c of chats" (click)="seleccionado.emit(c)" class="fila">
             <td>{{ c.nombre || 'Sin nombre' }}</td>
             <td>{{ formatear(c.numero) }}</td>
             <td>{{ c.agente || '—' }}</td>
@@ -67,7 +67,7 @@ import { formatearNumero } from '../data/liwa.service';
 export class LiwaTableComponent {
   @Input() chats: LiwaChat[] = [];
   @Input() contactosAnalizados: Set<string> = new Set();
-  @Output() onSeleccionar = new EventEmitter<LiwaChat>();
+  @Output() seleccionado = new EventEmitter<LiwaChat>();
 
   formatear(numero: string): string {
     return formatearNumero(numero);

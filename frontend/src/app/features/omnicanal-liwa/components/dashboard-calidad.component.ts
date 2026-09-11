@@ -21,6 +21,12 @@ const municipioPedidoDe = (z: string): string | null => {
   return MUNICIPIOS_PEDIDOS.find((p) => n === p || n.includes(p) || p.includes(n)) || null;
 };
 
+function etiquetaSentimiento(s: string): string {
+  if (s === 'positivo') return 'Positivo';
+  if (s === 'negativo') return 'Negativo';
+  return 'Neutral';
+}
+
 // Traducción de components/liwa/DashboardCalidad.tsx ("vista Gráficas").
 // Toda la lógica de cálculo (motivos, sentimiento, mapa de calor, municipio,
 // tendencia por día) es 1:1 con el original; las gráficas en sí se
@@ -102,7 +108,7 @@ const municipioPedidoDe = (z: string): string | null => {
         </div>
       </div>
 
-      <app-liwa-conversation-drawer [chat]="chatSeleccionado" (onClose)="chatSeleccionado = null" />
+      <app-liwa-conversation-drawer [chat]="chatSeleccionado" (close)="chatSeleccionado = null" />
     </div>
   `,
   styles: [`
@@ -183,7 +189,7 @@ export class LiwaDashboardCalidadComponent implements OnChanges {
     const m = new Map<string, number>();
     this.analisisVisibles.forEach((a) => {
       const s = a.sentimientoFinal || 'neutral';
-      const etiqueta = s === 'positivo' ? 'Positivo' : s === 'negativo' ? 'Negativo' : 'Neutral';
+      const etiqueta = etiquetaSentimiento(s);
       m.set(etiqueta, (m.get(etiqueta) || 0) + 1);
     });
     const colores: Record<string, string> = { Positivo: '#10b981', Neutral: '#f59e0b', Negativo: '#ef4444' };
@@ -228,7 +234,7 @@ export class LiwaDashboardCalidadComponent implements OnChanges {
     const columnas = MUNICIPIOS_PEDIDOS.map((p) => etiquetasPedidas.get(p)).filter((l): l is string => !!l);
     const hayOtros = Object.keys(valores).some((clave) => clave.endsWith('|Otros'));
     if (hayOtros) columnas.push('Otros');
-    return { filas: Array.from(filasSet).sort(), columnas, valores, max, sinMunicipio };
+    return { filas: Array.from(filasSet).sort((a, b) => a.localeCompare(b)), columnas, valores, max, sinMunicipio };
   }
 
   get municipioData(): { area: string; total: number }[] {
@@ -276,7 +282,7 @@ export class LiwaDashboardCalidadComponent implements OnChanges {
       const zona = municipioPorContacto.get(c.idContacto) || 'Sin municipio';
       c.mensajes.forEach((m) => {
         const d = new Date(m.fecha);
-        if (isNaN(d.getTime())) return;
+        if (Number.isNaN(d.getTime())) return;
         const t = d.getTime();
         if (t < ini || t > fin) return;
         const dia = d.toISOString().slice(0, 10);
@@ -292,7 +298,7 @@ export class LiwaDashboardCalidadComponent implements OnChanges {
     const setDias = new Set<string>();
     porDiaTotal.forEach((_, k) => setDias.add(k));
     porDiaMunicipio.forEach((_, k) => setDias.add(k));
-    const filas = Array.from(setDias).sort().map((dia) => {
+    const filas = Array.from(setDias).sort((a, b) => a.localeCompare(b)).map((dia) => {
       const fila: Record<string, number | string> = { periodo: new Date(`${dia}T00:00:00`).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' }), total: porDiaTotal.get(dia) || 0 };
       porDiaMunicipio.get(dia)?.forEach((n, z) => {
         const clave = topZonas.includes(z) ? z : 'Otros';

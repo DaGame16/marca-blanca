@@ -17,7 +17,7 @@ const FORMATO_HEX = /^#[0-9A-Fa-f]{6}$/;
 // no es lo que este campo espera semanticamente (una URL, no el archivo).
 function noEsDataUrlValidator(control: AbstractControl): ValidationErrors | null {
   const valor = control.value as string | null;
-  return valor && valor.trim().toLowerCase().startsWith('data:') ? { esDataUrl: true } : null;
+  return valor?.trim().toLowerCase().startsWith('data:') ? { esDataUrl: true } : null;
 }
 
 @Component({
