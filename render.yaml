@@ -43,6 +43,24 @@ services:
         generateValue: true
       - key: CORREO_CLAVE_MAESTRA
         generateValue: true
+      - key: OMNICANAL_CLAVE_MAESTRA
+        generateValue: true
+      # El envio de correo se configura aparte, desde /consola/correo (queda
+      # guardado cifrado en BD con OMNICANAL_CLAVE_MAESTRA/CORREO_CLAVE_MAESTRA
+      # de arriba) -- no depende de ninguna variable de entorno de Render.
+      #
+      # La API key de OpenAI si es un secreto real: se deja "sync: false"
+      # para que Render la pida por el dashboard en vez de que quede escrita
+      # aca (nunca pegar la clave en este archivo ni en el chat).
+      - key: OMNICANAL_OPENAI_API_KEY
+        sync: false
+      - key: OMNICANAL_OPENAI_MODELO
+        value: gpt-4.1-mini
+      # *.onrender.com no da subdominios propios por empresa (ver nota de
+      # arriba) -- se deja abierto a cualquier subdominio de onrender.com
+      # ademas de localhost, para que el CORS no bloquee las pruebas.
+      - key: APP_CORS_ORIGENES_PERMITIDOS
+        value: https://*.onrender.com,http://localhost:4200,http://*.localhost:4200
 
   - type: web
     name: marca-blanca-frontend
