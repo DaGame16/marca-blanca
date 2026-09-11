@@ -17,8 +17,9 @@ import { LiwaResumenAnalisisPanelComponent, LiwaAnalisisIaPanelComponent } from 
 import { LiwaAdsPanelComponent } from '../../components/ads-panel.component';
 import { LiwaAsesoresPanelComponent } from '../../components/asesores-panel.component';
 import { LiwaCaseReportsPanelComponent } from '../../components/case-reports-panel.component';
+import { LiwaConfigPanelComponent } from '../../components/config-panel.component';
 
-type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesores' | 'ads';
+type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesores' | 'ads' | 'config';
 
 // Traducción de pages/reportes/liwa.tsx (guajiranet) al patrón Angular
 // standalone de marca-blanca. Orquesta el selector de vistas y el filtro de
@@ -55,6 +56,7 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
     LiwaAdsPanelComponent,
     LiwaAsesoresPanelComponent,
     LiwaCaseReportsPanelComponent,
+    LiwaConfigPanelComponent,
   ],
   template: `
     <div class="liwa-page">
@@ -103,6 +105,9 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
         <button type="button" [class.activo]="vista === 'indicadores'" (click)="vista = 'indicadores'">KPIs</button>
         <button type="button" [class.activo]="vista === 'asesores'" (click)="vista = 'asesores'">Asesores</button>
         <button type="button" class="ads" [class.activo]="vista === 'ads'" (click)="vista = 'ads'">Meta Ads</button>
+        <button type="button" class="config" [class.activo]="vista === 'config'" (click)="vista = 'config'">
+          <mat-icon inline>settings</mat-icon> Configuración
+        </button>
       </nav>
 
       <ng-container [ngSwitch]="vista">
@@ -117,6 +122,9 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
         </div>
         <div *ngSwitchCase="'ads'">
           <app-liwa-ads-panel [desde]="desde || undefined" [hasta]="hasta || undefined" />
+        </div>
+        <div *ngSwitchCase="'config'">
+          <app-liwa-config-panel />
         </div>
         <div *ngSwitchCase="'analisis'" class="analisis-stack">
           <app-liwa-resumen-analisis-panel [desde]="desde || undefined" [hasta]="hasta || undefined" />
