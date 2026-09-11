@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -361,7 +361,7 @@ export class LiwaAsesoresPanelComponent implements OnChanges {
   chatAbierto: LiwaChat | null = null;
   private peticion = 0;
 
-  constructor(private readonly liwa: LiwaService) {}
+  constructor(private readonly liwa: LiwaService, private readonly cdr: ChangeDetectorRef) {}
 
   ngOnChanges(): void {
     void this.cargar();
@@ -387,7 +387,11 @@ export class LiwaAsesoresPanelComponent implements OnChanges {
     } catch {
       if (id === this.peticion) this.error = 'No fue posible cargar la información de asesores.';
     } finally {
-      if (id === this.peticion) this.cargando = false;
+      if (id === this.peticion) {
+        this.cargando = false;
+        // Ver comentario en ads-panel.component.ts.
+        this.cdr.markForCheck();
+      }
     }
   }
 

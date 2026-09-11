@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { LiwaService, formatearNumero, rangoConHoras } from '../data/liwa.service';
@@ -152,7 +152,7 @@ export class LiwaDashboardCalidadComponent implements OnChanges {
   chatSeleccionado: LiwaChat | null = null;
   private peticion = 0;
 
-  constructor(private readonly liwa: LiwaService) {}
+  constructor(private readonly liwa: LiwaService, private readonly cdr: ChangeDetectorRef) {}
 
   ngOnChanges(): void {
     void this.cargar();
@@ -172,7 +172,11 @@ export class LiwaDashboardCalidadComponent implements OnChanges {
     } catch {
       if (id === this.peticion) this.analisis = [];
     } finally {
-      if (id === this.peticion) this.cargandoAnalisis = false;
+      if (id === this.peticion) {
+        this.cargandoAnalisis = false;
+        // Ver comentario en ads-panel.component.ts.
+        this.cdr.markForCheck();
+      }
     }
   }
 

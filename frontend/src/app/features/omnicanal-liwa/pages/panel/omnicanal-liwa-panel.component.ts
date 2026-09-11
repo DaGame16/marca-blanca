@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -275,7 +275,7 @@ export class OmnicanalLiwaPanelComponent implements OnInit, OnDestroy {
   private intervaloPolling?: ReturnType<typeof setInterval>;
   private peticionId = 0;
 
-  constructor(private readonly liwa: LiwaService) {}
+  constructor(private readonly liwa: LiwaService, private readonly cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     void this.verificarConfigYArrancar();
@@ -308,12 +308,31 @@ export class OmnicanalLiwaPanelComponent implements OnInit, OnDestroy {
     this.recargarAnalisisConDebounce();
     // Respaldo por si el backend no emite ningún evento en tiempo real
     // (marca-blanca todavía no tiene socket equivalente conectado acá):
-    // refresca cada 20s mientras la pestaña esté visible.
+    // refresca cada pocos segundos mientras la pestaña esté visible, en
+    // TODAS las vistas (ver [autoRefreshTick] en el template) -- no solo en
+    // la que se esté mirando.
     this.intervaloPolling = setInterval(() => {
       if (document.visibilityState !== 'visible') return;
-      void this.cargarDesdeBackend();
-      this.refrescoTick++;
-    }, 20000);
+      void this.ciclarPolling();
+    }, 5000);
+  }
+
+  // Un caso puede quedar "sin analizar" si el analisis IA fallo la primera
+  // vez (timeout, rate limit de OpenAI, cold-start del backend en Render) --
+  // sin reintentarlo, esa conversacion aparece en "Conversaciones" (datos
+  // crudos) pero nunca en "Analisis y casos" (que exige que el analisis ya
+  // exista). reintentarAnalisis() ya existia en el servicio pero nadie la
+  // llamaba desde ningun lado -- por eso quedaban huerfanas para siempre.
+  private async ciclarPolling(): Promise<void> {
+    try {
+      await this.liwa.reintentarAnalisis();
+    } catch {
+      // Sin pendientes o sin conexion momentanea -- no es motivo para
+      // detener el polling normal de abajo.
+    }
+    this.liwa.invalidarCache();
+    void this.cargarDesdeBackend();
+    this.refrescoTick++;
   }
 
   ngOnDestroy(): void {
@@ -391,6 +410,7 @@ export class OmnicanalLiwaPanelComponent implements OnInit, OnDestroy {
     this.estadisticas = estadisticas;
     this.cargando = false;
     this.error = this.mensajeDeErrorCarga(fallaronChats, fallaronEstadisticas);
+    this.cdr.markForCheck();
   }
 
   private mensajeDeErrorCarga(fallaronChats: boolean, fallaronEstadisticas: boolean): string | null {
@@ -406,6 +426,8 @@ export class OmnicanalLiwaPanelComponent implements OnInit, OnDestroy {
       this.contactosAnalizados = new Set(items.map((i) => i.idContacto).filter((id): id is string => !!id));
     } catch {
       this.contactosAnalizados = new Set();
+    } finally {
+      this.cdr.markForCheck();
     }
   }
 

@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnDestroy } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { LiwaService } from '../data/liwa.service';
@@ -104,7 +104,7 @@ export class LiwaKpisCalidadPanelComponent implements OnChanges, OnDestroy {
   error: string | null = null;
   private peticion = 0;
 
-  constructor(private readonly liwa: LiwaService) {}
+  constructor(private readonly liwa: LiwaService, private readonly cdr: ChangeDetectorRef) {}
 
   ngOnChanges(): void {
     void this.cargar();
@@ -125,7 +125,11 @@ export class LiwaKpisCalidadPanelComponent implements OnChanges, OnDestroy {
     } catch {
       if (id === this.peticion) this.error = 'No fue posible cargar las conversaciones analizadas por IA.';
     } finally {
-      if (id === this.peticion) this.cargando = false;
+      if (id === this.peticion) {
+        this.cargando = false;
+        // Ver comentario en ads-panel.component.ts.
+        this.cdr.markForCheck();
+      }
     }
   }
 

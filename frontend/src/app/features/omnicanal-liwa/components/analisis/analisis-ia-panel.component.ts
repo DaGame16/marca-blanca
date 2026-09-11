@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LiwaService } from '../../data/liwa.service';
 import { LiwaAnalisisItem } from '../../models/liwa.model';
@@ -25,7 +25,7 @@ export class LiwaResumenAnalisisPanelComponent implements OnChanges {
   cargando = true;
   private peticion = 0;
 
-  constructor(private readonly liwa: LiwaService) {}
+  constructor(private readonly liwa: LiwaService, private readonly cdr: ChangeDetectorRef) {}
 
   ngOnChanges(): void {
     void this.cargar();
@@ -41,7 +41,11 @@ export class LiwaResumenAnalisisPanelComponent implements OnChanges {
     } catch {
       if (id === this.peticion) this.items = [];
     } finally {
-      if (id === this.peticion) this.cargando = false;
+      if (id === this.peticion) {
+        this.cargando = false;
+        // Ver comentario en ads-panel.component.ts.
+        this.cdr.markForCheck();
+      }
     }
   }
 }
@@ -84,7 +88,7 @@ export class LiwaAnalisisIaPanelComponent implements OnChanges {
   error: string | null = null;
   private peticion = 0;
 
-  constructor(private readonly liwa: LiwaService) {}
+  constructor(private readonly liwa: LiwaService, private readonly cdr: ChangeDetectorRef) {}
 
   ngOnChanges(): void {
     void this.cargar();
@@ -104,7 +108,11 @@ export class LiwaAnalisisIaPanelComponent implements OnChanges {
     } catch {
       if (id === this.peticion) this.error = 'No fue posible cargar las conversaciones analizadas por IA.';
     } finally {
-      if (id === this.peticion) this.cargando = false;
+      if (id === this.peticion) {
+        this.cargando = false;
+        // Ver comentario en ads-panel.component.ts.
+        this.cdr.markForCheck();
+      }
     }
   }
 }

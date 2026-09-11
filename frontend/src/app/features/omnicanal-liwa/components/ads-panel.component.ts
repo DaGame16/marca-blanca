@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -259,7 +259,7 @@ export class LiwaAdsPanelComponent implements OnChanges {
   private peticion = 0;
   readonly POR_PAGINA = 25;
 
-  constructor(private readonly liwa: LiwaService) {}
+  constructor(private readonly liwa: LiwaService, private readonly cdr: ChangeDetectorRef) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (!('autoRefreshTick' in changes) || Object.keys(changes).length > 1) {
@@ -289,7 +289,15 @@ export class LiwaAdsPanelComponent implements OnChanges {
     } catch {
       if (id === this.peticion) this.error = 'No fue posible cargar el reporte de Ads.';
     } finally {
-      if (id === this.peticion) this.cargando = false;
+      if (id === this.peticion) {
+        this.cargando = false;
+        // Sin esto, la vista se queda con los datos viejos hasta que algo
+        // MAS (un clic, cambiar de pestana) fuerce un ciclo de deteccion de
+        // cambios -- el resultado del await llega bien, Angular simplemente
+        // no repinta solo. Confirmado ya antes con el mismo patron en otros
+        // componentes de este modulo (ver omnicanal-liwa-panel.component.ts).
+        this.cdr.markForCheck();
+      }
     }
   }
 
