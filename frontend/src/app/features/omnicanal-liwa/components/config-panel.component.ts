@@ -20,33 +20,8 @@ import { VistaConfig } from '../models/liwa.model';
 
       <ng-container *ngIf="!cargando() && config() as config">
         <div class="bloque">
-          <h2><mat-icon>smart_toy</mat-icon> Inteligencia artificial</h2>
-          <p class="ayuda">Controla si los casos archivados se analizan automáticamente con IA (motivo, sentimiento, resolución, oportunidades de venta).</p>
-
-          <label class="check-grande">
-            <input type="checkbox" [(ngModel)]="form.iaHabilitada" />
-            <span>Analizar conversaciones con IA</span>
-          </label>
-
-          <div class="campo">
-            <label>Modelo de OpenAI</label>
-            <input type="text" [(ngModel)]="form.openaiModelo" placeholder="gpt-4o-mini" [disabled]="!form.iaHabilitada" />
-          </div>
-        </div>
-
-        <div class="bloque">
           <h2><mat-icon>hub</mat-icon> Integración con Liwa</h2>
           <p class="ayuda">Datos del bot de WhatsApp que archiva las conversaciones para analizar.</p>
-
-          <div class="campo">
-            <label>URL base de Liwa</label>
-            <input type="text" [(ngModel)]="form.liwaBaseUrl" placeholder="https://api.liwa.co" />
-          </div>
-
-          <div class="campo">
-            <label>Campo personalizado para Ads</label>
-            <input type="text" [(ngModel)]="form.liwaCustomFieldAds" placeholder="Nombre del custom field que marca leads de Meta Ads" />
-          </div>
 
           <div class="campo">
             <label>Token de Liwa</label>
