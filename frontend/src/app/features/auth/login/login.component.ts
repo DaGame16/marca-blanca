@@ -56,6 +56,20 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
          ngTemplateOutlet para no triplicar los bindings del form. -->
     <ng-template #formularioTpl>
       <form [formGroup]="form" (ngSubmit)="submit()">
+        @if (sinSubdominio()) {
+          <!-- Solo aparece cuando no hay subdominio (ej. probando en un
+               dominio sin wildcard configurado todavia, como *.onrender.com)
+               -- ahi el correo solo no alcanza para saber la empresa si el
+               mismo correo se uso para registrar varias (ver resolver por
+               correo en submit(), que falla si es ambiguo). -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Identificador de tu empresa (opcional)</mat-label>
+            <input matInput type="text" formControlName="identificadorEmpresa" autocomplete="off" />
+            <mat-icon matPrefix>business</mat-icon>
+            <mat-hint>Solo hace falta si tu correo se uso para mas de una empresa de prueba.</mat-hint>
+          </mat-form-field>
+        }
+
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Correo electrónico</mat-label>
           <input matInput type="email" formControlName="correo" autocomplete="email" />
@@ -725,7 +739,13 @@ export class LoginComponent {
     correo: ['', [Validators.required, Validators.email]],
     contrasena: ['', [Validators.required]],
     recordarme: [false],
+    identificadorEmpresa: [''],
   });
+
+  // true cuando no hay subdominio de empresa (ver identificadorDesdeSubdominio) --
+  // ahi se muestra el campo manual de identificador, porque el resolver por
+  // correo solo funciona si el correo pertenece a una unica empresa activa.
+  protected readonly sinSubdominio = signal(identificadorDesdeSubdominio() === null);
 
   constructor() {
     const identificador = identificadorDesdeSubdominio();
@@ -760,10 +780,10 @@ export class LoginComponent {
     this.loading.set(true);
     this.errorMessage.set(null);
 
-    const { correo, contrasena, recordarme } = this.form.getRawValue();
-    const identificadorDelSubdominio = identificadorDesdeSubdominio();
-    const identificadorEmpresa$ = identificadorDelSubdominio
-      ? of({ identificadorEmpresa: identificadorDelSubdominio })
+    const { correo, contrasena, recordarme, identificadorEmpresa } = this.form.getRawValue();
+    const identificadorResuelto = identificadorDesdeSubdominio() || identificadorEmpresa.trim() || null;
+    const identificadorEmpresa$ = identificadorResuelto
+      ? of({ identificadorEmpresa: identificadorResuelto })
       : this.auth.resolverIdentificadorEmpresa(correo);
 
     identificadorEmpresa$
