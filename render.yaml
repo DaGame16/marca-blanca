@@ -70,15 +70,16 @@ services:
     plan: free
     envVars:
       # El hostname interno de red privada ("marca-blanca-backend:puerto")
-      # no resolvia de forma confiable en el deploy inicial (nginx moria al
-      # arrancar con "host not found in upstream") -- se usa la URL PUBLICA
-      # del backend en su lugar, que siempre resuelve por DNS normal.
+      # no resolvia de forma confiable (nginx moria al arrancar con "host
+      # not found in upstream"), y fromService/property:host tampoco sirve
+      # aca -- devuelve ese mismo hostname privado, no el publico. Se deja
+      # fijo el dominio publico real del backend (confirmado en sus propios
+      # logs de arranque: "Available at your primary URL ..."), que siempre
+      # resuelve por DNS normal. Si renombras el servicio backend en Render,
+      # hay que actualizar este valor a mano.
       - key: BACKEND_SCHEME
         value: https
       - key: BACKEND_HOST
-        fromService:
-          type: web
-          name: marca-blanca-backend
-          property: host
+        value: marca-blanca-backend.onrender.com
       - key: DNS_RESOLVER
         value: 1.1.1.1
