@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -59,11 +59,11 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
     LiwaConfigPanelComponent,
   ],
   template: `
-    <div class="liwa-page" *ngIf="verificandoConfig">
+    <div class="liwa-page" *ngIf="verificandoConfig()">
       <div class="cargando-config"><mat-icon class="spin">progress_activity</mat-icon> Cargando módulo…</div>
     </div>
 
-    <div class="liwa-page" *ngIf="!verificandoConfig && !configurado">
+    <div class="liwa-page" *ngIf="!verificandoConfig() && !configurado()">
       <div class="sin-configurar">
         <mat-icon>settings_suggest</mat-icon>
         <h2>Configura el módulo antes de empezar</h2>
@@ -72,7 +72,7 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
       <app-liwa-config-panel (guardado)="alConfigurar()" />
     </div>
 
-    <div class="liwa-page" *ngIf="!verificandoConfig && configurado">
+    <div class="liwa-page" *ngIf="!verificandoConfig() && configurado()">
       <header class="liwa-header">
         <div class="titulo">
           <div class="icono-titulo"><mat-icon>forum</mat-icon></div>
@@ -243,8 +243,8 @@ export class OmnicanalLiwaPanelComponent implements OnInit, OnDestroy {
   // Sin token de Liwa no hay nada que sincronizar -- en vez de mostrar el
   // dashboard vacio con un error de carga, se muestra directo la pantalla
   // de configuracion hasta que quede lista.
-  verificandoConfig = true;
-  configurado = false;
+  verificandoConfig = signal(true);
+  configurado = signal(false);
 
   vista: Vista = 'conversaciones';
   desde = this.fechaHaceNDias(30);
@@ -279,16 +279,14 @@ export class OmnicanalLiwaPanelComponent implements OnInit, OnDestroy {
   private async verificarConfigYArrancar(): Promise<void> {
     try {
       const config = await this.liwa.obtenerConfig();
-      this.configurado = config.liwaTokenConfigurado;
+      this.configurado.set(config.liwaTokenConfigurado);
     } catch {
-      // Si ni siquiera se pudo consultar la config, se asume sin configurar
-      // -- es la pantalla mas util que se le puede mostrar al usuario.
-      this.configurado = false;
+      this.configurado.set(false);
     } finally {
-      this.verificandoConfig = false;
+      this.verificandoConfig.set(false);
     }
 
-    if (!this.configurado) return;
+    if (!this.configurado()) return;
     this.arrancarCargaDeDatos();
   }
 
@@ -296,7 +294,7 @@ export class OmnicanalLiwaPanelComponent implements OnInit, OnDestroy {
   // configurado (Output "guardado") mientras se estaba en la vista de
   // "sin configurar" -- pasa a la vista normal sin recargar la pagina.
   alConfigurar(): void {
-    this.configurado = true;
+    this.configurado.set(true);
     this.arrancarCargaDeDatos();
   }
 

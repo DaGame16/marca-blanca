@@ -101,14 +101,23 @@ export class ShellComponent {
     return localStorage.getItem('mp_identificador_empresa') || 'Mi empresa';
   }
   protected userName(): string {
-    return this.auth.currentUser()?.usuarioId || 'Administrador';
+    return this.auth.currentUser()?.correo || 'Administrador';
   }
   protected initials(): string {
-    return this.userName()
-      .split(' ')
-      .map((part) => part[0])
-      .join('')
+    const correo = this.auth.currentUser()?.correo;
+    if (!correo) {
+      return 'AD';
+    }
+    // El correo es lo unico que tenemos del usuario (ver UserInfo) -- las
+    // iniciales salen de la parte antes del "@", separada por puntos o
+    // guiones (ej. "juan.perez@..." -> "JP"), no de un nombre real que no
+    // llega del backend.
+    const usuario = correo.split('@')[0];
+    const partes = usuario.split(/[._-]+/).filter(Boolean);
+    return partes
       .slice(0, 2)
+      .map((parte) => parte[0])
+      .join('')
       .toUpperCase();
   }
   protected title(): string {
