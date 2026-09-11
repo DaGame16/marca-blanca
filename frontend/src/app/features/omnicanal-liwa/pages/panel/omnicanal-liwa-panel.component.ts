@@ -314,7 +314,7 @@ export class OmnicanalLiwaPanelComponent implements OnInit, OnDestroy {
     this.intervaloPolling = setInterval(() => {
       if (document.visibilityState !== 'visible') return;
       void this.ciclarPolling();
-    }, 5000);
+    }, 20000);
   }
 
   // Un caso puede quedar "sin analizar" si el analisis IA fallo la primera

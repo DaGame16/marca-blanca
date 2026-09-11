@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnChanges, Output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { LiwaChat } from '../models/liwa.model';
@@ -22,7 +22,7 @@ import { LiwaChat } from '../models/liwa.model';
             <mat-icon>close</mat-icon>
           </button>
         </header>
-        <div class="mensajes">
+        <div class="mensajes" #scrollContenedor>
           <div *ngFor="let m of chat.mensajes" class="mensaje" [class]="'autor-' + m.autor">
             <div class="burbuja">
               <span class="nombre">{{ m.nombreAutor || m.autor }}</span>
@@ -60,9 +60,23 @@ import { LiwaChat } from '../models/liwa.model';
     .fecha { display: block; font-size: 0.62rem; color: #94a3b8; margin-top: 4px; }
   `],
 })
-export class LiwaConversationDrawerComponent {
+export class LiwaConversationDrawerComponent implements OnChanges {
   @Input() chat: LiwaChat | null = null;
   @Output() close = new EventEmitter<void>();
+
+  @ViewChild('scrollContenedor') scrollContenedor?: ElementRef<HTMLDivElement>;
+
+  // Los mensajes vienen mas antiguo -> mas reciente; sin esto el drawer
+  // abre mostrando el PRIMER mensaje del historial y hay que hacer scroll a
+  // mano para llegar a lo ultimo que se hablo, que es lo que de verdad
+  // importa al abrir un chat.
+  ngOnChanges(): void {
+    if (!this.chat) return;
+    setTimeout(() => {
+      const el = this.scrollContenedor?.nativeElement;
+      if (el) el.scrollTop = el.scrollHeight;
+    });
+  }
 
   cerrar(): void {
     this.close.emit();

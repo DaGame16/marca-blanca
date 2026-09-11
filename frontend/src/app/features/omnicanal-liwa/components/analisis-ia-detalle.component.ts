@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnChanges, Output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { LiwaService, parsearHistorial } from '../data/liwa.service';
@@ -86,7 +86,7 @@ function esTurnoCliente(t: LiwaTurnoAnalizado): boolean {
           </div>
         </div>
 
-        <div class="conversacion">
+        <div class="conversacion" #scrollConversacion>
           <div class="cargando" *ngIf="cargando"><mat-icon class="spin">progress_activity</mat-icon> Cargando conversación…</div>
           <p class="vacio" *ngIf="!cargando && !turnos.length">El análisis no incluye los turnos de la conversación.</p>
           <div class="burbuja-fila" *ngFor="let t of turnos" [class.cliente]="esCliente(t)">
@@ -167,7 +167,9 @@ export class LiwaAnalisisDetalleComponent implements OnChanges {
   infoAbierta = false;
   mostrarRazonamiento = false;
 
-  constructor(private readonly liwa: LiwaService) {}
+  @ViewChild('scrollConversacion') scrollConversacion?: ElementRef<HTMLDivElement>;
+
+  constructor(private readonly liwa: LiwaService, private readonly cdr: ChangeDetectorRef) {}
 
   ngOnChanges(): void {
     this.cargando = true;
@@ -175,7 +177,16 @@ export class LiwaAnalisisDetalleComponent implements OnChanges {
     this.liwa.obtenerAnalisisDetalle(this.item.id)
       .then((d) => { this.detalle = d; })
       .catch(() => { this.detalle = null; })
-      .finally(() => { this.cargando = false; });
+      .finally(() => {
+        this.cargando = false;
+        this.cdr.markForCheck();
+        // Mismo criterio que el drawer de "Conversaciones": abrir ya en lo
+        // ultimo que se hablo, sin que el usuario tenga que scrollear.
+        setTimeout(() => {
+          const el = this.scrollConversacion?.nativeElement;
+          if (el) el.scrollTop = el.scrollHeight;
+        });
+      });
   }
 
   get turnos(): LiwaTurnoAnalizado[] {
