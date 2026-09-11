@@ -56,6 +56,11 @@ services:
         sync: false
       - key: OMNICANAL_OPENAI_MODELO
         value: gpt-4.1-mini
+      # Base con la que arma la URL del webhook que se pega en LIWA (ver
+      # /panel/omnicanal/liwa/config) -- sin esto queda con el default de
+      # localhost:8080, que Liwa (fuera de esta red) nunca puede alcanzar.
+      - key: OMNICANAL_WEBHOOK_URL_BASE
+        value: https://marca-blanca-backend.onrender.com
       # *.onrender.com no da subdominios propios por empresa (ver nota de
       # arriba) -- se deja abierto a cualquier subdominio de onrender.com
       # ademas de localhost, para que el CORS no bloquee las pruebas.
