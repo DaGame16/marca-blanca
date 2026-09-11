@@ -101,10 +101,12 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
             <button type="button" class="limpiar" *ngIf="desde || hasta" (click)="limpiarFiltros()">
               Ver todo el historial
             </button>
-            <button type="button" class="actualizar" [disabled]="cargando" (click)="actualizarAhora()">
-              <mat-icon [class.spin]="cargando">refresh</mat-icon>
-              {{ cargando ? 'Actualizando…' : 'Actualizar' }}
-            </button>
+            <!-- Puro indicador -- el refresco ya pasa solo cada 20s, esto no
+                 se clickea, solo avisa que la vista se mantiene al dia. -->
+            <span class="auto-refresco" [class.activo]="cargando">
+              <span class="punto"></span>
+              {{ cargando ? 'Actualizando…' : 'Se actualiza solo' }}
+            </span>
           </div>
         </div>
       </header>
@@ -214,15 +216,20 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
     }
     .limpiar { border: none; background: #f1f5f9; color: #475569; border-radius: 8px; padding: 8px 14px; font-size: 0.72rem; font-weight: 600; cursor: pointer; }
     .cargando { display: inline-flex; align-items: center; font-size: 0.7rem; color: #059669; font-weight: 700; }
-    .actualizar {
-      display: inline-flex; align-items: center; gap: 6px; border: 1px solid #d1fae5; background: #ecfdf5;
-      color: #047857; border-radius: 8px; padding: 8px 14px; font-size: 0.72rem; font-weight: 700; cursor: pointer;
-      margin-left: auto;
+    .auto-refresco {
+      display: inline-flex; align-items: center; gap: 7px; color: #64748b; font-size: 0.7rem; font-weight: 600;
+      margin-left: auto; padding: 4px 2px;
     }
-    .actualizar:hover:not(:disabled) { background: #d1fae5; }
-    .actualizar:disabled { opacity: 0.7; cursor: default; }
-    .actualizar mat-icon { font-size: 16px; width: 16px; height: 16px; }
-    .actualizar mat-icon.spin { animation: spin 1s linear infinite; }
+    .auto-refresco .punto {
+      width: 7px; height: 7px; border-radius: 999px; background: #34d399; flex-shrink: 0;
+      animation: latido 2s ease-in-out infinite;
+    }
+    .auto-refresco.activo { color: #059669; }
+    .auto-refresco.activo .punto { background: #059669; animation: latido 0.8s ease-in-out infinite; }
+    @keyframes latido {
+      0%, 100% { transform: scale(1); opacity: 0.7; }
+      50% { transform: scale(1.35); opacity: 1; }
+    }
 
     .error {
       display: flex; align-items: center; gap: 8px; background: #fffbeb; border: 1px solid #fde68a; color: #92400e;
@@ -346,12 +353,6 @@ export class OmnicanalLiwaPanelComponent implements OnInit, OnDestroy {
     void this.cargarDesdeBackend();
     this.refrescoTick++;
     this.cdr.markForCheck();
-  }
-
-  // Boton manual "Actualizar" en el filtro de fechas -- mismo refresco que
-  // hace el polling de 20s, pero al toque en vez de esperar.
-  actualizarAhora(): void {
-    void this.ciclarPolling();
   }
 
   ngOnDestroy(): void {
