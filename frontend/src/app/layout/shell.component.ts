@@ -50,7 +50,7 @@ const CODIGO_A_TEMA_PAGINA: Record<number, TemaPagina> = { 1: 'clasico', 2: 'com
   styles: [`
     :host { display: block; min-height: 100vh; }
     .app-shell { min-height: 100vh; display: flex; background: #f5f7fb; color: #172033; }
-    .sidebar { width: 256px; flex: 0 0 256px; background: #101a2d; color: #d7deeb; padding: 24px 16px 18px; display: flex; flex-direction: column; box-sizing: border-box; }
+    .sidebar { width: 256px; flex: 0 0 256px; background: #101a2d; color: #d7deeb; padding: 24px 16px 18px; display: flex; flex-direction: column; box-sizing: border-box; height: 100vh; position: sticky; top: 0; overflow-y: auto; }
     .sidebar-brand { display: flex; align-items: center; gap: 11px; color: #fff; padding: 0 10px 28px; }
     .brand-mark { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: linear-gradient(135deg,#2f7cf6,#79b4ff); color: white; }
     .brand-mark mat-icon { font-size: 20px; width: 20px; height: 20px; }.sidebar-brand strong,.sidebar-brand span { display:block; }.sidebar-brand strong { font-size: 15px; letter-spacing: .1px; }.sidebar-brand span { color:#8492aa; font-size: 10px; text-transform: uppercase; letter-spacing: .12em; margin-top: 3px; }
