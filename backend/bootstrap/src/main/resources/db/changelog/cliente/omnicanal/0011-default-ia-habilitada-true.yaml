@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: omnicanal-0011-default-ia-habilitada-true
+      author: leidi
+      comment: >
+        El analisis IA viene activado por defecto para empresas nuevas -- el
+        super admin lo puede prender/apagar por empresa desde la consola de
+        operacion (ver ConfigurarOmnicanal, expuesto ahi via el puente de
+        consola). Solo cambia el DEFAULT de la columna: no toca filas ya
+        existentes en bases de cliente ya provisionadas.
+      changes:
+        - sql:
+            sql: >
+              ALTER TABLE omnicanal.tbl_configuracion_omnicanal
+              ALTER COLUMN ia_habilitada SET DEFAULT true
+      rollback:
+        - sql:
+            sql: >
+              ALTER TABLE omnicanal.tbl_configuracion_omnicanal
+              ALTER COLUMN ia_habilitada SET DEFAULT false

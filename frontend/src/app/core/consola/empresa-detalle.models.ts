@@ -39,3 +39,15 @@ export interface ActualizarMarcaPayload {
   tipoLogin: number;
   tipoPantallaPrincipal: number;
 }
+
+// Espejo de OmnicanalConsolaResponse -- solo el super admin ve/toca esto
+// (el tenant ni siquiera tiene el campo de IA en su propia pantalla de
+// configuracion, ver LiwaConfigPanelComponent). webhookSecret solo llega
+// con valor real cuando se acaba de rotar.
+export interface OmnicanalDetalle {
+  webhookUrl: string;
+  webhookSecret: string | null;
+  iaHabilitada: boolean;
+  openaiModelo: string | null;
+  liwaTokenConfigurado: boolean;
+}

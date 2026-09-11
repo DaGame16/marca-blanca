@@ -21,6 +21,8 @@ public class AdministrarEmpresasService implements AdministrarEmpresas {
     static final String ACCION_MARCA = "empresa.marca_editada";
     static final String ACCION_MODULO_ON = "empresa.modulo_activado";
     static final String ACCION_MODULO_OFF = "empresa.modulo_desactivado";
+    static final String ACCION_IA_OMNICANAL = "empresa.omnicanal_ia_cambiada";
+    static final String ACCION_WEBHOOK_ROTADO = "empresa.omnicanal_webhook_rotado";
 
     private final AdministracionDeEmpresas administracionDeEmpresas;
     private final RegistroDeAuditoria registroDeAuditoria;
@@ -75,5 +77,23 @@ public class AdministrarEmpresasService implements AdministrarEmpresas {
     public void desactivarModulo(UUID operadorId, UUID empresaId, String codigoModulo) {
         administracionDeEmpresas.desactivarModulo(empresaId, codigoModulo);
         registroDeAuditoria.registrar(operadorId, ACCION_MODULO_OFF, empresaId);
+    }
+
+    @Override
+    public Optional<VistaOmnicanalConsola> verOmnicanal(UUID empresaId) {
+        return administracionDeEmpresas.verOmnicanal(empresaId);
+    }
+
+    @Override
+    public void establecerIaHabilitadaOmnicanal(UUID operadorId, UUID empresaId, boolean habilitada) {
+        administracionDeEmpresas.establecerIaHabilitadaOmnicanal(empresaId, habilitada);
+        registroDeAuditoria.registrar(operadorId, ACCION_IA_OMNICANAL, empresaId);
+    }
+
+    @Override
+    public VistaOmnicanalConsola rotarWebhookSecretOmnicanal(UUID operadorId, UUID empresaId) {
+        VistaOmnicanalConsola vista = administracionDeEmpresas.rotarWebhookSecretOmnicanal(empresaId);
+        registroDeAuditoria.registrar(operadorId, ACCION_WEBHOOK_ROTADO, empresaId);
+        return vista;
     }
 }

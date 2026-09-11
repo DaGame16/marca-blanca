@@ -6,6 +6,7 @@ import {
   ActualizarDatosPayload,
   ActualizarMarcaPayload,
   EmpresaDetalle,
+  OmnicanalDetalle,
 } from './empresa-detalle.models';
 import { EmpresaConsola } from './empresas.models';
 
@@ -44,5 +45,17 @@ export class ConsolaEmpresasService {
 
   desactivarModulo(empresaId: string, codigo: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/${empresaId}/modulos/${codigo}`);
+  }
+
+  verOmnicanal(empresaId: string): Observable<OmnicanalDetalle> {
+    return this.http.get<OmnicanalDetalle>(`${this.base}/${empresaId}/omnicanal`);
+  }
+
+  establecerIaOmnicanal(empresaId: string, habilitada: boolean): Observable<void> {
+    return this.http.put<void>(`${this.base}/${empresaId}/omnicanal/ia`, { habilitada });
+  }
+
+  rotarWebhookSecretOmnicanal(empresaId: string): Observable<OmnicanalDetalle> {
+    return this.http.post<OmnicanalDetalle>(`${this.base}/${empresaId}/omnicanal/webhook-secret/rotar`, {});
   }
 }

@@ -63,6 +63,21 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- Para exponer el on/off de IA y la rotacion del webhook de Liwa a la
+             consola (super admin): se corre ConfigurarOmnicanal con
+             ContextoEmpresaActual apuntando a la empresa objetivo, igual que
+             hace el propio tenant en su self-service. -->
+        <dependency>
+            <groupId>com.marcablanca.platform</groupId>
+            <artifactId>omnicanal-application</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.marcablanca.platform</groupId>
+            <artifactId>empresas-application</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>

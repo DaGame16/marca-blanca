@@ -4,6 +4,7 @@ import com.marcablanca.platform.consola.application.DatosEmpresaConsola;
 import com.marcablanca.platform.consola.application.DetalleEmpresaConsola;
 import com.marcablanca.platform.consola.application.EmpresaParaConsola;
 import com.marcablanca.platform.consola.application.MarcaConsola;
+import com.marcablanca.platform.consola.application.VistaOmnicanalConsola;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,4 +31,10 @@ public interface AdministrarEmpresas {
     void activarModulo(UUID operadorId, UUID empresaId, String codigoModulo);
 
     void desactivarModulo(UUID operadorId, UUID empresaId, String codigoModulo);
+
+    Optional<VistaOmnicanalConsola> verOmnicanal(UUID empresaId);
+
+    void establecerIaHabilitadaOmnicanal(UUID operadorId, UUID empresaId, boolean habilitada);
+
+    VistaOmnicanalConsola rotarWebhookSecretOmnicanal(UUID operadorId, UUID empresaId);
 }

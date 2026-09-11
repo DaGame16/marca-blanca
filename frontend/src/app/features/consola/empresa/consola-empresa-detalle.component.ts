@@ -11,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ConsolaEmpresasService } from '../../../core/consola/consola-empresas.service';
-import { EmpresaDetalle, ModuloDetalle } from '../../../core/consola/empresa-detalle.models';
+import { EmpresaDetalle, ModuloDetalle, OmnicanalDetalle } from '../../../core/consola/empresa-detalle.models';
 
 const TIPOS_LOGIN = [
   { valor: 1, etiqueta: 'Lateral' },
@@ -161,6 +161,41 @@ const TIPOS_PANTALLA = [
             }
           </ul>
         </section>
+
+        <!-- OMNICANAL (LIWA) -- solo el super admin ve/toca esto. El tenant
+             ni siquiera tiene el toggle de IA en su propia pantalla de
+             configuracion (se le oculto: viene con default de plataforma). -->
+        <section class="tarjeta">
+          <h2>Omnicanal (Liwa)</h2>
+          @if (cargandoOmnicanal()) {
+            <p class="hint">Cargando…</p>
+          } @else if (omnicanal(); as o) {
+            <p class="hint">
+              El analisis con IA y el secreto del webhook son de control exclusivo del super admin -- la
+              empresa no puede cambiarlos desde su propia pantalla de configuracion.
+            </p>
+            <div class="fila-ia">
+              <mat-slide-toggle [checked]="o.iaHabilitada" [disabled]="guardandoIa()" (change)="alternarIa($event.checked)">
+                Analizar conversaciones con IA
+              </mat-slide-toggle>
+            </div>
+            <div class="grid">
+              <mat-form-field appearance="outline" class="ancho">
+                <mat-label>URL del webhook</mat-label>
+                <input matInput [value]="o.webhookUrl" readonly />
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="ancho">
+                <mat-label>Secreto del webhook</mat-label>
+                <input matInput [value]="o.webhookSecret ?? '••••••••  (rota para verlo)'" readonly />
+              </mat-form-field>
+            </div>
+            <button mat-stroked-button type="button" [disabled]="rotandoSecreto()" (click)="rotarSecreto()">
+              <mat-icon>autorenew</mat-icon>
+              Rotar secreto del webhook
+            </button>
+            <p class="hint aviso">Rotar el secreto invalida el anterior de inmediato -- hay que actualizarlo en Liwa.</p>
+          }
+        </section>
       }
     </div>
   `,
@@ -242,6 +277,8 @@ const TIPOS_PANTALLA = [
       .modulos .codigo { display: block; font-size: 0.75rem; color: #94a3b8; }
 
       .vacio { color: #64748b; font-size: 0.88rem; }
+      .fila-ia { margin-bottom: 14px; }
+      .hint.aviso { color: #b45309; margin: 10px 0 0; }
       .error {
         display: flex;
         align-items: center;
@@ -275,6 +312,11 @@ export class ConsolaEmpresaDetalleComponent {
   protected readonly guardando = signal<'datos' | 'marca' | null>(null);
   protected readonly moduloOcupado = signal<string | null>(null);
   protected readonly modulos = computed(() => this.empresa()?.modulos ?? []);
+
+  protected readonly omnicanal = signal<OmnicanalDetalle | null>(null);
+  protected readonly cargandoOmnicanal = signal(true);
+  protected readonly guardandoIa = signal(false);
+  protected readonly rotandoSecreto = signal(false);
 
   protected readonly datosForm = this.fb.nonNullable.group({
     nombreLegal: ['', [Validators.required]],
@@ -319,6 +361,43 @@ export class ConsolaEmpresaDetalleComponent {
       },
       error: (err: HttpErrorResponse) => this.errorCarga.set(this.mensaje(err)),
       complete: () => this.cargando.set(false),
+    });
+
+    this.cargandoOmnicanal.set(true);
+    this.empresasService.verOmnicanal(this.empresaId).subscribe({
+      next: (o) => this.omnicanal.set(o),
+      error: () => this.omnicanal.set(null),
+      complete: () => this.cargandoOmnicanal.set(false),
+    });
+  }
+
+  alternarIa(habilitada: boolean): void {
+    this.guardandoIa.set(true);
+    this.empresasService.establecerIaOmnicanal(this.empresaId, habilitada).subscribe({
+      next: () => {
+        const actual = this.omnicanal();
+        if (actual) {
+          this.omnicanal.set({ ...actual, iaHabilitada: habilitada });
+        }
+        this.snack.open(habilitada ? 'IA habilitada' : 'IA deshabilitada', 'OK', { duration: 2000 });
+      },
+      error: (err: HttpErrorResponse) => this.snack.open(this.mensaje(err), 'Cerrar', { duration: 4000 }),
+      complete: () => this.guardandoIa.set(false),
+    });
+  }
+
+  rotarSecreto(): void {
+    if (!confirm('¿Rotar el secreto del webhook de esta empresa? El anterior deja de funcionar de inmediato.')) {
+      return;
+    }
+    this.rotandoSecreto.set(true);
+    this.empresasService.rotarWebhookSecretOmnicanal(this.empresaId).subscribe({
+      next: (o) => {
+        this.omnicanal.set(o);
+        this.snack.open('Secreto rotado -- actualízalo también en Liwa.', 'OK', { duration: 3000 });
+      },
+      error: (err: HttpErrorResponse) => this.snack.open(this.mensaje(err), 'Cerrar', { duration: 4000 }),
+      complete: () => this.rotandoSecreto.set(false),
     });
   }
 

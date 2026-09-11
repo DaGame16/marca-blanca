@@ -4,6 +4,7 @@ import com.marcablanca.platform.consola.application.DatosEmpresaConsola;
 import com.marcablanca.platform.consola.application.DetalleEmpresaConsola;
 import com.marcablanca.platform.consola.application.EmpresaParaConsola;
 import com.marcablanca.platform.consola.application.MarcaConsola;
+import com.marcablanca.platform.consola.application.VistaOmnicanalConsola;
 import com.marcablanca.platform.consola.application.port.in.AdministrarEmpresas;
 import com.marcablanca.platform.consola.domain.CredencialesDeOperadorInvalidasException;
 import jakarta.validation.Valid;
@@ -87,6 +88,30 @@ public class ConsolaEmpresasController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void desactivarModulo(@PathVariable UUID empresaId, @PathVariable String codigo) {
         administrarEmpresas.desactivarModulo(operadorAutenticadoId(), empresaId, codigo);
+    }
+
+    @GetMapping("/{empresaId}/omnicanal")
+    public ResponseEntity<OmnicanalConsolaResponse> verOmnicanal(@PathVariable UUID empresaId) {
+        return administrarEmpresas.verOmnicanal(empresaId)
+                .map(ConsolaEmpresasController::aRespuestaOmnicanal)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{empresaId}/omnicanal/ia")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void establecerIaOmnicanal(@PathVariable UUID empresaId, @Valid @RequestBody ActualizarIaOmnicanalRequest req) {
+        administrarEmpresas.establecerIaHabilitadaOmnicanal(operadorAutenticadoId(), empresaId, req.habilitada());
+    }
+
+    @PostMapping("/{empresaId}/omnicanal/webhook-secret/rotar")
+    public OmnicanalConsolaResponse rotarWebhookSecretOmnicanal(@PathVariable UUID empresaId) {
+        return aRespuestaOmnicanal(administrarEmpresas.rotarWebhookSecretOmnicanal(operadorAutenticadoId(), empresaId));
+    }
+
+    private static OmnicanalConsolaResponse aRespuestaOmnicanal(VistaOmnicanalConsola v) {
+        return new OmnicanalConsolaResponse(v.webhookUrl(), v.webhookSecret(), v.iaHabilitada(), v.openaiModelo(),
+                v.liwaTokenConfigurado());
     }
 
     private static EmpresaConsolaResponse aRespuesta(EmpresaParaConsola e) {
