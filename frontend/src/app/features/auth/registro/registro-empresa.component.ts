@@ -1187,8 +1187,20 @@ export class RegistroEmpresaComponent {
 
   protected subdominioLocal(): string {
     const identificador = this.identificadorReal() || 'tu-empresa';
-    const puerto = globalThis.location.port || '4200';
-    return `${globalThis.location.protocol}//${identificador}.localhost:${puerto}/`;
+    const { protocol, hostname, port } = globalThis.location;
+    const puertoSufijo = port ? `:${port}` : '';
+
+    // En localhost cada tenant vive en <identificador>.localhost (mismo
+    // patron que usa login.component para leer el subdominio) -- fuera de
+    // localhost no se puede asumir lo mismo: sin un dominio propio con
+    // subdominios wildcard (ver docs/deploy), anteponer el identificador
+    // al host actual (ej. onrender.com) da una URL que no resuelve a nada.
+    // Se manda al login del MISMO host, que cae al flujo "buscar empresa
+    // por correo" -- funciona igual, solo sin la URL bonita por tenant.
+    if (hostname === 'localhost' || hostname.endsWith('.localhost')) {
+      return `${protocol}//${identificador}.localhost${puertoSufijo}/`;
+    }
+    return `${protocol}//${hostname}${puertoSufijo}/`;
   }
 
   private mensajeDeError(error: HttpErrorResponse): string {
