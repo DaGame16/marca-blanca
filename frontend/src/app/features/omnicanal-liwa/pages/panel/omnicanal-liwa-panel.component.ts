@@ -122,21 +122,21 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
 
       <ng-container [ngSwitch]="vista">
         <div *ngSwitchCase="'calidad'">
-          <app-liwa-dashboard-calidad [estadisticas]="estadisticas" [chats]="chats" [desde]="desde || undefined" [hasta]="hasta || undefined" />
+          <app-liwa-dashboard-calidad [estadisticas]="estadisticas" [chats]="chats" [desde]="desde || undefined" [hasta]="hasta || undefined" [autoRefreshTick]="refrescoTick" />
         </div>
         <div *ngSwitchCase="'indicadores'">
-          <app-liwa-kpis-calidad-panel [desde]="desde || undefined" [hasta]="hasta || undefined" />
+          <app-liwa-kpis-calidad-panel [desde]="desde || undefined" [hasta]="hasta || undefined" [autoRefreshTick]="refrescoTick" />
         </div>
         <div *ngSwitchCase="'asesores'">
-          <app-liwa-asesores-panel [desde]="desde || undefined" [hasta]="hasta || undefined" />
+          <app-liwa-asesores-panel [desde]="desde || undefined" [hasta]="hasta || undefined" [autoRefreshTick]="refrescoTick" />
         </div>
         <div *ngSwitchCase="'ads'">
-          <app-liwa-ads-panel [desde]="desde || undefined" [hasta]="hasta || undefined" />
+          <app-liwa-ads-panel [desde]="desde || undefined" [hasta]="hasta || undefined" [autoRefreshTick]="refrescoTick" />
         </div>
         <div *ngSwitchCase="'analisis'" class="analisis-stack">
-          <app-liwa-resumen-analisis-panel [desde]="desde || undefined" [hasta]="hasta || undefined" />
-          <app-liwa-case-reports-panel [desde]="desde || undefined" [hasta]="hasta || undefined" />
-          <app-liwa-analisis-ia-panel [desde]="desde || undefined" [hasta]="hasta || undefined" [mostrarResumen]="false" />
+          <app-liwa-resumen-analisis-panel [desde]="desde || undefined" [hasta]="hasta || undefined" [autoRefreshTick]="refrescoTick" />
+          <app-liwa-case-reports-panel [desde]="desde || undefined" [hasta]="hasta || undefined" [autoRefreshTick]="refrescoTick" />
+          <app-liwa-analisis-ia-panel [desde]="desde || undefined" [hasta]="hasta || undefined" [mostrarResumen]="false" [autoRefreshTick]="refrescoTick" />
         </div>
         <div *ngSwitchDefault>
           <div class="kpis">
@@ -257,6 +257,11 @@ export class OmnicanalLiwaPanelComponent implements OnInit, OnDestroy {
   contactosAnalizados = new Set<string>();
   chatSeleccionadoId: string | null = null;
   modalResumen: 'conversaciones' | 'clientes' | null = null;
+  // Se incrementa junto con el polling de abajo -- los paneles de las otras
+  // pestañas (análisis, gráficas, KPIs, asesores, ads) lo reciben como
+  // @Input y eso les dispara ngOnChanges, sin que el usuario tenga que
+  // cambiar de pestaña para que se refresquen solos.
+  refrescoTick = 0;
 
   // Arrow function (no pierde el "this") para pasarla como [onSelect] al
   // KpiCard — mismo patrón que el onClick de setModalResumen('conversaciones')
@@ -307,6 +312,7 @@ export class OmnicanalLiwaPanelComponent implements OnInit, OnDestroy {
     this.intervaloPolling = setInterval(() => {
       if (document.visibilityState !== 'visible') return;
       void this.cargarDesdeBackend();
+      this.refrescoTick++;
     }, 20000);
   }
 

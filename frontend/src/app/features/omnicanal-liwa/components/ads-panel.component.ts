@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -240,6 +240,11 @@ interface Barra { clave: string; label: string; total: number; color: string; }
 export class LiwaAdsPanelComponent implements OnChanges {
   @Input() desde?: string;
   @Input() hasta?: string;
+  // Ticker que el panel padre incrementa cada 20s (ver
+  // omnicanal-liwa-panel.component.ts) para refrescar sin que el usuario
+  // tenga que cambiar de pestaña. No resetea la pagina como si haria un
+  // cambio real de filtro -- solo trae datos nuevos en el fondo.
+  @Input() autoRefreshTick?: number;
 
   reporte: LiwaReporteAds | null = null;
   casos: LiwaAnalisisItem[] = [];
@@ -256,8 +261,10 @@ export class LiwaAdsPanelComponent implements OnChanges {
 
   constructor(private readonly liwa: LiwaService) {}
 
-  ngOnChanges(): void {
-    this.pagina = 1;
+  ngOnChanges(changes: SimpleChanges): void {
+    if (!('autoRefreshTick' in changes) || Object.keys(changes).length > 1) {
+      this.pagina = 1;
+    }
     void this.cargar();
   }
 

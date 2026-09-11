@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -417,6 +417,8 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
 export class LiwaCaseReportsPanelComponent implements OnChanges {
   @Input() desde?: string;
   @Input() hasta?: string;
+  // Ver comentario en ads-panel.component.ts.
+  @Input() autoRefreshTick?: number;
 
   sentimiento: Record<string, unknown> | null = null;
   ventas: Record<string, unknown> | null = null;
@@ -438,8 +440,10 @@ export class LiwaCaseReportsPanelComponent implements OnChanges {
 
   constructor(private readonly liwa: LiwaService) {}
 
-  ngOnChanges(): void {
-    this.pagina = 1;
+  ngOnChanges(changes: SimpleChanges): void {
+    if (!('autoRefreshTick' in changes) || Object.keys(changes).length > 1) {
+      this.pagina = 1;
+    }
     void this.cargar();
   }
 

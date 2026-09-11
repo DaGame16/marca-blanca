@@ -96,6 +96,8 @@ function semaforoMenosEsMejor(v: number): Semaforo {
 export class LiwaKpisCalidadPanelComponent implements OnChanges, OnDestroy {
   @Input() desde?: string;
   @Input() hasta?: string;
+  // Ver comentario en ads-panel.component.ts.
+  @Input() autoRefreshTick?: number;
 
   analisis: LiwaAnalisisItem[] = [];
   cargando = true;

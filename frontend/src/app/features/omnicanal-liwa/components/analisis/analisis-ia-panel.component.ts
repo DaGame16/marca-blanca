@@ -18,6 +18,8 @@ import { LiwaTablaAnalisisIaComponent } from '../analisis-ia-tabla.component';
 export class LiwaResumenAnalisisPanelComponent implements OnChanges {
   @Input() desde?: string;
   @Input() hasta?: string;
+  // Ver comentario en ads-panel.component.ts.
+  @Input() autoRefreshTick?: number;
 
   items: LiwaAnalisisItem[] = [];
   cargando = true;
@@ -74,6 +76,8 @@ export class LiwaAnalisisIaPanelComponent implements OnChanges {
   @Input() desde?: string;
   @Input() hasta?: string;
   @Input() mostrarResumen = true;
+  // Ver comentario en ads-panel.component.ts.
+  @Input() autoRefreshTick?: number;
 
   items: LiwaAnalisisItem[] = [];
   cargando = true;

@@ -141,6 +141,10 @@ export class LiwaDashboardCalidadComponent implements OnChanges {
   @Input() chats: LiwaChat[] = [];
   @Input() desde?: string;
   @Input() hasta?: string;
+  // Redundante con el refresco que ya trae [estadisticas]/[chats] del padre,
+  // pero se deja explicito para que quede igual de claro que en los demas
+  // paneles de pestaña (ver comentario en ads-panel.component.ts).
+  @Input() autoRefreshTick?: number;
 
   analisis: LiwaAnalisisItem[] = [];
   cargandoAnalisis = false;

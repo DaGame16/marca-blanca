@@ -330,6 +330,8 @@ interface StatsAsesor {
 export class LiwaAsesoresPanelComponent implements OnChanges {
   @Input() desde?: string;
   @Input() hasta?: string;
+  // Ver comentario en ads-panel.component.ts.
+  @Input() autoRefreshTick?: number;
 
   readonly MOTIVO_IA_LABELS = MOTIVO_IA_LABELS;
   readonly RESULTADO_LABELS = RESULTADO_LABELS;
