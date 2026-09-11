@@ -23,7 +23,16 @@ const CORREO_RECORDADO_KEY = 'login.correoRecordado';
 // En el dominio raiz (sin subdominio, ej. la landing) no hay ninguna
 // empresa que preguntar.
 function identificadorDesdeSubdominio(): string | null {
-  const partes = globalThis.location.hostname.split('.');
+  const { hostname } = globalThis.location;
+  // *.onrender.com (ambiente de pruebas sin dominio propio, ver render.yaml)
+  // no da subdominios por tenant -- el primer segmento ahi es el NOMBRE DEL
+  // SERVICIO ("marca-blanca-frontend"), no una empresa. Tratarlo como tal
+  // manda identificadorEmpresa="marca-blanca-frontend" al backend, que
+  // revienta con una excepcion sin manejar (no existe esa empresa).
+  if (hostname.endsWith('.onrender.com')) {
+    return null;
+  }
+  const partes = hostname.split('.');
   return partes.length > 1 ? partes[0] : null;
 }
 
