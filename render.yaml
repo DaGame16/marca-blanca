@@ -1,0 +1,60 @@
+# Blueprint de Render para levantar el proyecto completo en un ambiente de
+# pruebas (no es el setup de produccion real -- para eso falta, como minimo,
+# dominio propio con subdominios wildcard para la multi-tenencia real).
+#
+# Como usarlo: en el dashboard de Render, "New" -> "Blueprint", apuntar al
+# repo. Render detecta este archivo y crea los 3 recursos de abajo.
+#
+# Nota sobre multi-tenencia: el login resuelve la empresa por el subdominio
+# (<identificador>.dominio) y, si no hay subdominio, por el correo. Como
+# *.onrender.com no da subdominios propios, el nombre del servicio frontend
+# ("marca-blanca-frontend" de abajo) queda pegado a la URL final
+# (marca-blanca-frontend.onrender.com) y su "primer segmento" no va a matchear
+# ninguna empresa real -- el login va a caer al flujo por correo, que si
+# funciona. Para probar el flujo de subdominio hace falta un dominio propio
+# con wildcard apuntando a este servicio.
+databases:
+  - name: marca-blanca-postgres
+    databaseName: db_portal_guajiranet_control
+    user: guajiranet_owner
+    plan: free
+
+services:
+  - type: web
+    name: marca-blanca-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    envVars:
+      - key: DB_HOST
+        fromDatabase: { name: marca-blanca-postgres, property: host }
+      - key: DB_PORT
+        fromDatabase: { name: marca-blanca-postgres, property: port }
+      - key: DB_NAME
+        fromDatabase: { name: marca-blanca-postgres, property: database }
+      - key: DB_USER
+        fromDatabase: { name: marca-blanca-postgres, property: user }
+      - key: DB_PASSWORD
+        fromDatabase: { name: marca-blanca-postgres, property: password }
+      # Generado por Render (no lo pisa el default de application.yml) --
+      # cambiar por un secreto real antes de usar esto para algo serio.
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORREO_CLAVE_MAESTRA
+        generateValue: true
+
+  - type: web
+    name: marca-blanca-frontend
+    runtime: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    plan: free
+    envVars:
+      # host:puerto interno del servicio backend dentro de la red privada de
+      # Render -- lo consume nginx.conf.template via envsubst al arrancar.
+      - key: BACKEND_HOST
+        fromService:
+          type: web
+          name: marca-blanca-backend
+          property: hostport

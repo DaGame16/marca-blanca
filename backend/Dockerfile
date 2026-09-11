@@ -40,4 +40,23 @@ COPY --from=build /app/bootstrap/target/marca-blanca-backend.jar app.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Forma shell (no exec) para poder expandir variables de entorno antes de
+# arrancar. Dos cosas que docker-compose.yml no necesita pero Render si:
+#   - PORT: Render lo inyecta y la app debe escuchar ahi (compose no lo
+#     define, cae al 8080 de siempre).
+#   - DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASSWORD: en Render vienen del
+#     Postgres administrado (ver render.yaml, fromDatabase) y de ahi se arma
+#     el jdbc url -- si ya viene SPRING_DATASOURCE_URL/APROV_MANT_URL/etc
+#     seteado explicitamente (como hace docker-compose.yml) eso tiene
+#     prioridad y esto no hace nada.
+ENTRYPOINT ["sh", "-c", "\
+    export SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL:-jdbc:postgresql://$DB_HOST:$DB_PORT/$DB_NAME}; \
+    export SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME:-$DB_USER}; \
+    export SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD:-$DB_PASSWORD}; \
+    export APROV_MANT_URL=${APROV_MANT_URL:-jdbc:postgresql://$DB_HOST:$DB_PORT/postgres}; \
+    export APROV_MANT_USER=${APROV_MANT_USER:-$DB_USER}; \
+    export APROV_MANT_PASSWORD=${APROV_MANT_PASSWORD:-$DB_PASSWORD}; \
+    export APROV_CLIENTE_HOST=${APROV_CLIENTE_HOST:-$DB_HOST}; \
+    export APROV_CLIENTE_PUERTO=${APROV_CLIENTE_PUERTO:-$DB_PORT}; \
+    exec java -jar app.jar --server.port=${PORT:-8080} \
+"]
