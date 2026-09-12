@@ -1,13 +1,31 @@
-import { Component } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import gsap from 'gsap';
+
+// Clave en sessionStorage para no repetir la intro en cada visita a "/"
+// dentro de la misma pestaña/sesion (solo la primera vez que se entra).
+const INTRO_YA_VISTA = 'mb_intro_vista';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, MatIconModule, MatButtonModule],
+  imports: [CommonModule, RouterLink, MatIconModule, MatButtonModule],
   template: `
+    <!-- Intro de entrada (inspirada en el wipe/reveal de sitios tipo huyml.co):
+         pantalla oscura de marca -> aparece el nombre -> se desliza hacia
+         arriba descubriendo la landing real debajo. Solo la primera vez por
+         sesion (ver ngAfterViewInit) y se salta si el usuario prefiere menos
+         movimiento. -->
+    <div class="intro-loader" #introLoader *ngIf="mostrarIntro">
+      <div class="intro-brand" #introBrand>
+        <span class="brand-mark"><mat-icon>hub</mat-icon></span>
+        <strong>Marca Blanca</strong>
+      </div>
+    </div>
+
     <div class="landing">
       <header class="header">
         <a routerLink="/" class="brand">
@@ -179,6 +197,18 @@ import { MatButtonModule } from '@angular/material/button';
   styles: [`
     :host { display: block; }
     .landing { background: #f7f9fc; color: #172033; }
+
+    /* ---------- Intro de entrada ---------- */
+    .intro-loader {
+      position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(160deg, #0b1c3d 0%, #142b57 55%, #0b1c3d 100%);
+    }
+    .intro-brand { display: flex; align-items: center; gap: 12px; color: #fff; opacity: 0; transform: translateY(16px); }
+    .intro-brand .brand-mark {
+      width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; color: #fff;
+      background: #2468d9; box-shadow: 0 10px 24px rgba(36,104,217,0.4);
+    }
+    .intro-brand strong { font-size: 24px; letter-spacing: -0.01em; }
 
     /* ---------- Header ---------- */
     .header { height: 76px; display: flex; align-items: center; justify-content: space-between; max-width: 1240px; margin: auto; padding: 0 28px; background: #f7f9fc; }
@@ -354,7 +384,38 @@ import { MatButtonModule } from '@angular/material/button';
     }
   `],
 })
-export class HomeComponent {
+export class HomeComponent implements AfterViewInit {
+  // Solo se pinta el overlay si es la primera vez en esta sesion de pestaña
+  // -- entrar/salir de "/" repetidamente (o refrescar) no debe repetir la
+  // intro cada vez, se volveria molesto.
+  protected mostrarIntro = !sessionStorage.getItem(INTRO_YA_VISTA);
+
+  @ViewChild('introLoader') private introLoader?: ElementRef<HTMLDivElement>;
+  @ViewChild('introBrand') private introBrand?: ElementRef<HTMLDivElement>;
+
+  ngAfterViewInit(): void {
+    if (!this.mostrarIntro) {
+      return;
+    }
+    sessionStorage.setItem(INTRO_YA_VISTA, '1');
+
+    const overlay = this.introLoader?.nativeElement;
+    const marca = this.introBrand?.nativeElement;
+    if (!overlay || !marca) {
+      return;
+    }
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      overlay.remove();
+      return;
+    }
+
+    gsap.timeline({ onComplete: () => overlay.remove() })
+      .to(marca, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, 0.15)
+      .to(marca, { opacity: 0, y: -16, duration: 0.35, ease: 'power2.in' }, '+=0.55')
+      .to(overlay, { yPercent: -100, duration: 0.75, ease: 'power4.inOut' }, '-=0.1');
+  }
+
   protected readonly pasos = [
     { icono: 'description', titulo: 'Planeación', color: 'linear-gradient(135deg, #a855f7, #7c3aed)' },
     { icono: 'settings', titulo: 'Configuración', color: 'linear-gradient(135deg, #38bdf8, #2563eb)' },
