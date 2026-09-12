@@ -14,6 +14,7 @@ import { MarcaService } from '../../../core/identidad-visual/marca.service';
 import { MarcaDeEmpresa } from '../../../core/identidad-visual/models';
 import { BrandMarkComponent } from '../../../shared/brand/brand-mark.component';
 import { ordenarClaroOscuro } from '../../../shared/brand/color-utils';
+import { estiloFormaLogo } from '../../../shared/brand/logo-forma';
 
 type TemaVisual = 'lateral' | 'centrado' | 'fondo';
 
@@ -145,7 +146,14 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
          aca abajo. -->
     <ng-template #logoTpl let-variante="variante">
       @if (marcaPublica()?.urlLogo; as logo) {
-        <img [src]="logo" alt="" class="brand-logo-img" [style.object-fit]="ajusteLogoCss()" />
+        <img
+          [src]="logo"
+          alt=""
+          class="brand-logo-img"
+          [style.object-fit]="ajusteLogoCss()"
+          [style.border-radius]="formaLogoRadio()"
+          [style.aspect-ratio]="formaLogoAspecto()"
+        />
       } @else {
         <app-brand-mark class="brand-logo-icon" [variante]="variante || 'blanco'" />
       }
@@ -784,6 +792,8 @@ export class LoginComponent {
       default: return 'contain';
     }
   });
+  protected readonly formaLogoRadio = computed(() => estiloFormaLogo(this.marcaPublica()?.formaLogo).borderRadius);
+  protected readonly formaLogoAspecto = computed(() => estiloFormaLogo(this.marcaPublica()?.formaLogo).aspectRatio);
 
   protected readonly form = this.fb.nonNullable.group({
     correo: ['', [Validators.required, Validators.email]],

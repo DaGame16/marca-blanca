@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
@@ -14,6 +14,7 @@ import { VistaPreviaMarcaService } from '../../../../core/identidad-visual/vista
 import { TemaPaginaService, TemaPagina } from '../../../../core/temas/tema-pagina.service';
 import { PaletaPredefinida, PALETAS_PREDEFINIDAS } from '../../../../shared/brand/paletas-marca';
 import { ordenarClaroOscuro } from '../../../../shared/brand/color-utils';
+import { estiloFormaLogo } from '../../../../shared/brand/logo-forma';
 
 const FORMATO_HEX = /^#[0-9A-Fa-f]{6}$/;
 const MAX_LOGO_BYTES = 500 * 1024;
@@ -125,7 +126,14 @@ const OPCIONES_PAGINA: OpcionPagina[] = [
                 <span class="campo-label">Logo de tu empresa</span>
                 <div class="logo-row">
                   @if (form.value.urlLogo) {
-                    <img [src]="form.value.urlLogo" alt="Vista previa del logo" class="logo-preview" [style.object-fit]="ajusteCss()" />
+                    <img
+                      [src]="form.value.urlLogo"
+                      alt="Vista previa del logo"
+                      class="logo-preview"
+                      [style.object-fit]="ajusteCss()"
+                      [style.border-radius]="formaLogoEstilo().borderRadius"
+                      [style.aspect-ratio]="formaLogoEstilo().aspectRatio"
+                    />
                   } @else {
                     <div class="logo-preview logo-preview-vacio">
                       <mat-icon>image</mat-icon>
@@ -137,6 +145,9 @@ const OPCIONES_PAGINA: OpcionPagina[] = [
                       {{ form.value.urlLogo ? 'Cambiar logo' : 'Subir logo' }}
                     </button>
                     @if (form.value.urlLogo) {
+                      @if (esRecortable()) {
+                        <button mat-button type="button" (click)="ajustarRecorteExistente()">Mover / recortar</button>
+                      }
                       <button mat-button type="button" (click)="quitarLogo()">Quitar</button>
                     }
                   </div>
@@ -155,8 +166,17 @@ const OPCIONES_PAGINA: OpcionPagina[] = [
               </mat-form-field>
 
               @if (form.value.urlLogo) {
-                <div class="ajuste-field">
+                <div class="forma-field">
                   <span class="campo-label">Forma del logo</span>
+                  <div class="ajuste-opciones">
+                    <button type="button" class="ajuste-boton" [class.ajuste-boton-activo]="form.value.formaLogo === 1" (click)="form.patchValue({ formaLogo: 1 })">Cuadrado</button>
+                    <button type="button" class="ajuste-boton" [class.ajuste-boton-activo]="form.value.formaLogo === 2" (click)="form.patchValue({ formaLogo: 2 })">Rectangular</button>
+                    <button type="button" class="ajuste-boton" [class.ajuste-boton-activo]="form.value.formaLogo === 3" (click)="form.patchValue({ formaLogo: 3 })">Circular</button>
+                  </div>
+                </div>
+
+                <div class="ajuste-field">
+                  <span class="campo-label">Ajuste del logo</span>
                   <div class="ajuste-opciones">
                     @for (opcion of opcionesAjuste; track opcion.valor) {
                       <button
@@ -233,12 +253,6 @@ const OPCIONES_PAGINA: OpcionPagina[] = [
                 <p class="field-error">Formato inválido. Usa un hexadecimal de 6 dígitos, ej: #1E3A5F</p>
               }
 
-              <mat-form-field appearance="outline">
-                <mat-label>Dominio propio</mat-label>
-                <input matInput formControlName="dominioPropio" placeholder="app.mi-empresa.com" />
-                <mat-icon matPrefix>public</mat-icon>
-              </mat-form-field>
-
               <div class="acciones-form">
                 <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || guardando()">
                   @if (guardando()) {
@@ -266,16 +280,19 @@ const OPCIONES_PAGINA: OpcionPagina[] = [
                 <div class="preview-contenido">
                   <div class="preview-header">
                     @if (form.value.urlLogo) {
-                      <img [src]="form.value.urlLogo" alt="Logo de la empresa" [style.object-fit]="ajusteCss()" (error)="logoConError.set(true)" />
+                      <img
+                        [src]="form.value.urlLogo"
+                        alt="Logo de la empresa"
+                        [style.object-fit]="ajusteCss()"
+                        [style.border-radius]="formaLogoEstilo().borderRadius"
+                        [style.aspect-ratio]="formaLogoEstilo().aspectRatio"
+                        (error)="logoConError.set(true)"
+                      />
                     } @else {
                       <mat-icon>image</mat-icon>
                     }
                   </div>
                   <button class="preview-btn" type="button" [style.color]="previewPrimario()">Botón de ejemplo</button>
-                  <p class="preview-domain">
-                    <mat-icon inline>public</mat-icon>
-                    {{ form.value.dominioPropio || 'app.tu-empresa.com' }}
-                  </p>
                 </div>
               </div>
             </aside>
@@ -452,6 +469,65 @@ const OPCIONES_PAGINA: OpcionPagina[] = [
         </section>
       }
     </div>
+
+    @if (mostrarRecorte()) {
+      <div class="recorte-overlay" (pointermove)="moverArrastre($event)" (pointerup)="terminarArrastre()" (pointerleave)="terminarArrastre()">
+        <div class="recorte-panel">
+          <h3>Ajustar logo</h3>
+          <p class="recorte-hint">Arrastra la imagen para moverla y usa +/- para acercar o alejar.</p>
+
+          <div class="recorte-opciones-forma">
+            <button type="button" class="recorte-forma-boton" [class.activa]="formaRecorte() === 1" (click)="elegirFormaRecorte(1)">Cuadrado</button>
+            <button type="button" class="recorte-forma-boton" [class.activa]="formaRecorte() === 2" (click)="elegirFormaRecorte(2)">Rectangular</button>
+            <button type="button" class="recorte-forma-boton" [class.activa]="formaRecorte() === 3" (click)="elegirFormaRecorte(3)">Circular</button>
+          </div>
+
+          <div
+            class="recorte-marco"
+            [style.width.px]="marcoActual().w"
+            [style.height.px]="marcoActual().h"
+            [style.border-radius]="formaRecorte() === 3 ? '50%' : '10px'"
+            (pointerdown)="iniciarArrastre($event)"
+          >
+            <img
+              [src]="imagenRecorteOriginal()"
+              class="recorte-imagen"
+              [style.width.px]="imagenNaturalW()"
+              [style.height.px]="imagenNaturalH()"
+              [style.transform]="transformRecorte()"
+              (load)="onImagenRecorteCargada($event)"
+              draggable="false"
+              alt="Imagen a recortar"
+            />
+          </div>
+
+          <div class="recorte-zoom">
+            <button type="button" mat-icon-button (click)="cambiarZoom(-0.1)" aria-label="Alejar">
+              <mat-icon>remove</mat-icon>
+            </button>
+            <input
+              type="range"
+              min="1"
+              max="3"
+              step="0.01"
+              [value]="zoomRecorte()"
+              (input)="zoomRecorte.set(+$any($event.target).value)"
+            />
+            <button type="button" mat-icon-button (click)="cambiarZoom(0.1)" aria-label="Acercar">
+              <mat-icon>add</mat-icon>
+            </button>
+          </div>
+
+          <div class="recorte-acciones">
+            <button mat-button type="button" (click)="cancelarRecorte()">Cancelar</button>
+            <button mat-flat-button color="primary" type="button" (click)="confirmarRecorte()">
+              <mat-icon>check</mat-icon>
+              Aplicar
+            </button>
+          </div>
+        </div>
+      </div>
+    }
   `,
   styles: [`
     .marca-page {
@@ -591,8 +667,105 @@ const OPCIONES_PAGINA: OpcionPagina[] = [
       gap: 6px;
     }
 
-    .ajuste-field {
+    .ajuste-field, .forma-field {
       margin: -4px 0 18px;
+    }
+
+    .recorte-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      touch-action: none;
+    }
+
+    .recorte-panel {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      width: min(400px, 92vw);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+    }
+
+    .recorte-panel h3 {
+      margin: 0;
+      align-self: flex-start;
+      font-size: 1.05rem;
+      color: #0f172a;
+    }
+
+    .recorte-hint {
+      margin: -8px 0 0;
+      align-self: flex-start;
+      font-size: 0.78rem;
+      color: #64748b;
+    }
+
+    .recorte-opciones-forma {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .recorte-forma-boton {
+      flex: 1;
+      padding: 7px 8px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      background: #fff;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: #475569;
+      cursor: pointer;
+    }
+
+    .recorte-forma-boton.activa {
+      border-color: #2563eb;
+      color: #2563eb;
+      background: #eff6ff;
+    }
+
+    .recorte-marco {
+      position: relative;
+      overflow: hidden;
+      background: repeating-conic-gradient(#e2e8f0 0% 25%, #f8fafc 0% 50%) 0 0 / 20px 20px;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .recorte-imagen {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      max-width: none;
+      transform-origin: center;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .recorte-zoom {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .recorte-zoom input[type='range'] {
+      flex: 1;
+    }
+
+    .recorte-acciones {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      width: 100%;
     }
 
     .ajuste-opciones {
@@ -1131,10 +1304,48 @@ export class MiMarcaComponent implements OnInit, OnDestroy {
   protected readonly form = this.fb.nonNullable.group({
     urlLogo: [''],
     ajusteLogo: [1],
+    formaLogo: [1],
     colorPrimario: ['', [Validators.pattern(FORMATO_HEX)]],
     colorSecundario: ['', [Validators.pattern(FORMATO_HEX)]],
     dominioPropio: [''],
   });
+
+  // Modal de recorte -- se abre al subir un logo nuevo desde el PC (o al
+  // pedir "Ajustar recorte" sobre uno ya subido) para permitir mover/hacer
+  // zoom a la imagen y elegir su forma antes de guardarla. Solo aplica a
+  // logos subidos como archivo (data:), nunca a URLs externas pegadas -- una
+  // imagen de otro dominio "tinta" el canvas al exportar (CORS) y no se
+  // puede leer de vuelta como PNG.
+  protected readonly mostrarRecorte = signal(false);
+  protected readonly imagenRecorteOriginal = signal<string | null>(null);
+  protected readonly formaRecorte = signal(1);
+  protected readonly zoomRecorte = signal(1);
+  protected readonly posicionRecorte = signal({ x: 0, y: 0 });
+  protected readonly imagenNaturalW = signal(0);
+  protected readonly imagenNaturalH = signal(0);
+  protected readonly escalaBase = signal(1);
+  private arrastrando = false;
+  private arrastreInicio = { x: 0, y: 0 };
+
+  protected readonly marcoActual = computed(() => (this.formaRecorte() === 2 ? { w: 320, h: 160 } : { w: 260, h: 260 }));
+
+  protected readonly transformRecorte = computed(() => {
+    const escala = this.escalaBase() * this.zoomRecorte();
+    const pos = this.posicionRecorte();
+    return `translate(-50%, -50%) translate(${pos.x}px, ${pos.y}px) scale(${escala})`;
+  });
+
+  // Metodos (no computed()): dependen de form.value, que es un objeto plano
+  // y no una signal -- un computed() nunca se invalidaria y quedaria
+  // pegado en el primer valor leido. Igual que el ya existente ajusteCss().
+  protected esRecortable(): boolean {
+    const url = this.form.value.urlLogo;
+    return !!url && url.startsWith('data:');
+  }
+
+  protected formaLogoEstilo() {
+    return estiloFormaLogo(this.form.value.formaLogo);
+  }
 
   ngOnInit(): void {
     this.cargar();
@@ -1179,6 +1390,7 @@ export class MiMarcaComponent implements OnInit, OnDestroy {
         this.form.patchValue({
           urlLogo: marca.urlLogo ?? '',
           ajusteLogo: marca.ajusteLogo ?? 1,
+          formaLogo: marca.formaLogo ?? 1,
           colorPrimario: marca.colorPrimario ?? '',
           colorSecundario: marca.colorSecundario ?? '',
           dominioPropio: marca.dominioPropio ?? '',
@@ -1213,7 +1425,10 @@ export class MiMarcaComponent implements OnInit, OnDestroy {
     }
     this.errorLogo.set(null);
     const lector = new FileReader();
-    lector.onload = () => this.form.patchValue({ urlLogo: lector.result as string });
+    lector.onload = () => {
+      this.abrirRecorte(lector.result as string);
+      input.value = '';
+    };
     lector.readAsDataURL(archivo);
   }
 
@@ -1225,6 +1440,117 @@ export class MiMarcaComponent implements OnInit, OnDestroy {
   protected ajusteCss(): 'contain' | 'cover' | 'fill' {
     const valor = this.form.value.ajusteLogo;
     return OPCIONES_AJUSTE.find((o) => o.valor === valor)?.css ?? 'contain';
+  }
+
+  protected ajustarRecorteExistente(): void {
+    const url = this.form.value.urlLogo;
+    if (url) {
+      this.abrirRecorte(url);
+    }
+  }
+
+  private abrirRecorte(dataUrl: string): void {
+    this.imagenRecorteOriginal.set(dataUrl);
+    this.formaRecorte.set(this.form.value.formaLogo ?? 1);
+    this.zoomRecorte.set(1);
+    this.posicionRecorte.set({ x: 0, y: 0 });
+    this.mostrarRecorte.set(true);
+  }
+
+  protected cancelarRecorte(): void {
+    this.mostrarRecorte.set(false);
+    this.imagenRecorteOriginal.set(null);
+  }
+
+  protected elegirFormaRecorte(forma: number): void {
+    this.formaRecorte.set(forma);
+    // Cambiar de cuadrado/circular a rectangular (u opuesto) cambia el
+    // tamaño del marco -- recalcular la escala base para que la imagen
+    // siga cubriendo todo el marco nuevo sin dejar huecos.
+    const marco = this.marcoActual();
+    const anchoNatural = this.imagenNaturalW();
+    const altoNatural = this.imagenNaturalH();
+    if (anchoNatural && altoNatural) {
+      this.escalaBase.set(Math.max(marco.w / anchoNatural, marco.h / altoNatural));
+      this.zoomRecorte.set(1);
+      this.posicionRecorte.set({ x: 0, y: 0 });
+    }
+  }
+
+  protected onImagenRecorteCargada(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    this.imagenNaturalW.set(img.naturalWidth);
+    this.imagenNaturalH.set(img.naturalHeight);
+    const marco = this.marcoActual();
+    this.escalaBase.set(Math.max(marco.w / img.naturalWidth, marco.h / img.naturalHeight));
+    this.zoomRecorte.set(1);
+    this.posicionRecorte.set({ x: 0, y: 0 });
+  }
+
+  protected cambiarZoom(delta: number): void {
+    this.zoomRecorte.update((z) => Math.min(3, Math.max(1, +(z + delta).toFixed(2))));
+  }
+
+  protected iniciarArrastre(event: PointerEvent): void {
+    this.arrastrando = true;
+    const pos = this.posicionRecorte();
+    this.arrastreInicio = { x: event.clientX - pos.x, y: event.clientY - pos.y };
+  }
+
+  protected moverArrastre(event: PointerEvent): void {
+    if (!this.arrastrando) {
+      return;
+    }
+    this.posicionRecorte.set({
+      x: event.clientX - this.arrastreInicio.x,
+      y: event.clientY - this.arrastreInicio.y,
+    });
+  }
+
+  protected terminarArrastre(): void {
+    this.arrastrando = false;
+  }
+
+  protected confirmarRecorte(): void {
+    const original = this.imagenRecorteOriginal();
+    if (!original) {
+      return;
+    }
+    const marco = this.marcoActual();
+    const exportW = 480;
+    const exportH = Math.round((marco.h / marco.w) * exportW);
+    const escala = this.escalaBase() * this.zoomRecorte();
+    const pos = this.posicionRecorte();
+    const anchoImg = this.imagenNaturalW();
+    const altoImg = this.imagenNaturalH();
+
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = exportW;
+      canvas.height = exportH;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        this.errorLogo.set('No se pudo procesar la imagen. Intenta con otra.');
+        this.cancelarRecorte();
+        return;
+      }
+      const factorExport = exportW / marco.w;
+      ctx.save();
+      ctx.translate(exportW / 2, exportH / 2);
+      ctx.scale(factorExport, factorExport);
+      ctx.drawImage(img, -anchoImg * escala / 2 + pos.x, -altoImg * escala / 2 + pos.y, anchoImg * escala, altoImg * escala);
+      ctx.restore();
+      try {
+        const dataUrl = canvas.toDataURL('image/png');
+        this.form.patchValue({ urlLogo: dataUrl, formaLogo: this.formaRecorte() });
+      } catch {
+        this.errorLogo.set('No se pudo procesar la imagen. Intenta con otra.');
+      }
+      this.mostrarRecorte.set(false);
+      this.imagenRecorteOriginal.set(null);
+    };
+    img.src = original;
   }
 
   guardar(): void {
@@ -1243,6 +1569,7 @@ export class MiMarcaComponent implements OnInit, OnDestroy {
       tipoLogin: this.marcaActual?.tipoLogin ?? null,
       tipoPantallaPrincipal: this.marcaActual?.tipoPantallaPrincipal ?? null,
       ajusteLogo: valores.ajusteLogo || null,
+      formaLogo: valores.formaLogo || null,
     };
 
     this.guardando.set(true);
@@ -1269,6 +1596,7 @@ export class MiMarcaComponent implements OnInit, OnDestroy {
       tipoLogin: opcion.numero,
       tipoPantallaPrincipal: this.marcaActual?.tipoPantallaPrincipal ?? null,
       ajusteLogo: this.marcaActual?.ajusteLogo ?? null,
+      formaLogo: this.marcaActual?.formaLogo ?? null,
     };
     this.marcaService.actualizar(marca).subscribe({
       next: () => {
@@ -1294,6 +1622,7 @@ export class MiMarcaComponent implements OnInit, OnDestroy {
       tipoLogin: this.marcaActual?.tipoLogin ?? null,
       tipoPantallaPrincipal: opcion.numero,
       ajusteLogo: this.marcaActual?.ajusteLogo ?? null,
+      formaLogo: this.marcaActual?.formaLogo ?? null,
     };
     this.marcaService.actualizar(marca).subscribe({
       next: () => {

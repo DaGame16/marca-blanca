@@ -50,7 +50,8 @@ public class MarcaController {
                 body.dominioPropio(),
                 body.tipoLogin(),
                 body.tipoPantallaPrincipal(),
-                body.ajusteLogo()
+                body.ajusteLogo(),
+                body.formaLogo()
         );
         actualizarMarcaDeEmpresa.ejecutar(empresaDelToken(request), marca);
         return ResponseEntity.noContent().build();
@@ -74,6 +75,7 @@ public class MarcaController {
                 marca.tipoLogin(),
                 marca.tipoPantallaPrincipal(),
                 marca.ajusteLogo(),
+                marca.formaLogo(),
                 null
         );
     }

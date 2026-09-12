@@ -7,5 +7,6 @@ public record MarcaRequest(
         String dominioPropio,
         Integer tipoLogin,
         Integer tipoPantallaPrincipal,
-        Integer ajusteLogo) {
+        Integer ajusteLogo,
+        Integer formaLogo) {
 }

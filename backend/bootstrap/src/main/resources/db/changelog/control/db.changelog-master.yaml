@@ -77,3 +77,6 @@ databaseChangeLog:
   - include:
       file: changes/0025-agregar-ajuste-logo.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changes/0026-agregar-forma-logo.yaml
+      relativeToChangelogFile: true

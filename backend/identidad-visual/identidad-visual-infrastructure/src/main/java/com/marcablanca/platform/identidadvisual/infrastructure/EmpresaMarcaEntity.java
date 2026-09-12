@@ -53,6 +53,12 @@ class EmpresaMarcaEntity {
     @Column(name = "ajuste_logo", nullable = false)
     private Short ajusteLogo;
 
+    // 1=cuadrado, 2=rectangular, 3=circular -- forma de la caja del logo
+    // (border-radius/aspect-ratio), independiente de ajusteLogo. Ver
+    // 0026-agregar-forma-logo.yaml.
+    @Column(name = "forma_logo", nullable = false)
+    private Short formaLogo;
+
     @Column(name = "creado_en", nullable = false)
     private OffsetDateTime creadoEn;
 
@@ -64,7 +70,8 @@ class EmpresaMarcaEntity {
     }
 
     EmpresaMarcaEntity(Long empresaId, String urlLogo, String colorPrimario, String colorSecundario,
-                        String dominioPropio, Integer tipoLogin, Integer tipoPantallaPrincipal, Integer ajusteLogo) {
+                        String dominioPropio, Integer tipoLogin, Integer tipoPantallaPrincipal, Integer ajusteLogo,
+                        Integer formaLogo) {
         this.uuid = UUID.randomUUID();
         this.empresaId = empresaId;
         this.urlLogo = urlLogo;
@@ -74,12 +81,13 @@ class EmpresaMarcaEntity {
         this.tipoLogin = aCorto(tipoLogin, (short) 1);
         this.tipoPantallaPrincipal = aCorto(tipoPantallaPrincipal, (short) 1);
         this.ajusteLogo = aCorto(ajusteLogo, (short) 1);
+        this.formaLogo = aCorto(formaLogo, (short) 1);
         this.creadoEn = OffsetDateTime.now();
         this.actualizadoEn = OffsetDateTime.now();
     }
 
     void actualizar(String urlLogo, String colorPrimario, String colorSecundario, String dominioPropio,
-                     Integer tipoLogin, Integer tipoPantallaPrincipal, Integer ajusteLogo) {
+                     Integer tipoLogin, Integer tipoPantallaPrincipal, Integer ajusteLogo, Integer formaLogo) {
         this.urlLogo = urlLogo;
         this.colorPrimario = colorPrimario;
         this.colorSecundario = colorSecundario;
@@ -87,6 +95,7 @@ class EmpresaMarcaEntity {
         this.tipoLogin = aCorto(tipoLogin, this.tipoLogin);
         this.tipoPantallaPrincipal = aCorto(tipoPantallaPrincipal, this.tipoPantallaPrincipal);
         this.ajusteLogo = aCorto(ajusteLogo, this.ajusteLogo);
+        this.formaLogo = aCorto(formaLogo, this.formaLogo);
         this.actualizadoEn = OffsetDateTime.now();
     }
 
@@ -116,6 +125,10 @@ class EmpresaMarcaEntity {
 
     Integer getAjusteLogo() {
         return ajusteLogo != null ? ajusteLogo.intValue() : null;
+    }
+
+    Integer getFormaLogo() {
+        return formaLogo != null ? formaLogo.intValue() : null;
     }
 
     String getDominioPropio() {

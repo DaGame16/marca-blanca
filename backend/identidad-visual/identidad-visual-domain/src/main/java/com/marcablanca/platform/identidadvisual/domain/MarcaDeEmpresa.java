@@ -21,5 +21,10 @@ public record MarcaDeEmpresa(
         // 1=contener, 2=cubrir, 3=estirar -- como se ajusta urlLogo dentro de
         // su caja donde sea que se muestre (login, sidebar). Ver
         // 0025-agregar-ajuste-logo.yaml.
-        Integer ajusteLogo) {
+        Integer ajusteLogo,
+        // 1=cuadrado, 2=rectangular, 3=circular -- forma de la caja que
+        // contiene el logo (border-radius/aspect-ratio), independiente de
+        // ajusteLogo (que solo dice como se ajusta la imagen DENTRO de esa
+        // caja). Ver 0026-agregar-forma-logo.yaml.
+        Integer formaLogo) {
 }
