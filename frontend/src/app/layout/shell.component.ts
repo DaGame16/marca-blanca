@@ -8,6 +8,7 @@ import { MarcaService } from '../core/identidad-visual/marca.service';
 import { VistaPreviaMarcaService } from '../core/identidad-visual/vista-previa-marca.service';
 import { BrandMarkComponent } from '../shared/brand/brand-mark.component';
 import { ordenarClaroOscuro } from '../shared/brand/color-utils';
+import { estiloFormaLogo } from '../shared/brand/logo-forma';
 
 const CODIGO_A_TEMA_PAGINA: Record<number, TemaPagina> = { 1: 'clasico', 2: 'derecha', 3: 'encabezado' };
 
@@ -38,7 +39,13 @@ const ITEMS_NAV: ItemNav[] = [
       <div class="app-shell tema-encabezado" [style.--marca-fondo]="colorFondo()" [style.--marca-acento]="colorAcento()">
         <header class="topbar-full">
           <a routerLink="/mis-modulos" class="brand-mini">
-            <span class="brand-mark"><app-brand-mark /></span>
+            <span class="brand-mark">
+              @if (logoUrl(); as logo) {
+                <img [src]="logo" alt="" class="brand-logo-real" [style.object-fit]="ajusteLogoCss()" [style.border-radius]="formaLogoEstilo().borderRadius" />
+              } @else {
+                <app-brand-mark />
+              }
+            </span>
             <span><strong>LINELCA</strong><small>{{ empresa() }}</small></span>
           </a>
 
@@ -68,7 +75,13 @@ const ITEMS_NAV: ItemNav[] = [
       <div class="app-shell tema-{{ temaPagina.tema() }}" [style.--marca-fondo]="colorFondo()" [style.--marca-acento]="colorAcento()">
         <aside class="sidebar">
           <div class="sidebar-brand">
-            <div class="brand-mark"><app-brand-mark /></div>
+            <div class="brand-mark">
+              @if (logoUrl(); as logo) {
+                <img [src]="logo" alt="" class="brand-logo-real" [style.object-fit]="ajusteLogoCss()" [style.border-radius]="formaLogoEstilo().borderRadius" />
+              } @else {
+                <app-brand-mark />
+              }
+            </div>
             <div><strong>LINELCA</strong><span>Business platform</span></div>
           </div>
           <div class="workspace-card">
@@ -115,8 +128,9 @@ const ITEMS_NAV: ItemNav[] = [
       overflow-x: hidden;
     }
     .sidebar-brand { display: flex; align-items: center; gap: 11px; color: #fff; padding: 0 10px 28px; }
-    .brand-mark { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: linear-gradient(135deg, var(--marca-fondo, #2f7cf6), var(--marca-acento, #79b4ff)); color: white; }
+    .brand-mark { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: linear-gradient(135deg, var(--marca-fondo, #2f7cf6), var(--marca-acento, #79b4ff)); color: white; overflow: hidden; }
     .brand-mark app-brand-mark { font-size: 20px; }.sidebar-brand strong,.sidebar-brand span { display:block; }.sidebar-brand strong { font-size: 15px; letter-spacing: .1px; }.sidebar-brand span { color:#8492aa; font-size: 10px; text-transform: uppercase; letter-spacing: .12em; margin-top: 3px; }
+    .brand-logo-real { width: 100%; height: 100%; }
     .workspace-card { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 13px; margin: 0 2px 26px; }.workspace-label,.nav-section { color:#7787a2; font-size:10px; font-weight:700; letter-spacing:.12em; }.workspace-name { display:flex; align-items:center; gap:8px; color:#fff; font-weight:600; font-size:13px; margin:9px 0 7px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.workspace-dot { width:8px; height:8px; border-radius:50%; background:#4ade80; box-shadow:0 0 0 3px rgba(74,222,128,.13); }.workspace-status { display:flex; align-items:center; gap:5px; color:#8fa0ba; font-size:11px; }.workspace-status mat-icon { width:14px; height:14px; font-size:14px; color:#4ade80; }
     .sidebar-nav { display:flex; flex-direction:column; gap:4px; }.nav-section { margin: 0 12px 7px; }.nav-section:not(:first-child) { margin-top: 22px; }
     .sidebar-nav a {
@@ -203,6 +217,26 @@ export class ShellComponent {
   private readonly colorPrimarioGuardado = signal<string | undefined>(undefined);
   private readonly colorSecundarioGuardado = signal<string | undefined>(undefined);
 
+  // El logo real de la empresa (el que subio en "Marca y diseño") -- antes
+  // el sidebar/header siempre mostraba el isotipo generico de LINELCA, sin
+  // importar que la empresa hubiera configurado su propio logo. Ese isotipo
+  // generico ahora es solo el fallback mientras no hay logo propio.
+  protected readonly logoUrl = signal<string | null>(null);
+  private readonly ajusteLogoValor = signal<number | null>(null);
+  private readonly formaLogoValor = signal<number | null>(null);
+
+  protected ajusteLogoCss(): 'contain' | 'cover' | 'fill' {
+    switch (this.ajusteLogoValor()) {
+      case 2: return 'cover';
+      case 3: return 'fill';
+      default: return 'contain';
+    }
+  }
+
+  protected formaLogoEstilo() {
+    return estiloFormaLogo(this.formaLogoValor());
+  }
+
   // Mientras el usuario prueba colores en "Marca y diseño" (sin guardar
   // todavia), el menu se pinta en vivo con esa vista previa -- en cuanto sale
   // de esa pantalla sin guardar, VistaPreviaMarcaService se limpia y esto
@@ -235,6 +269,9 @@ export class ShellComponent {
         }
         this.colorPrimarioGuardado.set(marca.colorPrimario ?? undefined);
         this.colorSecundarioGuardado.set(marca.colorSecundario ?? undefined);
+        this.logoUrl.set(marca.urlLogo ?? null);
+        this.ajusteLogoValor.set(marca.ajusteLogo ?? null);
+        this.formaLogoValor.set(marca.formaLogo ?? null);
       },
       error: () => {
         // Sin marca configurada todavia -- se queda con lo que ya habia en
