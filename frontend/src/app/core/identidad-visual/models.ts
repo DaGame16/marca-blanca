@@ -15,6 +15,11 @@ export interface MarcaDeEmpresa {
   // 1=cuadrado, 2=rectangular, 3=circular -- forma de la caja del logo
   // (border-radius/aspect-ratio), independiente de ajusteLogo.
   formaLogo: number | null;
+  // Snapshot de solo lectura del primer color que tuvo la empresa (wizard de
+  // registro o primer guardado en "Mi marca"). El backend lo calcula solo --
+  // nunca se manda en un PUT, por eso son opcionales aca.
+  colorPrimarioOriginal?: string | null;
+  colorSecundarioOriginal?: string | null;
   // Solo lo llena el endpoint publico (login) -- ver MarcaPublicaController.
   nombreEmpresa?: string | null;
 }

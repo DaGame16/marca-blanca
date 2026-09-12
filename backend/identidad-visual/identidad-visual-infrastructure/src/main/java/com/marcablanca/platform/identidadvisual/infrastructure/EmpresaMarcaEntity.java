@@ -36,6 +36,18 @@ class EmpresaMarcaEntity {
     @Column(name = "color_secundario")
     private String colorSecundario;
 
+    // Snapshot del primer color no-nulo que tuvo esta fila -- ya sea el que
+    // trajo el wizard de registro (aprovisionamiento) o, si el wizard se
+    // salto ese paso, el primer color que la empresa guarde aca en
+    // "Mi marca". Nunca se sobreescribe despues -- permite un "volver a los
+    // colores iniciales" real (no solo deshacer cambios sin guardar). Ver
+    // 0027-agregar-colores-originales.yaml.
+    @Column(name = "color_primario_original")
+    private String colorPrimarioOriginal;
+
+    @Column(name = "color_secundario_original")
+    private String colorSecundarioOriginal;
+
     @Column(name = "dominio_propio")
     private String dominioPropio;
 
@@ -77,6 +89,8 @@ class EmpresaMarcaEntity {
         this.urlLogo = urlLogo;
         this.colorPrimario = colorPrimario;
         this.colorSecundario = colorSecundario;
+        this.colorPrimarioOriginal = colorPrimario;
+        this.colorSecundarioOriginal = colorSecundario;
         this.dominioPropio = dominioPropio;
         this.tipoLogin = aCorto(tipoLogin, (short) 1);
         this.tipoPantallaPrincipal = aCorto(tipoPantallaPrincipal, (short) 1);
@@ -89,6 +103,12 @@ class EmpresaMarcaEntity {
     void actualizar(String urlLogo, String colorPrimario, String colorSecundario, String dominioPropio,
                      Integer tipoLogin, Integer tipoPantallaPrincipal, Integer ajusteLogo, Integer formaLogo) {
         this.urlLogo = urlLogo;
+        if (this.colorPrimarioOriginal == null && colorPrimario != null) {
+            this.colorPrimarioOriginal = colorPrimario;
+        }
+        if (this.colorSecundarioOriginal == null && colorSecundario != null) {
+            this.colorSecundarioOriginal = colorSecundario;
+        }
         this.colorPrimario = colorPrimario;
         this.colorSecundario = colorSecundario;
         this.dominioPropio = dominioPropio;
@@ -113,6 +133,14 @@ class EmpresaMarcaEntity {
 
     String getColorSecundario() {
         return colorSecundario;
+    }
+
+    String getColorPrimarioOriginal() {
+        return colorPrimarioOriginal;
+    }
+
+    String getColorSecundarioOriginal() {
+        return colorSecundarioOriginal;
     }
 
     Integer getTipoLogin() {

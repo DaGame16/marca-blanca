@@ -12,7 +12,6 @@ import { MarcaService } from '../../../../core/identidad-visual/marca.service';
 import { MarcaDeEmpresa } from '../../../../core/identidad-visual/models';
 import { VistaPreviaMarcaService } from '../../../../core/identidad-visual/vista-previa-marca.service';
 import { TemaPaginaService, TemaPagina } from '../../../../core/temas/tema-pagina.service';
-import { PaletaPredefinida, PALETAS_PREDEFINIDAS } from '../../../../shared/brand/paletas-marca';
 import { ordenarClaroOscuro } from '../../../../shared/brand/color-utils';
 import { estiloFormaLogo } from '../../../../shared/brand/logo-forma';
 
@@ -174,46 +173,7 @@ const OPCIONES_PAGINA: OpcionPagina[] = [
                     <button type="button" class="ajuste-boton" [class.ajuste-boton-activo]="form.value.formaLogo === 3" (click)="form.patchValue({ formaLogo: 3 })">Circular</button>
                   </div>
                 </div>
-
-                <div class="ajuste-field">
-                  <span class="campo-label">Ajuste del logo</span>
-                  <div class="ajuste-opciones">
-                    @for (opcion of opcionesAjuste; track opcion.valor) {
-                      <button
-                        type="button"
-                        class="ajuste-boton"
-                        [class.ajuste-boton-activo]="form.value.ajusteLogo === opcion.valor"
-                        (click)="form.patchValue({ ajusteLogo: opcion.valor })"
-                      >
-                        {{ opcion.nombre }}
-                      </button>
-                    }
-                  </div>
-                </div>
               }
-
-              <div class="paleta-field">
-                <span class="campo-label">Paleta de colores</span>
-                <div class="paleta-grid">
-                  @for (paleta of paletasPredefinidas; track paleta.nombre) {
-                    <button
-                      type="button"
-                      class="paleta-swatch"
-                      [class.paleta-swatch-activa]="form.value.colorPrimario === paleta.primario && form.value.colorSecundario === paleta.secundario"
-                      (click)="elegirPaleta(paleta)"
-                    >
-                      <span class="paleta-colores">
-                        <span class="paleta-mitad" [style.background]="paleta.primario"></span>
-                        <span class="paleta-mitad" [style.background]="paleta.secundario"></span>
-                      </span>
-                      <span class="paleta-nombre">{{ paleta.nombre }}</span>
-                      @if (form.value.colorPrimario === paleta.primario && form.value.colorSecundario === paleta.secundario) {
-                        <mat-icon class="paleta-check" inline>check_circle</mat-icon>
-                      }
-                    </button>
-                  }
-                </div>
-              </div>
 
               <div class="color-field">
                 <mat-form-field appearance="outline">
@@ -797,70 +757,6 @@ const OPCIONES_PAGINA: OpcionPagina[] = [
       background: #eff6ff;
     }
 
-    .paleta-field {
-      margin-bottom: 18px;
-    }
-
-    .paleta-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .paleta-swatch {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 6px;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 10px;
-      background: #fff;
-      cursor: pointer;
-      transition: border-color 0.15s, transform 0.1s;
-    }
-
-    .paleta-swatch:hover {
-      border-color: #cbd5e1;
-    }
-
-    .paleta-swatch-activa {
-      border-color: #2563eb;
-      box-shadow: 0 0 0 1px #2563eb;
-    }
-
-    .paleta-colores {
-      display: flex;
-      width: 100%;
-      height: 24px;
-      border-radius: 6px;
-      overflow: hidden;
-    }
-
-    .paleta-mitad {
-      flex: 1;
-    }
-
-    .paleta-nombre {
-      font-size: 0.68rem;
-      font-weight: 600;
-      color: #475569;
-    }
-
-    .paleta-check {
-      position: absolute;
-      top: -6px;
-      right: -6px;
-      font-size: 16px;
-      width: 16px;
-      height: 16px;
-      color: #2563eb;
-      background: #fff;
-      border-radius: 50%;
-    }
-
     .color-field {
       display: flex;
       align-items: center;
@@ -1277,8 +1173,6 @@ export class MiMarcaComponent implements OnInit, OnDestroy {
 
   protected readonly opcionesLogin = OPCIONES_LOGIN;
   protected readonly opcionesPagina = OPCIONES_PAGINA;
-  protected readonly paletasPredefinidas = PALETAS_PREDEFINIDAS;
-  protected readonly opcionesAjuste = OPCIONES_AJUSTE;
 
   protected readonly cargando = signal(true);
   protected readonly guardando = signal(false);
@@ -1642,12 +1536,6 @@ export class MiMarcaComponent implements OnInit, OnDestroy {
     });
   }
 
-  elegirPaleta(paleta: PaletaPredefinida): void {
-    this.gradienteAnterior.set(this.gradienteActual());
-    this.form.patchValue({ colorPrimario: paleta.primario, colorSecundario: paleta.secundario });
-    this.animarCambioColor();
-  }
-
   // Se llama al soltar la barra de tono (pointerdown captura el color de
   // "antes" para que el wipe tenga de donde partir; mientras se arrastra,
   // el color cambia en vivo sin animacion -- reanimar en cada pixel se veria
@@ -1702,15 +1590,18 @@ export class MiMarcaComponent implements OnInit, OnDestroy {
     return `linear-gradient(135deg, ${this.colorFondo()}, ${this.colorAcento()})`;
   }
 
-  // "Volver a los colores iniciales": deshace los cambios sin guardar de
-  // esta visita a la pantalla, volviendo a lo que ya estaba guardado (no al
-  // azul de la plataforma) -- con el mismo wipe animado que el resto de
-  // cambios de color, para que se sienta consistente.
+  // "Volver a los colores iniciales": vuelve a los colores que le dimos a
+  // la empresa al principio (wizard de registro, o su primer guardado aca
+  // si el wizard no los pidio) -- no a lo ultimo guardado, que puede llevar
+  // varias vueltas de cambios. El backend guarda ese snapshot aparte (ver
+  // color-utils y MarcaDeEmpresa.colorPrimarioOriginal) y nunca lo toca de
+  // nuevo. Si una empresa muy vieja no tiene snapshot (creada antes de que
+  // existiera esta columna), se cae a lo ultimo guardado como antes.
   protected restaurarColoresIniciales(): void {
     this.gradienteAnterior.set(this.gradienteActual());
     this.form.patchValue({
-      colorPrimario: this.marcaActual?.colorPrimario ?? '',
-      colorSecundario: this.marcaActual?.colorSecundario ?? '',
+      colorPrimario: this.marcaActual?.colorPrimarioOriginal ?? this.marcaActual?.colorPrimario ?? '',
+      colorSecundario: this.marcaActual?.colorSecundarioOriginal ?? this.marcaActual?.colorSecundario ?? '',
     });
     this.animarCambioColor();
   }

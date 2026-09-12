@@ -80,3 +80,12 @@ databaseChangeLog:
   - include:
       file: changes/0026-agregar-forma-logo.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changes/0027-agregar-colores-originales.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/0028-backfill-colores-originales.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: changes/0029-corregir-acentos-catalogo-modulos.yaml
+      relativeToChangelogFile: true

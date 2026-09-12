@@ -40,6 +40,16 @@ class MarcaDeAprovisionamientoEntity {
     @Column(name = "color_secundario")
     private String colorSecundario;
 
+    // Snapshot del primer color no-nulo que recibio esta fila -- ver
+    // 0027-agregar-colores-originales.yaml. Se llena solo, en los setters de
+    // abajo, la primera vez que llega un valor real; nunca se vuelve a tocar
+    // aunque el wizard se reenvie con otros colores.
+    @Column(name = "color_primario_original")
+    private String colorPrimarioOriginal;
+
+    @Column(name = "color_secundario_original")
+    private String colorSecundarioOriginal;
+
     @Column(name = "tipo_login", nullable = false)
     private short tipoLogin;
 
@@ -72,8 +82,18 @@ class MarcaDeAprovisionamientoEntity {
 
     void setEmpresaId(Long v) { this.empresaId = v; }
     void setUrlLogo(String v) { this.urlLogo = v; }
-    void setColorPrimario(String v) { this.colorPrimario = v; }
-    void setColorSecundario(String v) { this.colorSecundario = v; }
+    void setColorPrimario(String v) {
+        if (this.colorPrimarioOriginal == null && v != null) {
+            this.colorPrimarioOriginal = v;
+        }
+        this.colorPrimario = v;
+    }
+    void setColorSecundario(String v) {
+        if (this.colorSecundarioOriginal == null && v != null) {
+            this.colorSecundarioOriginal = v;
+        }
+        this.colorSecundario = v;
+    }
     void setTipoLogin(short v) { this.tipoLogin = v; }
     void setTipoPantallaPrincipal(short v) { this.tipoPantallaPrincipal = v; }
 }

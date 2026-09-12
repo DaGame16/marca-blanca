@@ -51,7 +51,12 @@ public class MarcaController {
                 body.tipoLogin(),
                 body.tipoPantallaPrincipal(),
                 body.ajusteLogo(),
-                body.formaLogo()
+                body.formaLogo(),
+                // El cliente no puede setear los colores originales -- los
+                // calcula EmpresaMarcaEntity solo, comparando contra lo que
+                // ya habia en la fila. Ver RepositorioMarcaDeEmpresaJpa.
+                null,
+                null
         );
         actualizarMarcaDeEmpresa.ejecutar(empresaDelToken(request), marca);
         return ResponseEntity.noContent().build();
@@ -76,6 +81,8 @@ public class MarcaController {
                 marca.tipoPantallaPrincipal(),
                 marca.ajusteLogo(),
                 marca.formaLogo(),
+                marca.colorPrimarioOriginal(),
+                marca.colorSecundarioOriginal(),
                 null
         );
     }

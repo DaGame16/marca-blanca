@@ -9,6 +9,8 @@ public record MarcaResponse(
         Integer tipoPantallaPrincipal,
         Integer ajusteLogo,
         Integer formaLogo,
+        String colorPrimarioOriginal,
+        String colorSecundarioOriginal,
         // Solo lo llena MarcaPublicaController (el login publico lo necesita
         // para mostrar el nombre real de la empresa, no solo su logo). El
         // self-service (MarcaController) manda null -- ya hay sesion, el

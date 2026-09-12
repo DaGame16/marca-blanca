@@ -21,7 +21,7 @@ class RepositorioMarcaDeEmpresaJpa implements RepositorioMarcaDeEmpresa {
 
         return empresaMarcaJpaRepository.findByEmpresaId(empresaIdInterno)
                 .map(this::aDominio)
-                .orElse(new MarcaDeEmpresa(null, null, null, null, 1, 1, 1, 1));
+                .orElse(new MarcaDeEmpresa(null, null, null, null, 1, 1, 1, 1, null, null));
     }
 
     @Override
@@ -57,7 +57,9 @@ class RepositorioMarcaDeEmpresaJpa implements RepositorioMarcaDeEmpresa {
                 entity.getTipoLogin(),
                 entity.getTipoPantallaPrincipal(),
                 entity.getAjusteLogo(),
-                entity.getFormaLogo()
+                entity.getFormaLogo(),
+                entity.getColorPrimarioOriginal(),
+                entity.getColorSecundarioOriginal()
         );
     }
 }

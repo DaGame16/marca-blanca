@@ -26,5 +26,12 @@ public record MarcaDeEmpresa(
         // contiene el logo (border-radius/aspect-ratio), independiente de
         // ajusteLogo (que solo dice como se ajusta la imagen DENTRO de esa
         // caja). Ver 0026-agregar-forma-logo.yaml.
-        Integer formaLogo) {
+        Integer formaLogo,
+        // Snapshot de solo lectura del primer color no-nulo que tuvo esta
+        // empresa (wizard de registro o primer guardado en "Mi marca").
+        // Nunca se escribe desde aca -- el cliente no puede mandarlo, lo
+        // calcula EmpresaMarcaEntity/MarcaDeAprovisionamientoEntity solos.
+        // Ver 0027-agregar-colores-originales.yaml.
+        String colorPrimarioOriginal,
+        String colorSecundarioOriginal) {
 }

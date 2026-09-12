@@ -41,6 +41,8 @@ public class MarcaPublicaController {
                 marca.tipoPantallaPrincipal(),
                 marca.ajusteLogo(),
                 marca.formaLogo(),
+                marca.colorPrimarioOriginal(),
+                marca.colorSecundarioOriginal(),
                 nombreEmpresa
         );
     }
