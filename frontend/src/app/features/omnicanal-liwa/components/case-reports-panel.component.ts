@@ -9,7 +9,7 @@ import { LiwaAnalisisDetalleComponent } from './analisis-ia-detalle.component';
 type Filtro = 'todos' | 'sentimiento' | 'soporte' | 'matriz' | 'asesor' | 'mapa' | 'ventas' | 'ads';
 
 const COLORS: Record<string, string> = {
-  positivo: '#16a34a', neutro: '#64748b', negativo: '#dc2626',
+  positivo: '#16a34a', neutral: '#64748b', negativo: '#dc2626',
   resuelto: '#16a34a', no_resuelto: '#dc2626', escalado: '#f59e0b', abandonado: '#64748b',
   soporte: '#2563eb', ventas: '#16a34a', facturacion: '#f59e0b', reconexion: '#f97316',
   pqr: '#dc2626', cobertura: '#06b6d4', informacion: '#64748b',
@@ -307,9 +307,9 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
     .aviso.error { background: #fff1f2; border: 1px solid #fecdd3; color: #be123c; }
     .spin { animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
-    .tarjeta { border: 1px solid #f1f5f9; border-radius: 14px; padding: 12px; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+    @media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+    .tarjeta { min-width: 0; border: 1px solid #f1f5f9; border-radius: 14px; padding: 12px; }
     .orden1 { order: 1; } .orden2 { order: 2; } .orden3 { order: 3; } .orden4 { order: 4; }
     .tarjeta h3 { margin: 0; font-size: 0.82rem; font-weight: 700; color: #1e293b; }
     .fila-titulo { display: flex; align-items: center; justify-content: space-between; }
@@ -809,6 +809,10 @@ export class LiwaCaseReportsPanelComponent implements OnChanges {
       this.resumenContacto = await this.liwa.obtenerResumenContacto(idContacto);
     } catch {
       this.error = 'No fue posible cargar el resumen del contacto.';
+    } finally {
+      // Ver comentario en ads-panel.component.ts: sin esto la vista no se
+      // entera de que resumenContacto/error cambiaron tras el await.
+      this.cdr.markForCheck();
     }
   }
 
