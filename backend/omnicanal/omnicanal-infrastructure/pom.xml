@@ -49,6 +49,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+        <!-- SimpMessagingTemplate, para NotificadorEventosOmnicanalStomp. El
+             broker en si (EnableWebSocketMessageBroker, endpoint /ws) se
+             configura en bootstrap, no aca. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
         <!-- Cifrado del token de LIWA en reposo (CifradorOmnicanal), mismo
              mecanismo que CifradorDeCorreo. -->
         <dependency>
