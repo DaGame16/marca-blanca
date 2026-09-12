@@ -46,13 +46,28 @@ export class LiwaActividadLineComponent {
         data: this.data.map((d) => d.mensajes),
         label: 'Mensajes',
         borderColor: '#2563eb',
-        backgroundColor: 'rgba(37,99,235,0.15)',
+        borderWidth: 2.5,
+        // Gradiente vertical (mas intenso arriba, transparente abajo) en vez
+        // de un relleno plano -- se define como funcion porque Chart.js
+        // recien conoce el alto real del canvas (chartArea) en el primer
+        // render, no antes.
+        backgroundColor: (ctx: any) => {
+          const { chart } = ctx;
+          const { ctx: canvasCtx, chartArea } = chart;
+          if (!chartArea) return 'rgba(37,99,235,0.15)';
+          const gradiente = canvasCtx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          gradiente.addColorStop(0, 'rgba(37,99,235,0.32)');
+          gradiente.addColorStop(1, 'rgba(37,99,235,0.02)');
+          return gradiente;
+        },
         fill: true,
         tension: 0.4,
         pointBackgroundColor: '#2563eb',
         pointBorderColor: '#ffffff',
         pointBorderWidth: 1.5,
-        pointRadius: 3,
+        pointRadius: 0,
+        pointHoverRadius: 5,
+        pointHitRadius: 12,
       }],
     };
   }
