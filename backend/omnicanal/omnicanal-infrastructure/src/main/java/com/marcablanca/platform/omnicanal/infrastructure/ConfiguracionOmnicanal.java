@@ -3,9 +3,11 @@ package com.marcablanca.platform.omnicanal.infrastructure;
 import com.marcablanca.platform.omnicanal.application.*;
 import com.marcablanca.platform.omnicanal.application.port.in.*;
 import com.marcablanca.platform.omnicanal.application.port.out.*;
+import com.marcablanca.platform.omnicanal.infrastructure.realtime.NotificadorEventosOmnicanalStomp;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 /**
  * Los servicios de aplicacion no tienen anotaciones de Spring a proposito
@@ -15,9 +17,14 @@ import org.springframework.context.annotation.Configuration;
 public class ConfiguracionOmnicanal {
 
     @Bean
+    public NotificadorEventosOmnicanal notificadorEventosOmnicanal(SimpMessagingTemplate mensajeria) {
+        return new NotificadorEventosOmnicanalStomp(mensajeria);
+    }
+
+    @Bean
     public RepositorioAnalisisEscritor repositorioAnalisisEscritor(RepositorioAnalisis repositorioAnalisis,
-            RepositorioConfiguracionOmnicanal configuracionOmnicanal) {
-        return new RepositorioAnalisisEscritor(repositorioAnalisis, configuracionOmnicanal);
+            RepositorioConfiguracionOmnicanal configuracionOmnicanal, NotificadorEventosOmnicanal notificador) {
+        return new RepositorioAnalisisEscritor(repositorioAnalisis, configuracionOmnicanal, notificador);
     }
 
     /**
@@ -38,9 +45,10 @@ public class ConfiguracionOmnicanal {
     public RecibirConversacionArchivada recibirConversacionArchivada(
             IngestarConversacionArchivada ingestarConversacionArchivada,
             AnalizadorDeConversacion analizadorDeConversacion, RepositorioAnalisisEscritor escritorAnalisis,
-            RepositorioConversaciones repositorioConversaciones, RepositorioCasos repositorioCasos) {
+            RepositorioConversaciones repositorioConversaciones, RepositorioCasos repositorioCasos,
+            NotificadorEventosOmnicanal notificador) {
         return new RecibirConversacionArchivadaService(ingestarConversacionArchivada, analizadorDeConversacion,
-                escritorAnalisis, repositorioConversaciones, repositorioCasos);
+                escritorAnalisis, repositorioConversaciones, repositorioCasos, notificador);
     }
 
     @Bean
