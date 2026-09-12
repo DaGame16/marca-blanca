@@ -167,7 +167,7 @@ interface EstadoWizardGuardado {
         <div class="banda-top">
           <a routerLink="/" class="banda-marca">
             <app-brand-mark class="banda-logo-icon" />
-            <span>Marca Blanca</span>
+            <span>LINELCA</span>
           </a>
           <a routerLink="/login" class="banda-link">Ya tengo cuenta</a>
         </div>

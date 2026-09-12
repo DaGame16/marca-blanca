@@ -23,7 +23,7 @@ const INTRO_YA_VISTA = 'mb_intro_vista';
     <div class="intro-loader" #introLoader *ngIf="mostrarIntro">
       <div class="intro-brand" #introBrand>
         <span class="brand-mark"><app-brand-mark /></span>
-        <strong>Marca Blanca</strong>
+        <strong>LINELCA</strong>
       </div>
     </div>
 
@@ -31,7 +31,7 @@ const INTRO_YA_VISTA = 'mb_intro_vista';
       <header class="header">
         <a routerLink="/" class="brand">
           <span class="brand-mark"><app-brand-mark /></span>
-          <span><strong>Marca Blanca</strong><small>Business platform</small></span>
+          <span><strong>LINELCA</strong><small>Business platform</small></span>
         </a>
         <nav>
           <a href="#soluciones">Soluciones</a>
@@ -188,7 +188,7 @@ const INTRO_YA_VISTA = 'mb_intro_vista';
       <footer>
         <a routerLink="/" class="brand">
           <span class="brand-mark"><app-brand-mark /></span>
-          <span><strong>Marca Blanca</strong><small>Business platform</small></span>
+          <span><strong>LINELCA</strong><small>Business platform</small></span>
         </a>
         <span>© 2026 Marca Blanca. Plataforma empresarial.</span>
         <a routerLink="/consola/login" class="admin-link">Acceso administrativo</a>

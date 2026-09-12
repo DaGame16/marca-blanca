@@ -17,7 +17,7 @@ const CODIGO_A_TEMA_PAGINA: Record<number, TemaPagina> = { 1: 'clasico', 2: 'com
       <aside class="sidebar">
         <div class="sidebar-brand">
           <div class="brand-mark"><app-brand-mark /></div>
-          <div><strong>Marca Blanca</strong><span>Business platform</span></div>
+          <div><strong>LINELCA</strong><span>Business platform</span></div>
         </div>
         <div class="workspace-card">
           <span class="workspace-label">ESPACIO DE TRABAJO</span>
