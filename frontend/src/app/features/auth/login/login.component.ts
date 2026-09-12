@@ -12,6 +12,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../core/auth/auth.service';
 import { MarcaService } from '../../../core/identidad-visual/marca.service';
 import { MarcaDeEmpresa } from '../../../core/identidad-visual/models';
+import { BrandMarkComponent } from '../../../shared/brand/brand-mark.component';
 
 type TemaVisual = 'lateral' | 'centrado' | 'fondo';
 
@@ -58,6 +59,7 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    BrandMarkComponent,
   ],
   template: `
     <!-- El formulario es idéntico en los 3 diseños; solo cambia el layout
@@ -150,7 +152,7 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
       @if (marcaPublica()?.urlLogo; as logo) {
         <img [src]="logo" alt="" class="brand-logo-img" />
       } @else {
-        <mat-icon class="brand-logo-icon">hub</mat-icon>
+        <app-brand-mark class="brand-logo-icon" />
       }
     </ng-template>
 

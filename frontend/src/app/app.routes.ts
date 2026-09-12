@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { moduloActivoGuard } from './core/guards/modulo-activo.guard';
-import { HomeComponent } from './features/home/home.component';
 import { LoginComponent } from './features/auth/login/login.component';
 import { CambiarContrasenaComponent } from './features/auth/cambiar-contrasena/cambiar-contrasena.component';
 import { RegistroEmpresaComponent } from './features/auth/registro/registro-empresa.component';
@@ -15,7 +14,14 @@ import { Pbx3cxPanelComponent } from './features/3cx/pages/panel/pbx-3cx-panel.c
 import { ShellComponent } from './layout/shell.component';
 
 export const routes: Routes = [
-  { path: '', component: HomeComponent, pathMatch: 'full' },
+  {
+    path: '',
+    pathMatch: 'full',
+    // Lazy: la landing carga gsap (intro animada) -- sacarla del bundle
+    // inicial evita repetir el problema de presupuesto que ya paso una vez
+    // con el panel de Liwa (ver docs/frontend/modulo-omnicanal-liwa.md).
+    loadComponent: () => import('./features/home/home.component').then((m) => m.HomeComponent),
+  },
   { path: 'login', component: LoginComponent },
   { path: 'cambiar-contrasena', component: CambiarContrasenaComponent },
   { path: 'registro', component: RegistroEmpresaComponent },

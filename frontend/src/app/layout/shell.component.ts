@@ -5,18 +5,19 @@ import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../core/auth/auth.service';
 import { TemaPaginaService, TemaPagina } from '../core/temas/tema-pagina.service';
 import { MarcaService } from '../core/identidad-visual/marca.service';
+import { BrandMarkComponent } from '../shared/brand/brand-mark.component';
 
 const CODIGO_A_TEMA_PAGINA: Record<number, TemaPagina> = { 1: 'clasico', 2: 'compacto', 3: 'amplio' };
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, MatIconModule, MatButtonModule],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, MatIconModule, MatButtonModule, BrandMarkComponent],
   template: `
     <div class="app-shell tema-{{ temaPagina.tema() }}">
       <aside class="sidebar">
         <div class="sidebar-brand">
-          <div class="brand-mark"><mat-icon>hub</mat-icon></div>
-          <div><strong>Marca Blanca</strong><span>Business platform</span></div>
+          <div class="brand-mark"><app-brand-mark /></div>
+          <div><strong>LINELCA</strong><span>Business platform</span></div>
         </div>
         <div class="workspace-card">
           <span class="workspace-label">ESPACIO DE TRABAJO</span>
@@ -57,7 +58,7 @@ const CODIGO_A_TEMA_PAGINA: Record<number, TemaPagina> = { 1: 'clasico', 2: 'com
     }
     .sidebar-brand { display: flex; align-items: center; gap: 11px; color: #fff; padding: 0 10px 28px; }
     .brand-mark { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: linear-gradient(135deg,#2f7cf6,#79b4ff); color: white; }
-    .brand-mark mat-icon { font-size: 20px; width: 20px; height: 20px; }.sidebar-brand strong,.sidebar-brand span { display:block; }.sidebar-brand strong { font-size: 15px; letter-spacing: .1px; }.sidebar-brand span { color:#8492aa; font-size: 10px; text-transform: uppercase; letter-spacing: .12em; margin-top: 3px; }
+    .brand-mark app-brand-mark { font-size: 20px; }.sidebar-brand strong,.sidebar-brand span { display:block; }.sidebar-brand strong { font-size: 15px; letter-spacing: .1px; }.sidebar-brand span { color:#8492aa; font-size: 10px; text-transform: uppercase; letter-spacing: .12em; margin-top: 3px; }
     .workspace-card { background: #18243b; border: 1px solid #263653; border-radius: 12px; padding: 13px; margin: 0 2px 26px; }.workspace-label,.nav-section { color:#7787a2; font-size:10px; font-weight:700; letter-spacing:.12em; }.workspace-name { display:flex; align-items:center; gap:8px; color:#fff; font-weight:600; font-size:13px; margin:9px 0 7px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.workspace-dot { width:8px; height:8px; border-radius:50%; background:#4ade80; box-shadow:0 0 0 3px rgba(74,222,128,.13); }.workspace-status { display:flex; align-items:center; gap:5px; color:#8fa0ba; font-size:11px; }.workspace-status mat-icon { width:14px; height:14px; font-size:14px; color:#4ade80; }
     .sidebar-nav { display:flex; flex-direction:column; gap:4px; }.nav-section { margin: 0 12px 7px; }.nav-section:not(:first-child) { margin-top: 22px; }
     .sidebar-nav a {
