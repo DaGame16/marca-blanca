@@ -18,49 +18,6 @@ import { ordenarClaroOscuro } from '../../../../shared/brand/color-utils';
 const FORMATO_HEX = /^#[0-9A-Fa-f]{6}$/;
 const MAX_LOGO_BYTES = 500 * 1024;
 
-// Barra de tono (hue 0-360) -- saturacion/luminosidad quedan fijas en valores
-// vivos para que cualquier punto de la barra de un color usable de una vez,
-// sin necesitar mas controles (el usuario igual puede afinar con el campo
-// hex de al lado si quiere algo mas exacto).
-const SATURACION_TONO = 70;
-const LUMINOSIDAD_TONO = 50;
-
-function tonoAHex(h: number, s: number, l: number): string {
-  s /= 100;
-  l /= 100;
-  const k = (n: number) => (n + h / 30) % 12;
-  const a = s * Math.min(l, 1 - l);
-  const f = (n: number) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-  const aHex = (x: number) => Math.round(255 * x).toString(16).padStart(2, '0');
-  return `#${aHex(f(0))}${aHex(f(8))}${aHex(f(4))}`;
-}
-
-function hexATono(hex: string | null | undefined): number {
-  const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex ?? '');
-  if (!m) {
-    return 0;
-  }
-  const r = parseInt(m[1], 16) / 255;
-  const g = parseInt(m[2], 16) / 255;
-  const b = parseInt(m[3], 16) / 255;
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const d = max - min;
-  if (d === 0) {
-    return 0;
-  }
-  let h: number;
-  if (max === r) {
-    h = ((g - b) / d) % 6;
-  } else if (max === g) {
-    h = (b - r) / d + 2;
-  } else {
-    h = (r - g) / d + 4;
-  }
-  h *= 60;
-  return h < 0 ? Math.round(h + 360) : Math.round(h);
-}
-
 interface OpcionAjusteLogo {
   valor: number;
   nombre: string;
@@ -244,24 +201,18 @@ const OPCIONES_PAGINA: OpcionPagina[] = [
                   <input matInput formControlName="colorPrimario" placeholder="#2563EB" />
                   <mat-icon matPrefix>palette</mat-icon>
                 </mat-form-field>
-                <span
-                  class="swatch"
-                  [style.background]="esHexValido(form.value.colorPrimario) ? form.value.colorPrimario : '#e2e8f0'"
-                ></span>
+                <input
+                  type="color"
+                  class="swatch-nativo"
+                  [value]="esHexValido(form.value.colorPrimario) ? form.value.colorPrimario : '#2563eb'"
+                  (pointerdown)="iniciarArrastreTono()"
+                  (input)="form.patchValue({ colorPrimario: $any($event.target).value })"
+                  (change)="animarCambioColor()"
+                />
               </div>
               @if (form.get('colorPrimario')?.invalid && form.get('colorPrimario')?.touched) {
                 <p class="field-error">Formato inválido. Usa un hexadecimal de 6 dígitos, ej: #2563EB</p>
               }
-              <input
-                type="range"
-                class="barra-tono"
-                min="0"
-                max="360"
-                [value]="tonoPrimario()"
-                (pointerdown)="iniciarArrastreTono()"
-                (input)="onTonoPrimario($any($event.target).value)"
-                (change)="animarCambioColor()"
-              />
 
               <div class="color-field">
                 <mat-form-field appearance="outline">
@@ -269,24 +220,18 @@ const OPCIONES_PAGINA: OpcionPagina[] = [
                   <input matInput formControlName="colorSecundario" placeholder="#1E3A5F" />
                   <mat-icon matPrefix>palette</mat-icon>
                 </mat-form-field>
-                <span
-                  class="swatch"
-                  [style.background]="esHexValido(form.value.colorSecundario) ? form.value.colorSecundario : '#e2e8f0'"
-                ></span>
+                <input
+                  type="color"
+                  class="swatch-nativo"
+                  [value]="esHexValido(form.value.colorSecundario) ? form.value.colorSecundario : '#1e3a5f'"
+                  (pointerdown)="iniciarArrastreTono()"
+                  (input)="form.patchValue({ colorSecundario: $any($event.target).value })"
+                  (change)="animarCambioColor()"
+                />
               </div>
               @if (form.get('colorSecundario')?.invalid && form.get('colorSecundario')?.touched) {
                 <p class="field-error">Formato inválido. Usa un hexadecimal de 6 dígitos, ej: #1E3A5F</p>
               }
-              <input
-                type="range"
-                class="barra-tono"
-                min="0"
-                max="360"
-                [value]="tonoSecundario()"
-                (pointerdown)="iniciarArrastreTono()"
-                (input)="onTonoSecundario($any($event.target).value)"
-                (change)="animarCambioColor()"
-              />
 
               <mat-form-field appearance="outline">
                 <mat-label>Dominio propio</mat-label>
@@ -753,48 +698,33 @@ const OPCIONES_PAGINA: OpcionPagina[] = [
       flex: 1;
     }
 
-    .swatch {
+    /* input[type=color] nativo -- al hacer clic abre el selector de color
+       real del sistema operativo/navegador (rueda de saturacion/luz + barra
+       de tono + hex/RGB), mucho mas completo que reconstruir uno a mano.
+       Se le quita el borde por defecto feo de Chrome y se deja solo como
+       swatch cuadrado, ocupando el mismo lugar que antes tenia el <span>
+       de solo-lectura. */
+    .swatch-nativo {
       width: 36px;
       height: 36px;
       border-radius: 8px;
       border: 1px solid #e2e8f0;
       flex-shrink: 0;
       margin-bottom: 20px;
-    }
-
-    /* Barra de tono -- selector libre de color ("a tu gusto"), no solo las
-       paletas predefinidas. Un solo input[type=range] con el track pintado
-       como espectro de matices (hue 0-360); el thumb elige el matiz y S/L
-       quedan fijos en valores vivos para que siempre de un color usable. */
-    .barra-tono {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 100%;
-      height: 14px;
-      border-radius: 999px;
-      margin: -6px 0 16px;
-      background: linear-gradient(to right, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
+      padding: 0;
       cursor: pointer;
+      background: none;
     }
-    .barra-tono::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #fff;
-      border: 3px solid #172033;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, .35);
-      cursor: pointer;
+    .swatch-nativo::-webkit-color-swatch-wrapper {
+      padding: 3px;
     }
-    .barra-tono::-moz-range-thumb {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #fff;
-      border: 3px solid #172033;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, .35);
-      cursor: pointer;
+    .swatch-nativo::-webkit-color-swatch {
+      border: none;
+      border-radius: 5px;
+    }
+    .swatch-nativo::-moz-color-swatch {
+      border: none;
+      border-radius: 5px;
     }
 
     .field-error {
@@ -1395,22 +1325,6 @@ export class MiMarcaComponent implements OnInit, OnDestroy {
   // entrecortado, no fluido).
   protected iniciarArrastreTono(): void {
     this.gradienteAnterior.set(this.gradienteActual());
-  }
-
-  protected tonoPrimario(): number {
-    return hexATono(this.form.value.colorPrimario);
-  }
-
-  protected tonoSecundario(): number {
-    return hexATono(this.form.value.colorSecundario);
-  }
-
-  protected onTonoPrimario(valor: string): void {
-    this.form.patchValue({ colorPrimario: tonoAHex(Number(valor), SATURACION_TONO, LUMINOSIDAD_TONO) });
-  }
-
-  protected onTonoSecundario(valor: string): void {
-    this.form.patchValue({ colorSecundario: tonoAHex(Number(valor), SATURACION_TONO, LUMINOSIDAD_TONO) });
   }
 
   // "Wipe" de abajo hacia arriba: oculta la capa nueva SIN transicion
