@@ -1,7 +1,8 @@
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { OmnicanalSocketService } from '../../../../core/realtime/omnicanal-socket.service';
 import { LiwaService } from '../../data/liwa.service';
 import { generarResumen } from '../../data/liwa-resumen.util';
 import { LiwaChat, LiwaEstadisticas } from '../../models/liwa.model';
@@ -18,6 +19,7 @@ import { LiwaAdsPanelComponent } from '../../components/ads-panel.component';
 import { LiwaAsesoresPanelComponent } from '../../components/asesores-panel.component';
 import { LiwaCaseReportsPanelComponent } from '../../components/case-reports-panel.component';
 import { LiwaConfigPanelComponent } from '../../components/config-panel.component';
+import { ScrollRevealDirective } from '../../../../shared/animations/scroll-reveal.directive';
 
 type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesores' | 'ads';
 
@@ -57,6 +59,7 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
     LiwaAsesoresPanelComponent,
     LiwaCaseReportsPanelComponent,
     LiwaConfigPanelComponent,
+    ScrollRevealDirective,
   ],
   template: `
     <div class="liwa-page" *ngIf="verificandoConfig()">
@@ -90,10 +93,12 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
             <button type="button" [class.activo]="presetActivo === '30dias'" (click)="preset30Dias()">Últimos 30 días</button>
           </div>
           <div class="rango">
+            <mat-icon class="icono-calendario">calendar_month</mat-icon>
             <label>
               <span>Desde</span>
               <input type="date" [(ngModel)]="desde" [max]="hasta || null" (change)="onFechaCambio()" />
             </label>
+            <span class="separador">a</span>
             <label>
               <span>Hasta</span>
               <input type="date" [(ngModel)]="hasta" [min]="desde || null" (change)="onFechaCambio()" />
@@ -101,8 +106,9 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
             <button type="button" class="limpiar" *ngIf="desde || hasta" (click)="limpiarFiltros()">
               Ver todo el historial
             </button>
-            <!-- Puro indicador -- el refresco ya pasa solo cada 20s, esto no
-                 se clickea, solo avisa que la vista se mantiene al dia. -->
+            <!-- Puro indicador -- el refresco es en vivo por socket (con
+                 respaldo de polling espaciado si se desconecta), esto no se
+                 clickea, solo avisa que la vista se mantiene al dia. -->
             <span class="auto-refresco" [class.activo]="cargando">
               <span class="punto"></span>
               {{ cargando ? 'Actualizando…' : 'Se actualiza solo' }}
@@ -122,34 +128,36 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
         <button type="button" [class.activo]="vista === 'calidad'" (click)="vista = 'calidad'">Gráficas</button>
         <button type="button" [class.activo]="vista === 'indicadores'" (click)="vista = 'indicadores'">KPIs</button>
         <button type="button" [class.activo]="vista === 'asesores'" (click)="vista = 'asesores'">Asesores</button>
-        <button type="button" class="ads" [class.activo]="vista === 'ads'" (click)="vista = 'ads'">Meta Ads</button>
+        <button type="button" class="ads" [class.activo]="vista === 'ads'" (click)="vista = 'ads'">
+          <span class="punto-ads"></span>Meta Ads
+        </button>
       </nav>
 
       <ng-container [ngSwitch]="vista">
-        <div *ngSwitchCase="'calidad'">
+        <div *ngSwitchCase="'calidad'" class="vista-contenido">
           <app-liwa-dashboard-calidad [estadisticas]="estadisticas" [chats]="chats" [desde]="desde || undefined" [hasta]="hasta || undefined" [autoRefreshTick]="refrescoTick" />
         </div>
-        <div *ngSwitchCase="'indicadores'">
+        <div *ngSwitchCase="'indicadores'" class="vista-contenido">
           <app-liwa-kpis-calidad-panel [desde]="desde || undefined" [hasta]="hasta || undefined" [autoRefreshTick]="refrescoTick" />
         </div>
-        <div *ngSwitchCase="'asesores'">
+        <div *ngSwitchCase="'asesores'" class="vista-contenido">
           <app-liwa-asesores-panel [desde]="desde || undefined" [hasta]="hasta || undefined" [autoRefreshTick]="refrescoTick" />
         </div>
-        <div *ngSwitchCase="'ads'">
+        <div *ngSwitchCase="'ads'" class="vista-contenido">
           <app-liwa-ads-panel [desde]="desde || undefined" [hasta]="hasta || undefined" [autoRefreshTick]="refrescoTick" />
         </div>
-        <div *ngSwitchCase="'analisis'" class="analisis-stack">
+        <div *ngSwitchCase="'analisis'" class="analisis-stack vista-contenido">
           <app-liwa-resumen-analisis-panel [desde]="desde || undefined" [hasta]="hasta || undefined" [autoRefreshTick]="refrescoTick" />
           <app-liwa-case-reports-panel [desde]="desde || undefined" [hasta]="hasta || undefined" [autoRefreshTick]="refrescoTick" />
           <app-liwa-analisis-ia-panel [desde]="desde || undefined" [hasta]="hasta || undefined" [mostrarResumen]="false" [autoRefreshTick]="refrescoTick" />
         </div>
-        <div *ngSwitchDefault>
+        <div *ngSwitchDefault class="vista-contenido">
           <div class="kpis">
-            <app-liwa-kpi-card icon="chat" label="Total de conversaciones" [value]="totalEventos" color="linear-gradient(135deg,#3b82f6,#2563eb)" [clickable]="true" [onSelect]="verModalConversaciones" />
-            <app-liwa-kpi-card icon="history" label="Total de mensajes" [value]="resumen.totalMensajes" color="linear-gradient(135deg,#f59e0b,#f97316)" />
+            <app-liwa-kpi-card appScrollReveal icon="chat" label="Total de conversaciones" [value]="totalEventos" color="linear-gradient(135deg,#3b82f6,#2563eb)" [clickable]="true" [onSelect]="verModalConversaciones" />
+            <app-liwa-kpi-card appScrollReveal [appScrollRevealDelay]="0.08" icon="history" label="Total de mensajes" [value]="resumen.totalMensajes" color="linear-gradient(135deg,#f59e0b,#f97316)" />
           </div>
 
-          <div class="actividad">
+          <div class="actividad" appScrollReveal [appScrollRevealDelay]="0.12">
             <div class="actividad-header">
               <h2>Actividad por día</h2>
               <span>{{ resumen.totalMensajes }} mensajes</span>
@@ -159,7 +167,7 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
             </div>
           </div>
 
-          <div class="tabla-tabla" [class.cargando-opacidad]="cargando">
+          <div class="tabla-tabla" appScrollReveal [appScrollRevealDelay]="0.16" [class.cargando-opacidad]="cargando">
             <app-liwa-table
               [chats]="chats"
               [contactosAnalizados]="contactosAnalizados"
@@ -167,7 +175,11 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
             />
           </div>
 
-          <app-liwa-conversation-drawer [chat]="chatSeleccionado" (close)="seleccionarChat(null)" />
+          <app-liwa-conversation-drawer
+            [chat]="chatSeleccionado"
+            [analizada]="chatSeleccionado ? contactosAnalizados.has(chatSeleccionado.idContacto) : false"
+            (close)="seleccionarChat(null)"
+          />
 
           <app-liwa-summary-modal
             *ngIf="modalResumen"
@@ -182,7 +194,19 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
     </div>
   `,
   styles: [`
-    .liwa-page { padding: 20px; display: flex; flex-direction: column; gap: 16px; background: #f8fafc; min-height: 100%; }
+    .liwa-page { padding: 20px; display: flex; flex-direction: column; gap: 16px; background: #f8fafc; min-height: 100%; scroll-behavior: smooth; }
+
+    /* Entrada suave del contenido de cada pestaña (y de la carga inicial) --
+       ngSwitch destruye/recrea el nodo al cambiar de vista, así que esta
+       animación se repite en cada cambio de pestaña. Respeta prefers-reduced-motion. */
+    .vista-contenido { animation: liwa-aparecer 0.32s ease-out; }
+    @keyframes liwa-aparecer {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .vista-contenido { animation: none; }
+    }
 
     .cargando-config { display: flex; align-items: center; gap: 8px; justify-content: center; padding: 60px; color: #64748b; font-size: 0.85rem; }
     .cargando-config .spin { animation: spin 1s linear infinite; }
@@ -195,29 +219,37 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
     .liwa-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
     .titulo { display: flex; align-items: center; gap: 12px; }
     .icono-titulo {
-      width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
-      background: linear-gradient(135deg,#10b981,#059669); color: #fff; box-shadow: 0 6px 16px rgba(16,185,129,0.3);
+      width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg,#10b981,#16a34a); color: #fff; box-shadow: 0 10px 15px -3px rgba(16,185,129,0.25);
     }
-    .titulo h1 { margin: 0; font-size: 1.3rem; font-weight: 800; color: #0f172a; }
-    .titulo p { margin: 0; font-size: 0.75rem; color: #64748b; }
+    .titulo h1 { margin: 0; font-size: 1.35rem; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; }
+    .titulo p { margin: 0; font-size: 0.72rem; color: #64748b; }
 
     .filtros { display: flex; flex-direction: column; gap: 6px; }
     .presets { display: flex; gap: 6px; flex-wrap: wrap; }
     .presets button {
-      border: 1px solid #e2e8f0; background: #fff; color: #475569; border-radius: 8px; padding: 4px 10px;
-      font-size: 0.7rem; font-weight: 600; cursor: pointer;
+      border: 1px solid #e2e8f0; background: #fff; color: #475569; border-radius: 8px; padding: 5px 10px;
+      font-size: 0.68rem; font-weight: 700; cursor: pointer; transition: background-color 0.15s;
     }
+    .presets button:hover { background: #f8fafc; }
     .presets button.activo { background: #059669; border-color: #059669; color: #fff; }
+    .presets button.activo:hover { background: #059669; }
 
-    .rango { display: flex; align-items: flex-end; gap: 10px; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 8px; flex-wrap: wrap; }
-    .rango label { display: flex; flex-direction: column; gap: 2px; font-size: 0.65rem; color: #64748b; font-weight: 700; text-transform: uppercase; }
-    .rango input {
-      border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 8px; padding: 6px 8px; font-size: 0.75rem;
+    .rango {
+      display: flex; align-items: flex-end; gap: 10px; background: #fff; border: 1px solid #e2e8f0;
+      border-radius: 12px; padding: 8px; flex-wrap: wrap; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
-    .limpiar { border: none; background: #f1f5f9; color: #475569; border-radius: 8px; padding: 8px 14px; font-size: 0.72rem; font-weight: 600; cursor: pointer; }
-    .cargando { display: inline-flex; align-items: center; font-size: 0.7rem; color: #059669; font-weight: 700; }
+    .icono-calendario { color: #94a3b8; font-size: 15px; width: 15px; height: 15px; align-self: center; }
+    .rango label { display: flex; flex-direction: column; gap: 2px; font-size: 0.62rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+    .rango input {
+      border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 8px; padding: 6px 9px; font-size: 0.75rem; outline: none;
+    }
+    .rango input:focus { box-shadow: 0 0 0 2px #a7f3d0; border-color: #6ee7b7; }
+    .separador { font-size: 0.7rem; color: #94a3b8; align-self: center; padding-bottom: 6px; }
+    .limpiar { border: none; background: #f1f5f9; color: #475569; border-radius: 8px; padding: 8px 14px; font-size: 0.72rem; font-weight: 700; cursor: pointer; }
+    .limpiar:hover { background: #e2e8f0; }
     .auto-refresco {
-      display: inline-flex; align-items: center; gap: 7px; color: #64748b; font-size: 0.7rem; font-weight: 600;
+      display: inline-flex; align-items: center; gap: 7px; color: #64748b; font-size: 0.68rem; font-weight: 600;
       margin-left: auto; padding: 4px 2px;
     }
     .auto-refresco .punto {
@@ -236,20 +268,26 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
       font-size: 0.78rem; font-weight: 600; padding: 10px 14px; border-radius: 12px;
     }
 
-    .tabs { display: flex; gap: 4px; flex-wrap: wrap; background: rgba(203,213,225,0.5); padding: 4px; border-radius: 12px; width: fit-content; }
+    .tabs { display: flex; gap: 4px; flex-wrap: wrap; background: rgba(203,213,225,0.7); padding: 4px; border-radius: 12px; width: fit-content; }
     .tabs button {
-      border: none; background: transparent; color: #64748b; font-size: 0.72rem; font-weight: 700;
-      padding: 8px 16px; border-radius: 8px; cursor: pointer;
+      border: none; background: transparent; color: #64748b; font-size: 0.68rem; font-weight: 700;
+      padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center;
     }
+    .tabs button:hover { color: #334155; }
     .tabs button.activo { background: #fff; color: #047857; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .tabs button.ads:hover { color: #2563eb; }
     .tabs button.ads.activo { background: #2563eb; color: #fff; }
+    .punto-ads { width: 6px; height: 6px; border-radius: 999px; background: #2563eb; margin-right: 6px; }
+    .tabs button.ads.activo .punto-ads { background: #fff; }
 
-    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+    .kpis { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    .kpis app-liwa-kpi-card { display: block; min-width: 0; }
+    @media (min-width: 640px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
 
-    .actividad { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; }
+    .actividad { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); padding: 16px; }
     .actividad-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-    .actividad-header h2 { margin: 0; font-size: 0.85rem; color: #1e293b; }
-    .actividad-header span { font-size: 0.65rem; color: #94a3b8; }
+    .actividad-header h2 { margin: 0; font-size: 0.85rem; font-weight: 700; color: #1e293b; }
+    .actividad-header span { font-size: 0.62rem; color: #94a3b8; font-weight: 600; }
     .actividad-chart { height: 160px; }
 
     .tabla-tabla { transition: opacity 0.2s; }
@@ -291,10 +329,26 @@ export class OmnicanalLiwaPanelComponent implements OnInit, OnDestroy {
 
   private debounceCarga?: ReturnType<typeof setTimeout>;
   private debounceAnalisis?: ReturnType<typeof setTimeout>;
-  private intervaloPolling?: ReturnType<typeof setInterval>;
+  private intervaloPollingRespaldo?: ReturnType<typeof setInterval>;
   private peticionId = 0;
+  private ultimaRevisionVista = 0;
 
-  constructor(private readonly liwa: LiwaService, private readonly cdr: ChangeDetectorRef) {}
+  private readonly socket = inject(OmnicanalSocketService);
+
+  constructor(private readonly liwa: LiwaService, private readonly cdr: ChangeDetectorRef) {
+    // Cada vez que el socket avisa un cambio (conversacion archivada o
+    // analisis IA terminado -- ver NotificadorEventosOmnicanal en el
+    // backend), se recarga igual que antes hacia el polling de 20s. Se
+    // ignora la primera emision (arranque en 0) para no disparar una carga
+    // duplicada con la que ya hace ngOnInit.
+    effect(() => {
+      const revision = this.socket.revision();
+      if (revision === this.ultimaRevisionVista) return;
+      this.ultimaRevisionVista = revision;
+      if (revision === 0) return;
+      void this.ciclarActualizacion();
+    });
+  }
 
   ngOnInit(): void {
     void this.verificarConfigYArrancar();
@@ -325,15 +379,17 @@ export class OmnicanalLiwaPanelComponent implements OnInit, OnDestroy {
   private arrancarCargaDeDatos(): void {
     this.recargarConDebounce();
     this.recargarAnalisisConDebounce();
-    // Respaldo por si el backend no emite ningún evento en tiempo real
-    // (marca-blanca todavía no tiene socket equivalente conectado acá):
-    // refresca cada pocos segundos mientras la pestaña esté visible, en
-    // TODAS las vistas (ver [autoRefreshTick] en el template) -- no solo en
-    // la que se esté mirando.
-    this.intervaloPolling = setInterval(() => {
+    // Tiempo real: el socket (conectado abajo) avisa cuando hay datos
+    // nuevos -- ver el effect() del constructor. Este intervalo es solo un
+    // RESPALDO muy espaciado por si el socket se desconecta y no logra
+    // reconectar solo (reconnectDelay del cliente STOMP ya lo intenta),
+    // para que la vista no se quede desactualizada indefinidamente.
+    this.socket.conectar();
+    this.intervaloPollingRespaldo = setInterval(() => {
       if (document.visibilityState !== 'visible') return;
-      void this.ciclarPolling();
-    }, 20000);
+      if (this.socket.conectado()) return;
+      void this.ciclarActualizacion();
+    }, 180000);
   }
 
   // Un caso puede quedar "sin analizar" si el analisis IA fallo la primera
@@ -342,12 +398,12 @@ export class OmnicanalLiwaPanelComponent implements OnInit, OnDestroy {
   // crudos) pero nunca en "Analisis y casos" (que exige que el analisis ya
   // exista). reintentarAnalisis() ya existia en el servicio pero nadie la
   // llamaba desde ningun lado -- por eso quedaban huerfanas para siempre.
-  private async ciclarPolling(): Promise<void> {
+  private async ciclarActualizacion(): Promise<void> {
     try {
       await this.liwa.reintentarAnalisis();
     } catch {
       // Sin pendientes o sin conexion momentanea -- no es motivo para
-      // detener el polling normal de abajo.
+      // detener la actualizacion normal de abajo.
     }
     this.liwa.invalidarCache();
     void this.cargarDesdeBackend();
@@ -358,7 +414,8 @@ export class OmnicanalLiwaPanelComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     clearTimeout(this.debounceCarga);
     clearTimeout(this.debounceAnalisis);
-    clearInterval(this.intervaloPolling);
+    clearInterval(this.intervaloPollingRespaldo);
+    this.socket.desconectar();
   }
 
   private fechaHaceNDias(n: number): string {

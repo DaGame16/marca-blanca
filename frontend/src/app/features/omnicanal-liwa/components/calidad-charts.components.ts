@@ -1,5 +1,8 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { BaseChartDirective, provideCharts, withDefaultRegisterables } from 'ng2-charts';
+import { ChartConfiguration } from 'chart.js';
+import { CHARTJS_TOOLTIP } from '../shared/liwa-paleta';
 
 // Traducción SIMPLIFICADA de components/liwa/CalidadCharts.tsx. El original
 // usa Recharts (barras, donut, dispersión de burbujas, mapa de calor). Acá
@@ -229,67 +232,82 @@ export class LiwaMapaCalorComponent {
   }
 }
 
+// Traducción fiel de BurbujasDispersion (Recharts ScatterChart) -- CSAT en
+// X, FCR en Y, tamaño de burbuja = volumen. Antes era una tabla (CSAT/FCR/
+// Volumen en columnas); esto sí es la dispersión real del original.
 @Component({
   selector: 'app-liwa-burbujas-dispersion',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, BaseChartDirective],
+  providers: [provideCharts(withDefaultRegisterables())],
   template: `
-    <div class="tabla-wrap" *ngIf="data.length; else vacio">
-      <table>
-        <thead><tr><th>Motivo</th><th>CSAT</th><th>FCR</th><th>Volumen</th></tr></thead>
-        <tbody>
-          <tr *ngFor="let d of data">
-            <td>{{ d.motivo }}</td>
-            <td>{{ d.csat }}%</td>
-            <td>{{ d.fcr }}%</td>
-            <td>{{ d.volumen }}</td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="contenedor" *ngIf="data.length; else vacio">
+      <canvas baseChart type="bubble" [data]="chartData" [options]="chartOptions"></canvas>
     </div>
     <ng-template #vacio><p class="sin-datos">Satisfacción vs. efectividad pendiente de análisis IA.</p></ng-template>
   `,
   styles: [`
-    .tabla-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
-    th { text-align: left; padding: 6px 10px; font-size: 0.62rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; border-bottom: 1px solid #f1f5f9; }
-    td { padding: 8px 10px; border-bottom: 1px solid #f8fafc; color: #334155; }
+    .contenedor { position: relative; height: 260px; }
     .sin-datos { text-align: center; color: #94a3b8; font-size: 0.78rem; padding: 24px; }
   `],
 })
 export class LiwaBurbujasDispersionComponent {
   @Input() data: { motivo: string; csat: number; fcr: number; volumen: number }[] = [];
+
+  get chartData(): ChartConfiguration<'bubble'>['data'] {
+    const maxVol = Math.max(1, ...this.data.map((d) => d.volumen));
+    return {
+      datasets: [{
+        label: 'Motivos',
+        data: this.data.map((d) => ({ x: d.csat, y: d.fcr, r: 6 + (d.volumen / maxVol) * 24 })),
+        backgroundColor: 'rgba(139,92,246,0.55)',
+        borderColor: '#8b5cf6',
+      }],
+    };
+  }
+
+  get chartOptions(): ChartConfiguration<'bubble'>['options'] {
+    const datos = this.data;
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          ...CHARTJS_TOOLTIP,
+          callbacks: {
+            label: (ctx) => {
+              const d = datos[ctx.dataIndex];
+              return `${d.motivo}: CSAT ${d.csat}% · FCR ${d.fcr}% · ${d.volumen} casos`;
+            },
+          },
+        },
+      },
+      scales: {
+        x: { min: 0, max: 100, title: { display: true, text: 'CSAT (%)', font: { size: 11 } }, ticks: { font: { size: 10 } } },
+        y: { min: 0, max: 100, title: { display: true, text: 'FCR (%)', font: { size: 11 } }, ticks: { font: { size: 10 } } },
+      },
+    };
+  }
 }
 
+// Traducción fiel de LineaTendencia (Recharts LineChart) -- serie principal
+// "total" (color prop) + una línea por zona (series). Antes era una lista de
+// barras horizontales por día (sin desglose por municipio); esto sí es el
+// gráfico de líneas multi-serie del original.
 @Component({
   selector: 'app-liwa-linea-tendencia',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, BaseChartDirective],
+  providers: [provideCharts(withDefaultRegisterables())],
   template: `
-    <div class="tendencia" *ngIf="data.length; else vacio">
-      <div class="fila" *ngFor="let f of data">
-        <span class="periodo">{{ f['periodo'] }}</span>
-        <div class="track">
-          <div class="valor" [style.width.%]="(num(f['total']) / max) * 100" [style.background]="color"></div>
-        </div>
-        <span class="total">{{ f['total'] }}</span>
-      </div>
-      <div class="leyenda" *ngIf="series?.length">
-        <span class="item" *ngFor="let s of series"><span class="punto" [style.background]="s.color"></span>{{ s.clave }}</span>
-      </div>
+    <div class="contenedor" *ngIf="data.length; else vacio">
+      <canvas baseChart type="line" [data]="chartData" [options]="chartOptions"></canvas>
     </div>
     <ng-template #vacio><p class="sin-datos">Sin mensajes en el periodo.</p></ng-template>
   `,
   styles: [`
-    .tendencia { display: flex; flex-direction: column; gap: 6px; }
-    .fila { display: grid; grid-template-columns: 64px 1fr 32px; align-items: center; gap: 8px; }
-    .periodo { font-size: 0.62rem; color: #94a3b8; }
-    .track { background: #f1f5f9; border-radius: 6px; height: 10px; overflow: hidden; }
-    .valor { height: 100%; border-radius: 6px; }
-    .total { font-size: 0.65rem; font-weight: 700; color: #334155; text-align: right; }
-    .leyenda { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
-    .item { display: inline-flex; align-items: center; gap: 4px; font-size: 0.65rem; color: #64748b; }
-    .punto { width: 8px; height: 8px; border-radius: 50%; }
+    .contenedor { position: relative; height: 240px; }
     .sin-datos { text-align: center; color: #94a3b8; font-size: 0.78rem; padding: 24px; }
   `],
 })
@@ -302,7 +320,38 @@ export class LiwaLineaTendenciaComponent {
     return Number(v) || 0;
   }
 
-  get max(): number {
-    return Math.max(1, ...this.data.map((f) => this.num(f['total'])));
+  get chartData(): ChartConfiguration<'line'>['data'] {
+    const principal = {
+      label: 'Total',
+      data: this.data.map((f) => this.num(f['total'])),
+      borderColor: this.color,
+      backgroundColor: this.color,
+      borderWidth: 2.5,
+      pointRadius: 3,
+      tension: 0.3,
+    };
+    const zonas = (this.series ?? []).map((s) => ({
+      label: s.clave,
+      data: this.data.map((f) => this.num(f[s.clave])),
+      borderColor: s.color,
+      backgroundColor: s.color,
+      borderWidth: 1.8,
+      pointRadius: 0,
+      tension: 0.3,
+    }));
+    return { labels: this.data.map((f) => String(f['periodo'])), datasets: [principal, ...zonas] };
   }
+
+  readonly chartOptions: ChartConfiguration<'line'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
+      tooltip: CHARTJS_TOOLTIP,
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } },
+      y: { beginAtZero: true, grid: { color: 'rgba(100,116,139,0.12)' }, ticks: { font: { size: 10 }, precision: 0 } },
+    },
+  };
 }

@@ -2,6 +2,7 @@ package com.marcablanca.platform.omnicanal.application;
 
 import com.marcablanca.platform.omnicanal.application.IngestarConversacionArchivada.Ingesta;
 import com.marcablanca.platform.omnicanal.application.port.out.AnalizadorDeConversacion;
+import com.marcablanca.platform.omnicanal.application.port.out.NotificadorEventosOmnicanal;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioCasos;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConversaciones;
 import com.marcablanca.platform.omnicanal.domain.Caso;
@@ -36,10 +37,12 @@ class RecibirConversacionArchivadaServiceTest {
     RepositorioConversaciones repositorioConversaciones;
     @Mock
     RepositorioCasos repositorioCasos;
+    @Mock
+    NotificadorEventosOmnicanal notificador;
 
     private RecibirConversacionArchivadaService servicio() {
         return new RecibirConversacionArchivadaService(ingestar, analizador, escritor,
-                repositorioConversaciones, repositorioCasos);
+                repositorioConversaciones, repositorioCasos, notificador);
     }
 
     private static Caso caso(long id) {

@@ -45,6 +45,12 @@ public class SecurityConfig {
                             // header ES el mecanismo de autenticacion/identificacion de tenant
                             // (ver ResolverEmpresaPorWebhookSecreto, modulo omnicanal).
                             .requestMatchers("/api/v1/omnicanal/webhook/**").permitAll()
+                            // El handshake de /ws se autentica con su propio
+                            // interceptor (JWT por query param, ver
+                            // AutenticacionHandshakeInterceptor en bootstrap) --
+                            // no llega Authorization header, asi que este filtro
+                            // JWT normal no aplica aca.
+                            .requestMatchers("/ws/**").permitAll()
                             // Logo/colores/variante de UI de una empresa por su identificador --
                             // la pantalla de login los necesita ANTES de autenticarse (ver
                             // MarcaPublicaController, modulo identidad-visual). Solo GET, no
