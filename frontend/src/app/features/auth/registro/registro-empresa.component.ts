@@ -16,6 +16,7 @@ import { AdminService } from '../../../core/admin/admin.service';
 import { Modulo } from '../../../core/admin/models';
 import { RegistroEmpresaService } from './registro-empresa.service';
 import { FinalizarRegistroResponse, PersonalizacionRequest } from './registro-empresa.models';
+import { BrandMarkComponent } from '../../../shared/brand/brand-mark.component';
 
 // Dominio base solo para el preview visual del identificador (antes de que
 // la empresa exista, el backend todavia no ha dicho cual es el real).
@@ -158,13 +159,14 @@ interface EstadoWizardGuardado {
     MatCheckboxModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
+    BrandMarkComponent,
   ],
   template: `
     <div class="registro-page">
       <aside class="wizard-banda">
         <div class="banda-top">
           <a routerLink="/" class="banda-marca">
-            <mat-icon class="banda-logo-icon">hub</mat-icon>
+            <app-brand-mark class="banda-logo-icon" />
             <span>Marca Blanca</span>
           </a>
           <a routerLink="/login" class="banda-link">Ya tengo cuenta</a>

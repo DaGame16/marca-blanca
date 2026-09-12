@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import gsap from 'gsap';
+import { BrandMarkComponent } from '../../shared/brand/brand-mark.component';
 
 // Clave en sessionStorage para no repetir la intro en cada visita a "/"
 // dentro de la misma pestaña/sesion (solo la primera vez que se entra).
@@ -12,7 +13,7 @@ const INTRO_YA_VISTA = 'mb_intro_vista';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatIconModule, MatButtonModule],
+  imports: [CommonModule, RouterLink, MatIconModule, MatButtonModule, BrandMarkComponent],
   template: `
     <!-- Intro de entrada (inspirada en el wipe/reveal de sitios tipo huyml.co):
          pantalla oscura de marca -> aparece el nombre -> se desliza hacia
@@ -21,7 +22,7 @@ const INTRO_YA_VISTA = 'mb_intro_vista';
          movimiento. -->
     <div class="intro-loader" #introLoader *ngIf="mostrarIntro">
       <div class="intro-brand" #introBrand>
-        <span class="brand-mark"><mat-icon>hub</mat-icon></span>
+        <span class="brand-mark"><app-brand-mark /></span>
         <strong>Marca Blanca</strong>
       </div>
     </div>
@@ -29,7 +30,7 @@ const INTRO_YA_VISTA = 'mb_intro_vista';
     <div class="landing">
       <header class="header">
         <a routerLink="/" class="brand">
-          <span class="brand-mark"><mat-icon>hub</mat-icon></span>
+          <span class="brand-mark"><app-brand-mark /></span>
           <span><strong>Marca Blanca</strong><small>Business platform</small></span>
         </a>
         <nav>
@@ -186,7 +187,7 @@ const INTRO_YA_VISTA = 'mb_intro_vista';
 
       <footer>
         <a routerLink="/" class="brand">
-          <span class="brand-mark"><mat-icon>hub</mat-icon></span>
+          <span class="brand-mark"><app-brand-mark /></span>
           <span><strong>Marca Blanca</strong><small>Business platform</small></span>
         </a>
         <span>© 2026 Marca Blanca. Plataforma empresarial.</span>
@@ -206,15 +207,14 @@ const INTRO_YA_VISTA = 'mb_intro_vista';
     .intro-brand { display: flex; align-items: center; gap: 12px; color: #fff; opacity: 0; transform: translateY(16px); }
     .intro-brand .brand-mark {
       width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; color: #fff;
-      background: #2468d9; box-shadow: 0 10px 24px rgba(36,104,217,0.4);
+      background: #2468d9; box-shadow: 0 10px 24px rgba(36,104,217,0.4); font-size: 24px;
     }
     .intro-brand strong { font-size: 24px; letter-spacing: -0.01em; }
 
     /* ---------- Header ---------- */
     .header { height: 76px; display: flex; align-items: center; justify-content: space-between; max-width: 1240px; margin: auto; padding: 0 28px; background: #f7f9fc; }
     .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #172033; }
-    .brand-mark { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; color: #fff; background: #2468d9; }
-    .brand-mark mat-icon { font-size: 20px; }
+    .brand-mark { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; color: #fff; background: #2468d9; font-size: 20px; }
     .brand strong, .brand small { display: block; }
     .brand strong { font-size: 15px; }
     .brand small { font-size: 9px; color: #8a96a9; letter-spacing: .12em; text-transform: uppercase; margin-top: 2px; }

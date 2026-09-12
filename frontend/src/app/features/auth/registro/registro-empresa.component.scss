@@ -40,6 +40,10 @@
 
       .banda-logo-icon {
         color: var(--mb-arena);
+        // mat-icon rendia 24px por defecto sin importar el font-size del
+        // padre (.banda-marca lo deja en 15px) -- app-brand-mark se
+        // dimensiona con 1em, asi que hace falta fijarlo aca explicito.
+        font-size: 24px;
       }
 
       .banda-link {
