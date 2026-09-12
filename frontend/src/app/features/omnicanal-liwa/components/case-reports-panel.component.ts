@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { LiwaService } from '../data/liwa.service';
 import { LiwaAnalisisItem, LiwaCasoResumenAnalisis, LiwaChat, LiwaResumenContacto } from '../models/liwa.model';
 import { LiwaAnalisisDetalleComponent } from './analisis-ia-detalle.component';
+import { ScrollRevealDirective } from '../../../shared/animations/scroll-reveal.directive';
 
 type Filtro = 'todos' | 'sentimiento' | 'soporte' | 'matriz' | 'asesor' | 'mapa' | 'ventas' | 'ads';
 
@@ -50,7 +51,7 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
 @Component({
   selector: 'app-liwa-case-reports-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule, LiwaAnalisisDetalleComponent],
+  imports: [CommonModule, FormsModule, MatIconModule, LiwaAnalisisDetalleComponent, ScrollRevealDirective],
   template: `
     <section class="panel">
       <div class="cabecera">
@@ -69,7 +70,7 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
       <div class="aviso error" *ngIf="error">{{ error }}</div>
 
       <div class="grid">
-        <div class="tarjeta">
+        <div class="tarjeta" appScrollReveal>
           <div class="fila-titulo">
             <h3>Sentimiento {{ sentimientoVista }}</h3>
             <div class="toggle">
@@ -87,7 +88,7 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
           </div>
         </div>
 
-        <div class="tarjeta">
+        <div class="tarjeta" appScrollReveal [appScrollRevealDelay]="0.06">
           <h3>Casos por motivo</h3>
           <div class="chips">
             <button type="button" class="chip" *ngFor="let g of matrizMotivos" [class.activo]="g.etiqueta === motivoActivo"
@@ -105,7 +106,7 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
           <ng-template #sinDatosMotivo><p class="vacio">Sin casos en el periodo.</p></ng-template>
         </div>
 
-        <div class="tarjeta orden1">
+        <div class="tarjeta orden1" appScrollReveal [appScrollRevealDelay]="0.12">
           <h3>Oportunidades de venta</h3>
           <div class="barras">
             <button type="button" class="barra" *ngFor="let b of ventasBarras" (click)="irA('ventas', b.label === 'confirmadas' ? 'confirmadas' : b.label === 'no_confirmadas' ? 'no_confirmadas' : '')">
@@ -123,7 +124,7 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
           </div>
         </div>
 
-        <div class="tarjeta orden3">
+        <div class="tarjeta orden3" appScrollReveal [appScrollRevealDelay]="0.06">
           <h3>Casos por motivo · dona</h3>
           <p class="hint">Cada segmento con su % sobre el total · clic en un segmento o en la leyenda filtra la tabla de casos</p>
           <ng-container *ngIf="motivosDonut.length; else sinDatos">
@@ -151,7 +152,7 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
           </ng-container>
         </div>
 
-        <div class="tarjeta orden4">
+        <div class="tarjeta orden4" appScrollReveal [appScrollRevealDelay]="0.12">
           <h3>Cobertura preguntada en cada municipio</h3>
           <p class="hint">Municipios que el bot interpretó · personas que preguntaron por cobertura</p>
           <div class="barras" *ngIf="coberturaPorMunicipio.length; else sinDatosCobertura">
@@ -166,7 +167,7 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
           <ng-template #sinDatosCobertura><p class="vacio">Sin casos de cobertura con municipio identificado en el periodo.</p></ng-template>
         </div>
 
-        <div class="tarjeta orden2">
+        <div class="tarjeta orden2" appScrollReveal [appScrollRevealDelay]="0.18">
           <h3>Mapa de calor · Motivo × Municipio</h3>
           <ng-container *ngIf="matrizMapa.filas.length && matrizMapa.columnas.length; else sinDatos">
             <div class="tabla-wrap">
@@ -195,7 +196,7 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
       </div>
       <ng-template #sinDatos><p class="vacio">Sin casos en el periodo.</p></ng-template>
 
-      <div class="seccion-casos" id="seccion-casos">
+      <div class="seccion-casos" id="seccion-casos" appScrollReveal>
         <div class="titulo-casos">
           <h3>Casos encontrados <span class="contador">{{ visibles.length }}</span></h3>
           <span class="chip-filtro" *ngIf="filtro !== 'todos' || segmento">Filtro: <strong>{{ filtro }}{{ segmento ? ' · ' + segmento : '' }}</strong></span>

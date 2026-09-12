@@ -19,6 +19,7 @@ import { LiwaAdsPanelComponent } from '../../components/ads-panel.component';
 import { LiwaAsesoresPanelComponent } from '../../components/asesores-panel.component';
 import { LiwaCaseReportsPanelComponent } from '../../components/case-reports-panel.component';
 import { LiwaConfigPanelComponent } from '../../components/config-panel.component';
+import { ScrollRevealDirective } from '../../../../shared/animations/scroll-reveal.directive';
 
 type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesores' | 'ads';
 
@@ -58,6 +59,7 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
     LiwaAsesoresPanelComponent,
     LiwaCaseReportsPanelComponent,
     LiwaConfigPanelComponent,
+    ScrollRevealDirective,
   ],
   template: `
     <div class="liwa-page" *ngIf="verificandoConfig()">
@@ -151,11 +153,11 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
         </div>
         <div *ngSwitchDefault class="vista-contenido">
           <div class="kpis">
-            <app-liwa-kpi-card icon="chat" label="Total de conversaciones" [value]="totalEventos" color="linear-gradient(135deg,#3b82f6,#2563eb)" [clickable]="true" [onSelect]="verModalConversaciones" />
-            <app-liwa-kpi-card icon="history" label="Total de mensajes" [value]="resumen.totalMensajes" color="linear-gradient(135deg,#f59e0b,#f97316)" />
+            <app-liwa-kpi-card appScrollReveal icon="chat" label="Total de conversaciones" [value]="totalEventos" color="linear-gradient(135deg,#3b82f6,#2563eb)" [clickable]="true" [onSelect]="verModalConversaciones" />
+            <app-liwa-kpi-card appScrollReveal [appScrollRevealDelay]="0.08" icon="history" label="Total de mensajes" [value]="resumen.totalMensajes" color="linear-gradient(135deg,#f59e0b,#f97316)" />
           </div>
 
-          <div class="actividad">
+          <div class="actividad" appScrollReveal [appScrollRevealDelay]="0.12">
             <div class="actividad-header">
               <h2>Actividad por día</h2>
               <span>{{ resumen.totalMensajes }} mensajes</span>
@@ -165,7 +167,7 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
             </div>
           </div>
 
-          <div class="tabla-tabla" [class.cargando-opacidad]="cargando">
+          <div class="tabla-tabla" appScrollReveal [appScrollRevealDelay]="0.16" [class.cargando-opacidad]="cargando">
             <app-liwa-table
               [chats]="chats"
               [contactosAnalizados]="contactosAnalizados"
