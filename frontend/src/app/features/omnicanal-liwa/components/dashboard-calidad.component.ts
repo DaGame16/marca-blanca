@@ -9,6 +9,7 @@ import {
 } from './calidad-charts.components';
 import { LiwaTablaAnalisisIaComponent } from './analisis-ia-tabla.component';
 import { LiwaConversationDrawerComponent } from './conversation-drawer.component';
+import { ScrollRevealDirective } from '../../../shared/animations/scroll-reveal.directive';
 
 type DetalleKpi = 'conversaciones' | 'analizadas' | null;
 
@@ -38,6 +39,7 @@ function etiquetaSentimiento(s: string): string {
     CommonModule, MatIconModule, LiwaKpiGridCalidadComponent, LiwaBarrasCategoriasComponent,
     LiwaAnilloSentimientoComponent, LiwaMapaCalorComponent, LiwaBurbujasDispersionComponent,
     LiwaLineaTendenciaComponent, LiwaBarrasAreaComponent, LiwaTablaAnalisisIaComponent, LiwaConversationDrawerComponent,
+    ScrollRevealDirective,
   ],
   template: `
     <div class="dashboard">
@@ -68,12 +70,12 @@ function etiquetaSentimiento(s: string): string {
       </div>
 
       <div class="grid-2">
-        <div class="tarjeta">
+        <div class="tarjeta" appScrollReveal>
           <div class="tarjeta-header"><h3>Motivos de contacto</h3><span>barras · análisis IA</span></div>
           <div class="cargando" *ngIf="cargandoAnalisis"><mat-icon class="spin">progress_activity</mat-icon> Cargando análisis…</div>
           <app-liwa-barras-categorias *ngIf="!cargandoAnalisis" [data]="motivosData" />
         </div>
-        <div class="tarjeta">
+        <div class="tarjeta" appScrollReveal [appScrollRevealDelay]="0.08">
           <div class="tarjeta-header"><h3>Sentimiento del cliente</h3><span>anillo · sentimiento final · IA</span></div>
           <div class="cargando" *ngIf="cargandoAnalisis"><mat-icon class="spin">progress_activity</mat-icon> Cargando análisis…</div>
           <app-liwa-anillo-sentimiento *ngIf="!cargandoAnalisis" [data]="sentimientoData" [total]="analisisVisibles.length" />
@@ -81,28 +83,28 @@ function etiquetaSentimiento(s: string): string {
       </div>
 
       <div class="grid-2">
-        <div class="tarjeta">
+        <div class="tarjeta" appScrollReveal>
           <div class="tarjeta-header"><h3>Frecuencia por motivo y municipio</h3><span>mapa de calor · IA{{ mapaCalor.sinMunicipio > 0 ? (' · ' + mapaCalor.sinMunicipio + ' sin municipio identificado (no incluidos)') : '' }}</span></div>
           <app-liwa-mapa-calor [filas]="mapaCalor.filas" [columnas]="mapaCalor.columnas" [valores]="mapaCalor.valores" [max]="mapaCalor.max" />
         </div>
-        <div class="tarjeta">
+        <div class="tarjeta" appScrollReveal [appScrollRevealDelay]="0.08">
           <div class="tarjeta-header"><h3>Satisfacción vs. efectividad</h3><span>CSAT vs FCR por motivo · IA</span></div>
           <div class="cargando" *ngIf="cargandoAnalisis"><mat-icon class="spin">progress_activity</mat-icon> Cargando análisis…</div>
           <app-liwa-burbujas-dispersion *ngIf="!cargandoAnalisis" [data]="burbujasData" />
         </div>
       </div>
 
-      <div class="tarjeta">
+      <div class="tarjeta" appScrollReveal>
         <div class="tarjeta-header"><h3>Tendencia de actividad por municipio</h3><span>por día · fecha real de cada mensaje</span></div>
         <app-liwa-linea-tendencia [data]="tendenciaData.filas" [series]="tendenciaData.series" />
       </div>
 
       <div class="grid-2">
-        <div class="tarjeta">
+        <div class="tarjeta" appScrollReveal>
           <div class="tarjeta-header"><h3>Volumen por municipio</h3><span>barras · IA</span></div>
           <app-liwa-barras-area [data]="municipioData" />
         </div>
-        <div class="tarjeta">
+        <div class="tarjeta" appScrollReveal [appScrollRevealDelay]="0.08">
           <div class="tarjeta-header"><h3>Respuestas por asesor</h3><span>conversaciones atendidas por un asesor humano</span></div>
           <app-liwa-barras-categorias [data]="agentesData" />
         </div>

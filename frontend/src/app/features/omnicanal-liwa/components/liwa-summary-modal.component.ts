@@ -6,8 +6,8 @@ import { LiwaTableComponent } from './liwa-table.component';
 
 type ModalMode = 'conversaciones' | 'clientes';
 
-// Traducción de components/liwa/LiwaSummaryModal.tsx — se abre al hacer clic
-// en los KPIs "Total de conversaciones" / "Clientes distintos".
+// Traducción fiel de components/liwa/LiwaSummaryModal.tsx — se abre al hacer
+// clic en el KPI "Total de conversaciones".
 @Component({
   selector: 'app-liwa-summary-modal',
   standalone: true,
@@ -23,7 +23,7 @@ type ModalMode = 'conversaciones' | 'clientes';
               <p>{{ mode === 'clientes' ? (clientes.length + ' clientes') : (chats.length + ' conversaciones') }}</p>
             </div>
           </div>
-          <button type="button" (click)="close.emit()"><mat-icon>close</mat-icon></button>
+          <button type="button" class="cerrar" (click)="close.emit()"><mat-icon>close</mat-icon></button>
         </header>
         <div class="cuerpo">
           <div class="clientes-grid" *ngIf="mode === 'clientes'; else tabla">
@@ -49,16 +49,25 @@ type ModalMode = 'conversaciones' | 'clientes';
     </div>
   `,
   styles: [`
-    .overlay { position: fixed; inset: 0; z-index: 100; background: rgba(2,6,23,0.4); display: flex; align-items: center; justify-content: center; padding: 16px; }
-    .modal { width: 100%; max-width: 900px; max-height: 90vh; display: flex; flex-direction: column; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.25); }
-    header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid #f1f5f9; }
+    .overlay {
+      position: fixed; inset: 0; z-index: 100; background: rgba(2,6,23,0.4); display: flex; align-items: center;
+      justify-content: center; padding: 12px;
+    }
+    .modal {
+      width: 100%; max-width: 1024px; max-height: 90vh; min-width: 0; display: flex; flex-direction: column;
+      background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);
+    }
+    header {
+      display: flex; align-items: center; justify-content: space-between; padding: 12px 16px;
+      border-bottom: 1px solid #f1f5f9; flex-shrink: 0;
+    }
     .titulo { display: flex; align-items: center; gap: 8px; }
-    .titulo mat-icon { color: #059669; }
-    .titulo h2 { margin: 0; font-size: 0.9rem; font-weight: 800; color: #1e293b; }
+    .titulo mat-icon { color: #059669; font-size: 18px; width: 18px; height: 18px; }
+    .titulo h2 { margin: 0; font-size: 0.85rem; font-weight: 700; color: #1e293b; }
     .titulo p { margin: 0; font-size: 0.68rem; color: #94a3b8; }
-    header button { border: none; background: transparent; cursor: pointer; color: #94a3b8; padding: 6px; border-radius: 8px; }
-    header button:hover { background: #f1f5f9; color: #334155; }
-    .cuerpo { overflow-y: auto; padding: 14px; }
+    .cerrar { border: none; background: transparent; cursor: pointer; color: #94a3b8; padding: 6px; border-radius: 8px; }
+    .cerrar:hover { background: #f1f5f9; color: #334155; }
+    .cuerpo { min-height: 0; flex: 1; overflow-y: auto; padding: 12px 16px; }
     .clientes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
     .cliente-card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; }
     .cliente-card .nombre { margin: 0; font-size: 0.82rem; font-weight: 700; color: #1e293b; }

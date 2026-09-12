@@ -1,6 +1,7 @@
 package com.marcablanca.platform.omnicanal.application;
 
 import com.marcablanca.platform.omnicanal.application.port.out.AnalizadorDeConversacion;
+import com.marcablanca.platform.omnicanal.application.port.out.NotificadorEventosOmnicanal;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioAnalisis;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioCasos;
 import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConfiguracionOmnicanal;
@@ -29,11 +30,14 @@ public class RepositorioAnalisisEscritor {
 
     private final RepositorioAnalisis repositorioAnalisis;
     private final RepositorioConfiguracionOmnicanal configuracion;
+    private final NotificadorEventosOmnicanal notificador;
 
     public RepositorioAnalisisEscritor(RepositorioAnalisis repositorioAnalisis,
-                                       RepositorioConfiguracionOmnicanal configuracion) {
+                                       RepositorioConfiguracionOmnicanal configuracion,
+                                       NotificadorEventosOmnicanal notificador) {
         this.repositorioAnalisis = repositorioAnalisis;
         this.configuracion = configuracion;
+        this.notificador = notificador;
     }
 
     public void analizarYGuardar(Caso caso, AnalizadorDeConversacion analizador,
@@ -46,6 +50,7 @@ public class RepositorioAnalisisEscritor {
         if (relevantes == null) {
             repositorioAnalisis.eliminarPorCaso(caso.id());
             repoCasos.marcarProcesada(caso.id(), true);
+            notificador.notificarCambio();
             return;
         }
 
@@ -64,6 +69,7 @@ public class RepositorioAnalisisEscritor {
                 metricas.cierre(), caso.archivadaEn(), caso.esDeAds(), ia.modeloUsado());
 
         repoCasos.marcarProcesada(caso.id(), true);
+        notificador.notificarCambio();
     }
 
     /**

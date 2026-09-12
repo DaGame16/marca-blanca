@@ -5,11 +5,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { LiwaService } from '../data/liwa.service';
 import { LiwaAnalisisItem, LiwaCasoResumenAnalisis, LiwaChat, LiwaResumenContacto } from '../models/liwa.model';
 import { LiwaAnalisisDetalleComponent } from './analisis-ia-detalle.component';
+import { ScrollRevealDirective } from '../../../shared/animations/scroll-reveal.directive';
 
 type Filtro = 'todos' | 'sentimiento' | 'soporte' | 'matriz' | 'asesor' | 'mapa' | 'ventas' | 'ads';
 
 const COLORS: Record<string, string> = {
-  positivo: '#16a34a', neutro: '#64748b', negativo: '#dc2626',
+  positivo: '#16a34a', neutral: '#64748b', negativo: '#dc2626',
   resuelto: '#16a34a', no_resuelto: '#dc2626', escalado: '#f59e0b', abandonado: '#64748b',
   soporte: '#2563eb', ventas: '#16a34a', facturacion: '#f59e0b', reconexion: '#f97316',
   pqr: '#dc2626', cobertura: '#06b6d4', informacion: '#64748b',
@@ -50,7 +51,7 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
 @Component({
   selector: 'app-liwa-case-reports-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule, LiwaAnalisisDetalleComponent],
+  imports: [CommonModule, FormsModule, MatIconModule, LiwaAnalisisDetalleComponent, ScrollRevealDirective],
   template: `
     <section class="panel">
       <div class="cabecera">
@@ -69,7 +70,7 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
       <div class="aviso error" *ngIf="error">{{ error }}</div>
 
       <div class="grid">
-        <div class="tarjeta">
+        <div class="tarjeta" appScrollReveal>
           <div class="fila-titulo">
             <h3>Sentimiento {{ sentimientoVista }}</h3>
             <div class="toggle">
@@ -87,7 +88,7 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
           </div>
         </div>
 
-        <div class="tarjeta">
+        <div class="tarjeta" appScrollReveal [appScrollRevealDelay]="0.06">
           <h3>Casos por motivo</h3>
           <div class="chips">
             <button type="button" class="chip" *ngFor="let g of matrizMotivos" [class.activo]="g.etiqueta === motivoActivo"
@@ -105,7 +106,7 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
           <ng-template #sinDatosMotivo><p class="vacio">Sin casos en el periodo.</p></ng-template>
         </div>
 
-        <div class="tarjeta orden1">
+        <div class="tarjeta orden1" appScrollReveal [appScrollRevealDelay]="0.12">
           <h3>Oportunidades de venta</h3>
           <div class="barras">
             <button type="button" class="barra" *ngFor="let b of ventasBarras" (click)="irA('ventas', b.label === 'confirmadas' ? 'confirmadas' : b.label === 'no_confirmadas' ? 'no_confirmadas' : '')">
@@ -123,7 +124,7 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
           </div>
         </div>
 
-        <div class="tarjeta orden3">
+        <div class="tarjeta orden3" appScrollReveal [appScrollRevealDelay]="0.06">
           <h3>Casos por motivo · dona</h3>
           <p class="hint">Cada segmento con su % sobre el total · clic en un segmento o en la leyenda filtra la tabla de casos</p>
           <ng-container *ngIf="motivosDonut.length; else sinDatos">
@@ -151,7 +152,7 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
           </ng-container>
         </div>
 
-        <div class="tarjeta orden4">
+        <div class="tarjeta orden4" appScrollReveal [appScrollRevealDelay]="0.12">
           <h3>Cobertura preguntada en cada municipio</h3>
           <p class="hint">Municipios que el bot interpretó · personas que preguntaron por cobertura</p>
           <div class="barras" *ngIf="coberturaPorMunicipio.length; else sinDatosCobertura">
@@ -166,7 +167,7 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
           <ng-template #sinDatosCobertura><p class="vacio">Sin casos de cobertura con municipio identificado en el periodo.</p></ng-template>
         </div>
 
-        <div class="tarjeta orden2">
+        <div class="tarjeta orden2" appScrollReveal [appScrollRevealDelay]="0.18">
           <h3>Mapa de calor · Motivo × Municipio</h3>
           <ng-container *ngIf="matrizMapa.filas.length && matrizMapa.columnas.length; else sinDatos">
             <div class="tabla-wrap">
@@ -195,7 +196,7 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
       </div>
       <ng-template #sinDatos><p class="vacio">Sin casos en el periodo.</p></ng-template>
 
-      <div class="seccion-casos" id="seccion-casos">
+      <div class="seccion-casos" id="seccion-casos" appScrollReveal>
         <div class="titulo-casos">
           <h3>Casos encontrados <span class="contador">{{ visibles.length }}</span></h3>
           <span class="chip-filtro" *ngIf="filtro !== 'todos' || segmento">Filtro: <strong>{{ filtro }}{{ segmento ? ' · ' + segmento : '' }}</strong></span>
@@ -307,9 +308,9 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
     .aviso.error { background: #fff1f2; border: 1px solid #fecdd3; color: #be123c; }
     .spin { animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
-    .tarjeta { border: 1px solid #f1f5f9; border-radius: 14px; padding: 12px; }
+    .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+    @media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+    .tarjeta { min-width: 0; border: 1px solid #f1f5f9; border-radius: 14px; padding: 12px; }
     .orden1 { order: 1; } .orden2 { order: 2; } .orden3 { order: 3; } .orden4 { order: 4; }
     .tarjeta h3 { margin: 0; font-size: 0.82rem; font-weight: 700; color: #1e293b; }
     .fila-titulo { display: flex; align-items: center; justify-content: space-between; }
@@ -809,6 +810,10 @@ export class LiwaCaseReportsPanelComponent implements OnChanges {
       this.resumenContacto = await this.liwa.obtenerResumenContacto(idContacto);
     } catch {
       this.error = 'No fue posible cargar el resumen del contacto.';
+    } finally {
+      // Ver comentario en ads-panel.component.ts: sin esto la vista no se
+      // entera de que resumenContacto/error cambiaron tras el await.
+      this.cdr.markForCheck();
     }
   }
 
