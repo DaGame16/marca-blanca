@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0029-corregir-acentos-catalogo-modulos
+      author: claude
+      comment: 0011-poblar-catalogo-modulos.yaml sembro nombre/descripcion sin tildes ("Comunicacion", "Integracion telefonica") -- se corrige aca en vez de editar ese changeset ya aplicado (cambiar su SQL rompe el checksum de Liquibase).
+      changes:
+        - sql:
+            sql: >
+              UPDATE plataforma.tbl_modulos SET nombre = 'Comunicación omnicanal', descripcion = 'Chat interno y bot de WhatsApp (Liwa)' WHERE codigo = 'omnicanal'
+        - sql:
+            sql: >
+              UPDATE plataforma.tbl_modulos SET descripcion = 'Integración telefónica 3CX' WHERE codigo = '3cx'
+      rollback:
+        - empty: {}

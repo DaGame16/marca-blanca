@@ -6,6 +6,7 @@ import { CambiarContrasenaComponent } from './features/auth/cambiar-contrasena/c
 import { RegistroEmpresaComponent } from './features/auth/registro/registro-empresa.component';
 import { ModulosAdminComponent } from './features/admin/pages/modulos-admin/modulos-admin.component';
 import { MisModulosComponent } from './features/empresas/pages/mis-modulos/mis-modulos.component';
+import { InstalarModulosComponent } from './features/empresas/pages/mis-modulos/instalar-modulos.component';
 import { MiMarcaComponent } from './features/empresas/pages/mi-marca/mi-marca.component';
 import { ListaUsuariosComponent } from './features/usuarios/pages/lista-usuarios/lista-usuarios.component';
 import { Pbx3cxPanelComponent } from './features/3cx/pages/panel/pbx-3cx-panel.component';
@@ -52,6 +53,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: 'mis-modulos', component: MisModulosComponent },
+      { path: 'instalar-modulos', component: InstalarModulosComponent },
       { path: 'mi-marca', component: MiMarcaComponent },
       // "Experiencia de acceso" se fusiono dentro de /mi-marca (ver
       // mi-marca.component.ts) -- se deja el redirect por si algun enlace

@@ -63,8 +63,8 @@ function generarIdentificador(nombre: string): string {
 // 0011-poblar-catalogo-modulos.yaml en bootstrap) -- solo para que el
 // wizard no se quede sin opciones si el backend no responde.
 const MODULOS_RESPALDO: Modulo[] = [
-  { id: 'omnicanal', codigo: 'omnicanal', nombre: 'Comunicacion omnicanal', descripcion: 'Chat interno y bot de WhatsApp (Liwa)' },
-  { id: '3cx', codigo: '3cx', nombre: '3CX', descripcion: 'Integracion telefonica 3CX' },
+  { id: 'omnicanal', codigo: 'omnicanal', nombre: 'Comunicación omnicanal', descripcion: 'Chat interno y bot de WhatsApp (Liwa)' },
+  { id: '3cx', codigo: '3cx', nombre: '3CX', descripcion: 'Integración telefónica 3CX' },
 ];
 
 interface OpcionTemaLogin {
