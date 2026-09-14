@@ -3,6 +3,7 @@ package com.marcablanca.platform.roles.infrastructure.persistencia;
 import com.marcablanca.platform.roles.application.port.out.RepositorioPermisosDeUsuario;
 import com.marcablanca.platform.roles.domain.UsuarioNoEncontradoException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +41,10 @@ public class RepositorioPermisosDeUsuarioJpaAdapter implements RepositorioPermis
     }
 
     @Override
+    // Ver el comentario en RepositorioPermisosJpaAdapter.quitarDeRol: los
+    // deleteBy... derivados de Spring Data no traen transaccion de
+    // escritura por su cuenta.
+    @Transactional("clienteTransactionManager")
     public void eliminarAjuste(UUID usuarioUuid, Long permisoId) {
         Long usuarioId = resolverUsuarioId(usuarioUuid);
         permisoDeUsuarioRepository.deleteByUsuarioIdAndPermisoId(usuarioId, permisoId);

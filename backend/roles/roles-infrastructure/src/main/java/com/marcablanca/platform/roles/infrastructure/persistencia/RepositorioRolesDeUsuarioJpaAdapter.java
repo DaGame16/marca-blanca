@@ -4,6 +4,7 @@ import com.marcablanca.platform.roles.application.port.out.RepositorioRolesDeUsu
 import com.marcablanca.platform.roles.domain.Rol;
 import com.marcablanca.platform.roles.domain.UsuarioNoEncontradoException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
@@ -34,6 +35,10 @@ public class RepositorioRolesDeUsuarioJpaAdapter implements RepositorioRolesDeUs
     }
 
     @Override
+    // Ver el comentario en RepositorioPermisosJpaAdapter.quitarDeRol: los
+    // deleteBy... derivados de Spring Data no traen transaccion de
+    // escritura por su cuenta.
+    @Transactional("clienteTransactionManager")
     public void quitar(UUID usuarioUuid, Long rolId) {
         Long usuarioId = resolverUsuarioId(usuarioUuid);
         usuarioRolRepository.deleteByUsuarioIdAndRolId(usuarioId, rolId);
