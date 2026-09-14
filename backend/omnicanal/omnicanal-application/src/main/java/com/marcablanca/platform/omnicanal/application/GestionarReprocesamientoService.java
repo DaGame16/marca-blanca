@@ -55,7 +55,7 @@ public class GestionarReprocesamientoService implements GestionarReprocesamiento
                 escritorAnalisis.analizarYGuardar(caso, analizadorDeConversacion, repositorioConversaciones,
                         repositorioCasos, null);
                 exitos++;
-            } catch (Exception e) {
+            } catch (Exception _) {
                 conError.add(caso.uuid().toString());
                 repositorioCasos.marcarProcesada(caso.id(), false);
             }

@@ -105,6 +105,21 @@
         </dependency>
         <dependency>
             <groupId>com.marcablanca.platform</groupId>
+            <artifactId>roles-domain</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.marcablanca.platform</groupId>
+            <artifactId>roles-application</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.marcablanca.platform</groupId>
+            <artifactId>roles-infrastructure</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.marcablanca.platform</groupId>
             <artifactId>autenticacion-application</artifactId>
             <version>${project.version}</version>
         </dependency>

@@ -21,18 +21,19 @@ import java.util.Map;
  * control.
  *
  * Paquetes de "cliente" incluidos hasta ahora: usuarios (identidad),
- * autenticacion (sesiones/refresh token), y omnicanal (conversaciones/
- * casos/analisis IA -- solo la parte de "cliente"; la parte de "control"
- * de omnicanal, tbl_empresas_omnicanal, sigue pendiente, ver
- * ConfiguracionPersistenciaControl). Al agregar mas adaptadores de
- * "cliente" en el futuro, hay que sumar su paquete tanto a basePackages
- * de @EnableJpaRepositories como al .packages(...) de abajo.
+ * autenticacion (sesiones/refresh token), roles (roles/permisos), y
+ * omnicanal (conversaciones/casos/analisis IA -- solo la parte de
+ * "cliente"; la parte de "control" de omnicanal, tbl_empresas_omnicanal,
+ * sigue pendiente, ver ConfiguracionPersistenciaControl). Al agregar mas
+ * adaptadores de "cliente" en el futuro, hay que sumar su paquete tanto a
+ * basePackages de @EnableJpaRepositories como al .packages(...) de abajo.
  */
 @Configuration
 @EnableJpaRepositories(
         basePackages = {
                 "com.marcablanca.platform.usuarios.infrastructure.persistencia",
                 "com.marcablanca.platform.autenticacion.infrastructure.persistencia",
+                "com.marcablanca.platform.roles.infrastructure.persistencia",
                 "com.marcablanca.platform.omnicanal.infrastructure.persistencia.cliente"
         },
         entityManagerFactoryRef = "clienteEntityManagerFactory",
@@ -53,6 +54,7 @@ public class ConfiguracionPersistenciaCliente {
                 .dataSource(clienteRoutingDataSource)
                 .packages("com.marcablanca.platform.usuarios.infrastructure.persistencia",
                         "com.marcablanca.platform.autenticacion.infrastructure.persistencia",
+                        "com.marcablanca.platform.roles.infrastructure.persistencia",
                         "com.marcablanca.platform.omnicanal.infrastructure.persistencia.cliente")
                 .persistenceUnit("cliente")
                 // Liquibase (aplicado a mano contra la plantilla) es quien garantiza

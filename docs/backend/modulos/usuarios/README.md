@@ -29,15 +29,17 @@ usuarios/
 
 ## 4. Contrato REST
 
-| Método | Ruta | Body | Respuesta |
-|---|---|---|---|
-| POST | `/api/v1/usuarios` | `CrearUsuarioRequest` | 201 + `UsuarioResponse` |
-| GET | `/api/v1/usuarios` | — | `UsuarioResponse[]` |
-| GET | `/api/v1/usuarios/{uuid}` | — | `UsuarioResponse` |
-| PUT | `/api/v1/usuarios/{uuid}` | `ActualizarUsuarioRequest` | `UsuarioResponse` |
-| PUT | `/api/v1/usuarios/{uuid}/activar` | — | 204 |
-| PUT | `/api/v1/usuarios/{uuid}/desactivar` | — | 204 |
-| PUT | `/api/v1/usuarios/{uuid}/perfil` | `ActualizarPerfilRequest` | — |
+Desde 2026-09-14, cada endpoint exige el permiso granular correspondiente (`@PreAuthorize`) — ver [módulo `roles`](../roles/README.md#5-catálogo-de-permisos-vigente).
+
+| Método | Ruta | Permiso | Body | Respuesta |
+|---|---|---|---|---|
+| POST | `/api/v1/usuarios` | `usuarios:crear` | `CrearUsuarioRequest` | 201 + `UsuarioResponse` |
+| GET | `/api/v1/usuarios` | `usuarios:leer` | — | `UsuarioResponse[]` |
+| GET | `/api/v1/usuarios/{uuid}` | `usuarios:leer` | — | `UsuarioResponse` |
+| PUT | `/api/v1/usuarios/{uuid}` | `usuarios:editar` | `ActualizarUsuarioRequest` | `UsuarioResponse` |
+| PUT | `/api/v1/usuarios/{uuid}/activar` | `usuarios:activar` | — | 204 |
+| PUT | `/api/v1/usuarios/{uuid}/desactivar` | `usuarios:desactivar` | — | 204 |
+| PUT | `/api/v1/usuarios/{uuid}/perfil` | `usuarios:editar` | `ActualizarPerfilRequest` | — |
 
 ## 5. Pendientes conocidos
 
@@ -51,3 +53,4 @@ usuarios/
 - 2026-09-05 — Carlos — CRUD completo, reconciliado con `autenticacion`.
 - 2026-09-07 — Carlos — Puertos movidos de `domain` a `application` (ADR 0003).
 - 2026-09-08 — Leidi — `Usuario` gana `esContrasenaTemporal` (mapeado a `seguridad.tbl_usuarios.es_contrasena_temporal`); `cambiarContrasena(...)` lo limpia. Lo usa el flujo de primer login — ver [ADR 0007 de aprovisionamiento](../aprovisionamiento/decisiones/2026-09-08-0007-contrasena-temporal-y-primer-login.md).
+- 2026-09-14 — Leidi — `UsuarioController` protegido con `@PreAuthorize` por acción (`usuarios:leer/crear/editar/activar/desactivar`) — ver [módulo `roles`](../roles/README.md).

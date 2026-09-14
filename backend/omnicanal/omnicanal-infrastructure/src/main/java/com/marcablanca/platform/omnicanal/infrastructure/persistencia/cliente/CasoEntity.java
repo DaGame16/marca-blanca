@@ -3,6 +3,7 @@ package com.marcablanca.platform.omnicanal.infrastructure.persistencia.cliente;
 import jakarta.persistence.*;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 @Entity
@@ -44,7 +45,7 @@ class CasoEntity {
         this.turnoOrdenFin = turnoOrdenFin;
         this.esProcesada = false;
         this.esDeAds = esDeAds;
-        this.archivadaEn = OffsetDateTime.now();
+        this.archivadaEn = OffsetDateTime.now(ZoneOffset.UTC);
     }
 
     void marcarProcesada(boolean valor) {

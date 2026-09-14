@@ -108,7 +108,7 @@ function etiquetaSentimiento(s: string): string {
         </div>
       </div>
 
-      <app-liwa-conversation-drawer [chat]="chatSeleccionado" (cerrado)="chatSeleccionado = null" />
+      <app-liwa-conversation-drawer [chat]="chatSeleccionado" (cerrar)="chatSeleccionado = null" />
     </div>
   `,
   styles: [`

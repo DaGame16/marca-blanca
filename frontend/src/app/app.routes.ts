@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { moduloActivoGuard } from './core/guards/modulo-activo.guard';
+import { permisoGuard } from './core/guards/permiso.guard';
 import { LoginComponent } from './features/auth/login/login.component';
 import { CambiarContrasenaComponent } from './features/auth/cambiar-contrasena/cambiar-contrasena.component';
 import { RegistroEmpresaComponent } from './features/auth/registro/registro-empresa.component';
@@ -52,14 +53,20 @@ export const routes: Routes = [
     component: ShellComponent,
     canActivate: [authGuard],
     children: [
-      { path: 'mis-modulos', component: MisModulosComponent },
-      { path: 'instalar-modulos', component: InstalarModulosComponent },
-      { path: 'mi-marca', component: MiMarcaComponent },
+      { path: 'mis-modulos', component: MisModulosComponent, canActivate: [permisoGuard('modulos:leer')] },
+      { path: 'instalar-modulos', component: InstalarModulosComponent, canActivate: [permisoGuard('modulos:leer')] },
+      { path: 'mi-marca', component: MiMarcaComponent, canActivate: [permisoGuard('marca:leer')] },
       // "Experiencia de acceso" se fusiono dentro de /mi-marca (ver
       // mi-marca.component.ts) -- se deja el redirect por si algun enlace
       // viejo (favoritos, historial) todavia apunta aca.
       { path: 'tema-login', redirectTo: 'mi-marca' },
-      { path: 'usuarios', component: ListaUsuariosComponent },
+      { path: 'usuarios', component: ListaUsuariosComponent, canActivate: [permisoGuard('usuarios:leer')] },
+      {
+        path: 'roles',
+        loadComponent: () =>
+          import('./features/roles/pages/lista-roles/lista-roles.component').then((m) => m.ListaRolesComponent),
+        canActivate: [permisoGuard('roles:leer')],
+      },
       // Omnicanal quedo unificado en un solo modulo (omnicanal-liwa):
       // 'panel/omnicanal' y 'panel/omnicanal/liwa' apuntan al mismo panel
       // real (conversaciones, analisis IA, calidad, indicadores, asesores,
@@ -69,14 +76,14 @@ export const routes: Routes = [
         path: 'panel/omnicanal/liwa',
         loadComponent: () =>
           import('./features/omnicanal-liwa/pages/panel/omnicanal-liwa-panel.component').then((m) => m.OmnicanalLiwaPanelComponent),
-        canActivate: [moduloActivoGuard('omnicanal')],
+        canActivate: [moduloActivoGuard('omnicanal'), permisoGuard('omnicanal:leer')],
       },
       { path: 'panel/pbx-3cx', component: Pbx3cxPanelComponent },
       {
         path: 'panel/omnicanal/liwa/config',
         loadComponent: () =>
           import('./features/omnicanal-liwa/pages/config/omnicanal-liwa-config-page.component').then((m) => m.OmnicanalLiwaConfigPageComponent),
-        canActivate: [moduloActivoGuard('omnicanal')],
+        canActivate: [moduloActivoGuard('omnicanal'), permisoGuard('omnicanal:configurar')],
       },
     ],
   },

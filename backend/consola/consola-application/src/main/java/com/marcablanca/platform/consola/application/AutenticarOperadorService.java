@@ -8,7 +8,7 @@ import com.marcablanca.platform.consola.domain.CredencialesDeOperadorInvalidasEx
 import com.marcablanca.platform.consola.domain.Operador;
 
 /**
- * Verifica correo + contrasena contra la base de control y, si todo cuadra, pide
+ * Verifica correo + contrasena contra la base de control y, si son validas, pide
  * un token de plataforma. Sin framework a proposito: lo conecta como bean
  * {@code ConfiguracionConsola}.
  */

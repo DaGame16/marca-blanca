@@ -11,7 +11,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
+import java.util.Date; //NOSONAR jjwt 0.12.x solo acepta java.util.Date en su API (ver uso abajo)
 
 /**
  * Token de sesion de un operador: JWT firmado con el mismo secreto de la app

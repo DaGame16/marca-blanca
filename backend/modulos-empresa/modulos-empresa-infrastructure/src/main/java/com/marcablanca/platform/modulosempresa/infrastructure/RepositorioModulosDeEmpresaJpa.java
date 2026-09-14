@@ -7,6 +7,7 @@ import com.marcablanca.platform.modulosempresa.domain.ModuloNoEncontradoExceptio
 import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -50,7 +51,7 @@ class RepositorioModulosDeEmpresaJpa implements RepositorioModulosDeEmpresa {
                             empresaModuloJpaRepository.save(existente);
                         },
                         () -> empresaModuloJpaRepository.save(new EmpresaModuloEntity(
-                                UUID.randomUUID(), empresaIdInterno, moduloIdInterno, true, OffsetDateTime.now()))
+                                UUID.randomUUID(), empresaIdInterno, moduloIdInterno, true, OffsetDateTime.now(ZoneOffset.UTC)))
                 );
     }
 

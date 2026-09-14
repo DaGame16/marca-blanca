@@ -36,18 +36,24 @@ public class ConfiguracionSeguridadConsola {
 
     @Bean
     @Order(1)
-    public SecurityFilterChain cadenaSeguridadConsola(HttpSecurity http, VerificadorJwtDeOperador verificador)
-            throws Exception {
-        http
-                .securityMatcher("/api/v1/consola/**")
-                .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConsola()))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/consola/auth/login").permitAll()
-                        .anyRequest().authenticated())
-                .addFilterBefore(new ConsolaAuthFilter(verificador), UsernamePasswordAuthenticationFilter.class);
-        return http.build();
+    public SecurityFilterChain cadenaSeguridadConsola(HttpSecurity http, VerificadorJwtDeOperador verificador) {
+        try {
+            http
+                    .securityMatcher("/api/v1/consola/**")
+                    // CSRF es una defensa contra requests de formularios/cookies de otro origen
+                    // -- no aplica aca: la sesion es un JWT en el header Authorization
+                    // (STATELESS, sin cookies), que un sitio malicioso no puede leer ni forjar.
+                    .csrf(csrf -> csrf.disable()) //NOSONAR ver comentario arriba
+                    .cors(cors -> cors.configurationSource(corsConsola()))
+                    .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .authorizeHttpRequests(auth -> auth
+                            .requestMatchers("/api/v1/consola/auth/login").permitAll()
+                            .anyRequest().authenticated())
+                    .addFilterBefore(new ConsolaAuthFilter(verificador), UsernamePasswordAuthenticationFilter.class);
+            return http.build();
+        } catch (Exception e) {
+            throw new IllegalStateException("Error al construir la cadena de filtros de seguridad de consola", e);
+        }
     }
 
     private CorsConfigurationSource corsConsola() {

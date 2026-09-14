@@ -41,7 +41,7 @@ public class VerificadorJwtDeOperador {
                     UUID.fromString(claims.getSubject()),
                     claims.get("rol", String.class),
                     Boolean.TRUE.equals(claims.get("pwd_temp", Boolean.class))));
-        } catch (JwtException | IllegalArgumentException e) {
+        } catch (JwtException | IllegalArgumentException _) {
             return Optional.empty();
         }
     }

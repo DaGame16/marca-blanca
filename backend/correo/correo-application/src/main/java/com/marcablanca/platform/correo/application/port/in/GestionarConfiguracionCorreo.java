@@ -1,17 +1,12 @@
 package com.marcablanca.platform.correo.application.port.in;
 
+import com.marcablanca.platform.correo.application.ComandoConfiguracionSmtp;
 import com.marcablanca.platform.correo.domain.ConfiguracionSmtp;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface GestionarConfiguracionCorreo {
-
-    /** clave: la clave SMTP en texto plano (se cifra antes de guardar) -- null significa "no cambiarla". */
-    record ComandoConfiguracionSmtp(String remitenteNombre, String remitenteCorreo, String responderA,
-                                     String host, int puerto, String usuario, String secretoRef,
-                                     String seguridad, String clave) {
-    }
 
     ConfiguracionSmtp crear(ComandoConfiguracionSmtp comando);
 

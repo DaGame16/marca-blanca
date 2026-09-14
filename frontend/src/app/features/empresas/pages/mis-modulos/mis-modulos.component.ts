@@ -8,6 +8,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MisModulosService } from './mis-modulos.service';
 import { ModuloDeEmpresa } from '../../../../core/admin/models';
 import { CODIGOS_EXCLUIDOS, colorAcento, colorClaro, icono, rutaPanel } from './modulo-apariencia';
+import { AuthService } from '../../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-mis-modulos',
@@ -19,22 +20,28 @@ import { CODIGOS_EXCLUIDOS, colorAcento, colorClaro, icono, rutaPanel } from './
         <div class="apps-header-text">
           <h1>Mis módulos</h1>
           <p>Estos son los módulos que tu empresa tiene activos. Puedes desinstalarlos cuando quieras.</p>
-          <a routerLink="/mi-marca" class="marca-link">
-            <mat-icon inline>palette</mat-icon>
-            Personalizar mi marca
-          </a>
-          <a routerLink="/tema-login" class="marca-link">
-            <mat-icon inline>login</mat-icon>
-            Diseño de inicio de sesión
-          </a>
-          <a routerLink="/usuarios" class="marca-link">
-            <mat-icon inline>group</mat-icon>
-            Gestionar usuarios
-          </a>
-          <a routerLink="/instalar-modulos" class="marca-link marca-link-destacado">
-            <mat-icon inline>add_circle</mat-icon>
-            Instalar módulos
-          </a>
+          @if (authService.tienePermiso('marca:leer')) {
+            <a routerLink="/mi-marca" class="marca-link">
+              <mat-icon inline>palette</mat-icon>
+              Personalizar mi marca
+            </a>
+            <a routerLink="/tema-login" class="marca-link">
+              <mat-icon inline>login</mat-icon>
+              Diseño de inicio de sesión
+            </a>
+          }
+          @if (authService.tienePermiso('usuarios:leer')) {
+            <a routerLink="/usuarios" class="marca-link">
+              <mat-icon inline>group</mat-icon>
+              Gestionar usuarios
+            </a>
+          }
+          @if (authService.tienePermiso('modulos:leer')) {
+            <a routerLink="/instalar-modulos" class="marca-link marca-link-destacado">
+              <mat-icon inline>add_circle</mat-icon>
+              Instalar módulos
+            </a>
+          }
         </div>
 
         <div class="search-box">
@@ -96,7 +103,7 @@ import { CODIGOS_EXCLUIDOS, colorAcento, colorClaro, icono, rutaPanel } from './
                 </a>
                 <button
                   class="btn-installed"
-                  [disabled]="procesando() === modulo.codigo"
+                  [disabled]="procesando() === modulo.codigo || !authService.tienePermiso('modulos:desactivar')"
                   (click)="desinstalar(modulo)"
                 >
                   @if (procesando() === modulo.codigo) {
@@ -352,6 +359,7 @@ import { CODIGOS_EXCLUIDOS, colorAcento, colorClaro, icono, rutaPanel } from './
   `],
 })
 export class MisModulosComponent implements OnInit {
+  protected readonly authService = inject(AuthService);
   private readonly misModulosService = inject(MisModulosService);
   private readonly snackBar = inject(MatSnackBar);
 

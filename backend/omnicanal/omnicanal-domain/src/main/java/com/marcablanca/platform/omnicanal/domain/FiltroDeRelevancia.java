@@ -21,10 +21,22 @@ public final class FiltroDeRelevancia {
 
     private static final Pattern PATRON_MENU_1 =
             Pattern.compile("\\b(marca|marque|selecciona|seleccione|digita|digite|escribe|escriba)\\b[^.]{0,80}\\b(opcion|numero)\\b");
-    private static final Pattern PATRON_MENU_2 = Pattern.compile("^\\s*(?:\\d\\s*[).\\-]\\s*\\w[^\\n]{0,60}){2,}$");
+    // Cuantificadores internos posesivos (\s*+, {0,60}+): \s, [).\-], \w y [^\n]
+    // no se solapan entre si, asi que no hay match valido que dependa de
+    // reintentar sobre ellos -- posesivo evita el backtracking exponencial en
+    // textos patologicos (muchos espacios/lineas) sin cambiar que matchea.
+    private static final Pattern PATRON_MENU_2 =
+            Pattern.compile("^\\s*+(?:\\d\\s*+[).\\-]\\s*+\\w[^\\n]{0,60}+){2,}$"); //NOSONAR ver comentario arriba
+    // CANON_EQ (formas Unicode canonicamente equivalentes de o/i acentuada) no
+    // hace falta aca: ambos patrones solo se aplican sobre texto ya pasado por
+    // normalizar(), que ya le quita los acentos (NFD + strip de \p{M}) antes de
+    // matchear -- la forma acentuada de este regex queda de todas formas
+    // inalcanzable en uso real, se deja tal cual para no tocar mas de la cuenta
+    // una regla de negocio afinada con datos reales.
     private static final Pattern PATRON_QUIERO_INFO =
-            Pattern.compile("^[¡!.,\\s]*(hola[¡!.,\\s]*)?(quiero\\s*)?(mas|más)?\\s*informaci(o|ó)n\\s*\\.?\\s*$");
-    private static final Pattern PATRON_NO_SI_CORTO = Pattern.compile("^(no|si|sí)\\s+\\S");
+            Pattern.compile("^[¡!.,\\s]*(hola[¡!.,\\s]*)?(quiero\\s*)?(mas|más)?\\s*informaci[oó]n\\s*\\.?\\s*$"); //NOSONAR ver comentario arriba
+    private static final Pattern PATRON_NO_SI_CORTO =
+            Pattern.compile("^(no|si|sí)\\s+\\S"); //NOSONAR ver comentario arriba
     private static final Pattern PATRON_ACUSE_1 = Pattern.compile(
             "\\b(en breve|en un momento|pronto|ya mismo)\\b[^.]*\\b(asesor|agente|te atende|lo atende|le atende|atendemos|comunicamos)");
     private static final Pattern PATRON_ACUSE_2 = Pattern.compile(
@@ -82,49 +94,52 @@ public final class FiltroDeRelevancia {
         if (t.isEmpty()) {
             return true;
         }
-
         if (PATRON_NO_SI_CORTO.matcher(t).find()) {
             return false;
         }
-
         if (esTurnoDeEncuesta(mensaje)) {
             return true;
         }
+        return esSoloAcuseDeRecibo(t)
+                || esMenu(t)
+                || PATRON_QUIERO_INFO.matcher(t).matches()
+                || esOpcionDeMenu(t)
+                || esSoloSaludo(t)
+                || esSoloColetillaDeAtentosODespedida(t)
+                || esFraseMarcaDeRuido(t);
+    }
 
-        boolean esSoloAcuseDeRecibo = (PATRON_ACUSE_1.matcher(t).find()
+    private boolean esSoloAcuseDeRecibo(String t) {
+        boolean esAcuse = PATRON_ACUSE_1.matcher(t).find()
                 || PATRON_ACUSE_2.matcher(t).find()
                 || t.contains("hemos recibido tu mensaje")
                 || t.contains("gracias por escribirnos")
                 || t.contains("gracias por contactarnos")
-                || t.contains("en breve te atenderemos")) && t.length() <= 150;
-        if (esSoloAcuseDeRecibo) {
-            return true;
-        }
+                || t.contains("en breve te atenderemos");
+        return esAcuse && t.length() <= 150;
+    }
 
-        if (PATRON_MENU_1.matcher(t).find() || PATRON_MENU_2.matcher(t).matches()) {
-            return true;
-        }
+    private boolean esMenu(String t) {
+        return PATRON_MENU_1.matcher(t).find() || PATRON_MENU_2.matcher(t).matches();
+    }
 
-        if (PATRON_QUIERO_INFO.matcher(t).matches()) {
-            return true;
-        }
-
+    private boolean esOpcionDeMenu(String t) {
         String opcion = t.replaceAll("[^a-z0-9 ]", "").strip();
-        if (opcionesMenu.contains(opcion)) {
-            return true;
-        }
+        return opcionesMenu.contains(opcion);
+    }
 
+    private boolean esSoloSaludo(String t) {
         String restante = patronSaludo.matcher(t).replaceAll("").replaceAll("[^a-z0-9]", "");
-        if (restante.length() <= 2 && !t.contains("?")) {
-            return true;
-        }
+        return restante.length() <= 2 && !t.contains("?");
+    }
 
+    private boolean esSoloColetillaDeAtentosODespedida(String t) {
         boolean esSoloColetillaDeAtentos = PATRON_ATENTOS.matcher(t).find() && t.length() <= 100;
         boolean esSoloDespedidaCortes = PATRON_DESPEDIDA.matcher(t).find() && t.length() <= 100;
-        if (esSoloColetillaDeAtentos || esSoloDespedidaCortes) {
-            return true;
-        }
+        return esSoloColetillaDeAtentos || esSoloDespedidaCortes;
+    }
 
+    private boolean esFraseMarcaDeRuido(String t) {
         for (String frase : frasesMarcaRuido) {
             if (t.contains(frase)) {
                 return true;

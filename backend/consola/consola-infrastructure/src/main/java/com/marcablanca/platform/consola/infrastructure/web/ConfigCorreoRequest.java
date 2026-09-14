@@ -9,7 +9,7 @@ import jakarta.validation.constraints.Size;
 
 /**
  * Cuerpo de POST/PUT /api/v1/consola/config-correo. {@code usuario} y
- * {@code secretoRef} son opcionales (no todo SMTP exige autenticacion).
+ * {@code secretoRef} son opcionales (no cualquier SMTP exige autenticacion).
  * {@code clave}: la contrasena SMTP en texto plano -- viaja solo en este
  * request (HTTPS + sesion de operador autenticado), se cifra al guardar y
  * nunca vuelve a salir del backend. Null/vacio en un PUT significa "no

@@ -28,8 +28,7 @@ public class GestionarConfiguracionCorreoService implements GestionarConfiguraci
         // guardar -- asi no se crean configuraciones "fantasma" con host,
         // usuario o clave que en realidad no funcionan.
         probarConfiguracionCorreo.ejecutarAdHoc(aDatosConexion(c, c.clave()), c.remitenteCorreo());
-        return repositorio.crear(c.remitenteNombre(), c.remitenteCorreo(), c.responderA(), c.host(), c.puerto(),
-                c.usuario(), c.secretoRef(), c.seguridad(), c.clave());
+        return repositorio.crear(c);
     }
 
     @Override
@@ -40,8 +39,7 @@ public class GestionarConfiguracionCorreoService implements GestionarConfiguraci
         // que probar con la clave que de verdad va a quedar vigente.
         String claveEfectiva = c.clave() != null ? c.clave() : repositorio.obtenerClaveDescifrada(id).orElse(null);
         probarConfiguracionCorreo.ejecutarAdHoc(aDatosConexion(c, claveEfectiva), c.remitenteCorreo());
-        return repositorio.actualizar(id, c.remitenteNombre(), c.remitenteCorreo(), c.responderA(), c.host(),
-                c.puerto(), c.usuario(), c.secretoRef(), c.seguridad(), c.clave());
+        return repositorio.actualizar(id, c);
     }
 
     @Override

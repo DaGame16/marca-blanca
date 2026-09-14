@@ -1,5 +1,6 @@
 package com.marcablanca.platform.correo.infrastructure.persistencia;
 
+import com.marcablanca.platform.correo.application.ComandoConfiguracionSmtp;
 import com.marcablanca.platform.correo.application.port.out.RepositorioConfiguracionCorreo;
 import com.marcablanca.platform.correo.domain.ConfiguracionSmtp;
 import com.marcablanca.platform.correo.infrastructure.CifradorDeCorreo;
@@ -22,20 +23,16 @@ class RepositorioConfiguracionCorreoJpa implements RepositorioConfiguracionCorre
     }
 
     @Override
-    public ConfiguracionSmtp crear(String remitenteNombre, String remitenteCorreo, String responderA, String host,
-                                    int puerto, String usuario, String secretoRef, String seguridad, String clave) {
-        var e = new ConfiguracionCorreoEntity(remitenteNombre, remitenteCorreo, responderA, host, puerto, usuario,
-                secretoRef, seguridad, cifrador.cifrar(clave));
+    public ConfiguracionSmtp crear(ComandoConfiguracionSmtp datos) {
+        var e = new ConfiguracionCorreoEntity(datos, cifrador.cifrar(datos.clave()));
         return mapear(jpa.save(e));
     }
 
     @Override
-    public ConfiguracionSmtp actualizar(UUID id, String remitenteNombre, String remitenteCorreo, String responderA,
-                                         String host, int puerto, String usuario, String secretoRef,
-                                         String seguridad, String clave) {
+    public ConfiguracionSmtp actualizar(UUID id, ComandoConfiguracionSmtp datos) {
         var e = jpa.findByUuid(id).orElseThrow();
-        e.actualizar(remitenteNombre, remitenteCorreo, responderA, host, puerto, usuario, secretoRef, seguridad);
-        e.actualizarClave(cifrador.cifrar(clave));
+        e.actualizar(datos);
+        e.actualizarClave(cifrador.cifrar(datos.clave()));
         return mapear(jpa.save(e));
     }
 

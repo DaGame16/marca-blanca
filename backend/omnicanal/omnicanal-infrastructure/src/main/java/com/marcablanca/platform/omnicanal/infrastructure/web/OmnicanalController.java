@@ -2,6 +2,7 @@ package com.marcablanca.platform.omnicanal.infrastructure.web;
 
 import com.marcablanca.platform.omnicanal.application.port.in.*;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -40,6 +41,7 @@ public class OmnicanalController {
     }
 
     @GetMapping("/conversaciones")
+    @PreAuthorize("hasAuthority('omnicanal:leer')")
     public Object listarConversaciones(@RequestParam(required = false) String contactId,
             @RequestParam(required = false) Integer pagina, @RequestParam(required = false) Integer porPagina,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
@@ -48,11 +50,13 @@ public class OmnicanalController {
     }
 
     @GetMapping("/contactos/{idContacto}/resumen")
+    @PreAuthorize("hasAuthority('omnicanal:leer')")
     public Object resumenContacto(@PathVariable String idContacto) {
         return consultarConversaciones.resumenDeContacto(idContacto);
     }
 
     @GetMapping("/analisis")
+    @PreAuthorize("hasAuthority('omnicanal:leer')")
     public Object listarAnalisis(@RequestParam(required = false) Integer pagina,
             @RequestParam(required = false) Integer porPagina,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
@@ -64,49 +68,57 @@ public class OmnicanalController {
     }
 
     @GetMapping("/analisis/{id}")
+    @PreAuthorize("hasAuthority('omnicanal:leer')")
     public Object detalleAnalisis(@PathVariable String id) {
         return consultarAnalisisDeCasos.detalle(id);
     }
 
     @GetMapping("/estadisticas")
+    @PreAuthorize("hasAuthority('omnicanal:leer')")
     public Object estadisticas(@RequestParam(required = false, defaultValue = "dia") String agrupacion,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
-        OffsetDateTime h = hasta == null ? OffsetDateTime.now() : aFinDelDia(hasta);
+        OffsetDateTime h = hasta == null ? OffsetDateTime.now(ZoneId.systemDefault()) : aFinDelDia(hasta);
         OffsetDateTime d = desde == null ? h.minusDays(30) : aInicioDelDia(desde);
         return consultarReportesOmnicanal.estadisticas(agrupacion, d, h);
     }
 
     @GetMapping("/reportes/sentimiento")
+    @PreAuthorize("hasAuthority('omnicanal:leer')")
     public Object reporteSentimiento(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
         return consultarReportesOmnicanal.distribucionSentimientoOmnicanal(aInicioDelDia(desde), aFinDelDia(hasta));
     }
 
     @GetMapping("/reportes/soporte")
+    @PreAuthorize("hasAuthority('omnicanal:leer')")
     public Object reporteSoporte(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
         return consultarReportesOmnicanal.resumenSoporteOmnicanal(aInicioDelDia(desde), aFinDelDia(hasta));
     }
 
     @GetMapping("/reportes/ventas")
+    @PreAuthorize("hasAuthority('omnicanal:leer')")
     public Object reporteVentas(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
         return consultarReportesOmnicanal.resumenVentasOmnicanal(aInicioDelDia(desde), aFinDelDia(hasta));
     }
 
     @GetMapping("/reportes/ads")
+    @PreAuthorize("hasAuthority('omnicanal:leer')")
     public Object reporteAds(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
         return consultarReportesOmnicanal.resumenAdsOmnicanal(aInicioDelDia(desde), aFinDelDia(hasta));
     }
 
     @PostMapping("/analisis-ia/reintentar")
+    @PreAuthorize("hasAuthority('omnicanal:reprocesar')")
     public Object reintentarAnalisis() {
         return gestionarReprocesamiento.reprocesarPendientes();
     }
 
     @PostMapping("/analisis-ia/reprocesar-todo")
+    @PreAuthorize("hasAuthority('omnicanal:reprocesar')")
     public Object reprocesarTodo(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
             @RequestParam(required = false, defaultValue = "true") boolean soloFaltantes) {
@@ -114,6 +126,7 @@ public class OmnicanalController {
     }
 
     @GetMapping("/analisis-ia/estado-reproceso")
+    @PreAuthorize("hasAuthority('omnicanal:leer')")
     public Object estadoReproceso(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
         return gestionarReprocesamiento.estadoReproceso(aInicioDelDia(desde), aFinDelDia(hasta));
@@ -125,11 +138,13 @@ public class OmnicanalController {
      * puede tardar -- si hace falta se le agrega paginado/resumabilidad.
      */
     @PostMapping("/analisis-ia/backfill-ads")
+    @PreAuthorize("hasAuthority('omnicanal:reprocesar')")
     public Object backfillAds() {
         return ejecutarBackfillDeAds.ejecutar();
     }
 
     @GetMapping("/analisis-ia/pendientes")
+    @PreAuthorize("hasAuthority('omnicanal:leer')")
     public Object pendientes(@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
             @RequestParam(required = false, defaultValue = "false") boolean conIds) {

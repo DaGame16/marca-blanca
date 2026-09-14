@@ -14,6 +14,7 @@ import { VistaPreviaMarcaService } from '../../../../core/identidad-visual/vista
 import { TemaPaginaService, TemaPagina } from '../../../../core/temas/tema-pagina.service';
 import { ordenarClaroOscuro } from '../../../../shared/brand/color-utils';
 import { estiloFormaLogo } from '../../../../shared/brand/logo-forma';
+import { AuthService } from '../../../../core/auth/auth.service';
 
 const FORMATO_HEX = /^#[0-9A-Fa-f]{6}$/;
 const MAX_LOGO_BYTES = 500 * 1024;
@@ -213,18 +214,20 @@ const OPCIONES_PAGINA: OpcionPagina[] = [
                 <p class="field-error">Formato inválido. Usa un hexadecimal de 6 dígitos, ej: #1E3A5F</p>
               }
 
-              <div class="acciones-form">
-                <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || guardando()">
-                  @if (guardando()) {
-                    <mat-spinner diameter="18"></mat-spinner>
-                  } @else {
-                    <span>Guardar cambios</span>
-                  }
-                </button>
-                <button mat-button type="button" (click)="restaurarColoresIniciales()">
-                  Volver a los colores iniciales
-                </button>
-              </div>
+              @if (authService.tienePermiso('marca:editar')) {
+                <div class="acciones-form">
+                  <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || guardando()">
+                    @if (guardando()) {
+                      <mat-spinner diameter="18"></mat-spinner>
+                    } @else {
+                      <span>Guardar cambios</span>
+                    }
+                  </button>
+                  <button mat-button type="button" (click)="restaurarColoresIniciales()">
+                    Volver a los colores iniciales
+                  </button>
+                </div>
+              }
             </form>
 
             <aside class="marca-preview">
@@ -1165,6 +1168,7 @@ const OPCIONES_PAGINA: OpcionPagina[] = [
   `],
 })
 export class MiMarcaComponent implements OnInit, OnDestroy {
+  protected readonly authService = inject(AuthService);
   private readonly marcaService = inject(MarcaService);
   private readonly temaPaginaService = inject(TemaPaginaService);
   private readonly vistaPreviaMarca = inject(VistaPreviaMarcaService);

@@ -22,7 +22,7 @@ export interface MomentoResaltado {
   standalone: true,
   imports: [CommonModule, MatIconModule],
   template: `
-    <div class="overlay" [class.visible]="!!chat" (click)="cerrar()"></div>
+    <div class="overlay" [class.visible]="!!chat" (click)="alCerrar()"></div>
     <aside class="drawer" [class.abierto]="!!chat">
       <ng-container *ngIf="chat">
         <header class="drawer-header">
@@ -32,7 +32,7 @@ export interface MomentoResaltado {
             <p class="numero"><span class="punto"></span>{{ formatearNumero(chat.numero) }}</p>
           </div>
           <button type="button" class="accion" title="Llamar"><mat-icon>call</mat-icon></button>
-          <button type="button" class="accion" (click)="cerrar()"><mat-icon>close</mat-icon></button>
+          <button type="button" class="accion" (click)="alCerrar()"><mat-icon>close</mat-icon></button>
         </header>
 
         <div class="info-chat">
@@ -170,7 +170,7 @@ export class LiwaConversationDrawerComponent implements OnChanges, OnDestroy {
   @Input() chat: LiwaChat | null = null;
   @Input() analizada = false;
   @Input() momento: MomentoResaltado | null = null;
-  @Output() cerrado = new EventEmitter<void>();
+  @Output() cerrar = new EventEmitter<void>();
 
   @ViewChild('scrollContenedor') scrollContenedor?: ElementRef<HTMLDivElement>;
 
@@ -200,8 +200,8 @@ export class LiwaConversationDrawerComponent implements OnChanges, OnDestroy {
     this.limpiarTimers();
   }
 
-  cerrar(): void {
-    this.cerrado.emit();
+  alCerrar(): void {
+    this.cerrar.emit();
   }
 
   formatearNumero(numero: string): string {

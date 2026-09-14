@@ -3,7 +3,7 @@ package com.marcablanca.platform.consola.infrastructure.web;
 import com.marcablanca.platform.consola.application.port.out.RegistroDeAuditoria;
 import com.marcablanca.platform.consola.domain.CredencialesDeOperadorInvalidasException;
 import com.marcablanca.platform.correo.application.port.in.GestionarConfiguracionCorreo;
-import com.marcablanca.platform.correo.application.port.in.GestionarConfiguracionCorreo.ComandoConfiguracionSmtp;
+import com.marcablanca.platform.correo.application.ComandoConfiguracionSmtp;
 import com.marcablanca.platform.correo.application.port.in.ProbarConfiguracionCorreo;
 import com.marcablanca.platform.correo.domain.ConfiguracionSmtp;
 import com.marcablanca.platform.correo.domain.EnvioDeCorreoFallidoException;
@@ -89,7 +89,7 @@ public class ConsolaConfigCorreoController {
 
     /** Manda un correo real de prueba con ESTA configuracion (activa o no). */
     @PostMapping("/{id}/probar")
-    public ResponseEntity<?> probar(@PathVariable UUID id, @RequestParam String destinatario) {
+    public ResponseEntity<Map<String, Object>> probar(@PathVariable UUID id, @RequestParam String destinatario) {
         gestionarConfiguracionCorreo.buscarPorId(id);
         try {
             probarConfiguracionCorreo.ejecutar(id, destinatario);

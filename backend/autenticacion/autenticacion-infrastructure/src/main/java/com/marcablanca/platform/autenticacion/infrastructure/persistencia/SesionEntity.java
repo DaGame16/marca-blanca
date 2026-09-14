@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 /**
@@ -58,7 +59,7 @@ class SesionEntity {
         this.infoDispositivo = infoDispositivo;
         this.hashTokenRefresco = hashTokenRefresco;
         this.expiraEn = expiraEn;
-        this.creadoEn = OffsetDateTime.now();
+        this.creadoEn = OffsetDateTime.now(ZoneOffset.UTC);
     }
 
     Long getUsuarioId() {

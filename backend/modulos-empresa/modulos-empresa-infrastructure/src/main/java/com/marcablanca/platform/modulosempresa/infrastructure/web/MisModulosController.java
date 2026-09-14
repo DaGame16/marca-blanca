@@ -7,6 +7,7 @@ import com.marcablanca.platform.modulosempresa.application.port.in.ListarModulos
 import com.marcablanca.platform.modulosempresa.domain.ModuloDeEmpresa;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,17 +47,20 @@ public class MisModulosController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('modulos:leer')")
     public List<ModuloDeEmpresa> listar(HttpServletRequest request) {
         return listarModulosDeEmpresa.ejecutar(empresaIdDelToken(request));
     }
 
     @PostMapping("/{codigo}/activar")
+    @PreAuthorize("hasAuthority('modulos:activar')")
     public ResponseEntity<Void> activar(HttpServletRequest request, @PathVariable String codigo) {
         activarModuloDeEmpresa.ejecutar(empresaIdDelToken(request), codigo);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{codigo}/desactivar")
+    @PreAuthorize("hasAuthority('modulos:desactivar')")
     public ResponseEntity<Void> desactivar(HttpServletRequest request, @PathVariable String codigo) {
         desactivarModuloDeEmpresa.ejecutar(empresaIdDelToken(request), codigo);
         return ResponseEntity.noContent().build();

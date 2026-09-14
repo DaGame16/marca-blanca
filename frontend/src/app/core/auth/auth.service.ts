@@ -32,6 +32,17 @@ export class AuthService {
   // de login) para que sobreviva a un refresh de pagina.
   readonly debeCambiarContrasena = signal(this.leerPwdTempDelToken());
 
+  // Permisos efectivos del usuario, embebidos como claim "permisos" en el
+  // JWT (ver ADR de permisos-en-el-jwt, modulo autenticacion). Se leen del
+  // propio token -- igual que pwd_temp -- para sobrevivir a un refresh de
+  // pagina sin depender de una llamada aparte al backend.
+  private readonly permisosSignal = signal(this.leerPermisosDelToken());
+  readonly permisos = this.permisosSignal.asReadonly();
+
+  tienePermiso(nombre: string): boolean {
+    return this.permisosSignal().has(nombre);
+  }
+
   login(request: LoginRequest): Observable<LoginResponse> {
     return this.http
       .post<LoginResponse>(`${environment.apiUrl}/auth/login`, request)
@@ -73,6 +84,7 @@ export class AuthService {
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem(EMPRESA_KEY);
     this.currentUserSignal.set(null);
+    this.permisosSignal.set(new Set());
     this.router.navigateByUrl('/login');
   }
 
@@ -99,6 +111,7 @@ export class AuthService {
     localStorage.setItem(USER_KEY, JSON.stringify(userInfo));
     this.currentUserSignal.set(userInfo);
     this.debeCambiarContrasena.set(res.debeCambiarContrasena);
+    this.permisosSignal.set(this.leerPermisosDelToken());
   }
 
   private readStoredUser(): UserInfo | null {
@@ -107,20 +120,27 @@ export class AuthService {
   }
 
   // Decodifica el payload del JWT (sin validar firma -- eso ya lo hizo el
-  // backend; aqui solo leemos la claim para decidir a donde navegar) y lee
-  // "pwd_temp". Si no hay token o no se puede decodificar, asume que no.
-  private leerPwdTempDelToken(): boolean {
+  // backend; aqui solo leemos claims para decidir a donde navegar o que
+  // mostrar). Si no hay token o no se puede decodificar, devuelve null.
+  private decodificarPayload(): { pwd_temp?: boolean; permisos?: string[] } | null {
     const token = this.getToken();
     if (!token) {
-      return false;
+      return null;
     }
     try {
       const payloadBase64Url = token.split('.')[1];
       const payloadJson = atob(payloadBase64Url.replaceAll('-', '+').replaceAll('_', '/'));
-      const payload = JSON.parse(payloadJson) as { pwd_temp?: boolean };
-      return payload.pwd_temp === true;
+      return JSON.parse(payloadJson) as { pwd_temp?: boolean; permisos?: string[] };
     } catch {
-      return false;
+      return null;
     }
+  }
+
+  private leerPwdTempDelToken(): boolean {
+    return this.decodificarPayload()?.pwd_temp === true;
+  }
+
+  private leerPermisosDelToken(): Set<string> {
+    return new Set(this.decodificarPayload()?.permisos ?? []);
   }
 }

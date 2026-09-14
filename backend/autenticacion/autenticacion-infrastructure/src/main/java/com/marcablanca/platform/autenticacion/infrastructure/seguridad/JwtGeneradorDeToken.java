@@ -10,7 +10,8 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
+import java.util.Date; //NOSONAR jjwt 0.12.6 solo acepta java.util.Date en su API (ver uso abajo)
+import java.util.Set;
 
 @Component
 public class JwtGeneradorDeToken implements GeneradorDeToken {
@@ -26,13 +27,14 @@ public class JwtGeneradorDeToken implements GeneradorDeToken {
     }
 
     @Override
-    public String generarPara(DatosDeUsuario usuario, String identificadorEmpresa) {
+    public String generarPara(DatosDeUsuario usuario, Set<String> permisos, String identificadorEmpresa) {
         Instant ahora = Instant.now();
         return Jwts.builder()
                 .subject(usuario.id().toString())
                 .claim("correo", usuario.correo())
                 .claim("empresa", identificadorEmpresa)
                 .claim("pwd_temp", usuario.debeCambiarContrasena())
+                .claim("permisos", permisos)
                 .issuedAt(Date.from(ahora)) //NOSONAR jjwt 0.12.6 solo acepta java.util.Date en su API
                 .expiration(Date.from(ahora.plus(minutosExpiracion, ChronoUnit.MINUTES))) //NOSONAR idem
                 .signWith(claveFirma)

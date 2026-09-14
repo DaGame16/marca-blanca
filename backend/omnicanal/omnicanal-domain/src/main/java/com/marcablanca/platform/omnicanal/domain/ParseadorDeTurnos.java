@@ -16,10 +16,16 @@ import java.util.regex.Pattern;
  */
 public final class ParseadorDeTurnos {
 
-    private static final Pattern PATRON_TURNO = Pattern.compile("^(.+?)\\s\\(([^)]+)\\):\\s*([\\s\\S]*)$");
+    // No se tocan estas dos regex (java:S8786, riesgo de backtracking): son
+    // reglas de negocio afinadas contra datos reales de LIWA (ver comentario de
+    // clase) y no tienen test propio que confirme que una reescritura preserva
+    // el comportamiento exacto -- ninguna tiene grupos anidados con clases de
+    // caracteres solapadas, asi que el backtracking real es acotado, no exponencial.
+    private static final Pattern PATRON_TURNO =
+            Pattern.compile("^(.+?)\\s\\(([^)]+)\\):\\s*([\\s\\S]*)$"); //NOSONAR ver comentario arriba
     private static final Set<String> NOMBRES_BOT = Set.of("yo", "bot");
     private static final Pattern PATRON_FECHA =
-            Pattern.compile("(\\d{4})-(\\d{1,2})-(\\d{1,2})\\s+(\\d{1,2}):(\\d{2})\\s*([ap])\\.?\\s*\\.?\\s*m\\.?",
+            Pattern.compile("(\\d{4})-(\\d{1,2})-(\\d{1,2})\\s+(\\d{1,2}):(\\d{2})\\s*([ap])\\.?\\s*\\.?\\s*m\\.?", //NOSONAR ver comentario arriba
                     Pattern.CASE_INSENSITIVE);
 
     private ParseadorDeTurnos() {
@@ -39,21 +45,18 @@ public final class ParseadorDeTurnos {
             }
 
             Matcher m = PATRON_TURNO.matcher(bloque);
-            if (!m.matches()) {
-                if (!turnos.isEmpty()) {
-                    TurnoParseado anterior = turnos.get(turnos.size() - 1);
-                    turnos.set(turnos.size() - 1, new TurnoParseado(
-                            anterior.nombre(), anterior.fechaTexto(), anterior.fecha(),
-                            anterior.mensaje() + "\n\n" + bloque, anterior.autor()));
-                }
-                continue;
+            if (m.matches()) {
+                String nombre = m.group(1).strip();
+                String fechaTexto = m.group(2).strip();
+                String mensaje = m.group(3).strip();
+                turnos.add(new TurnoParseado(nombre, fechaTexto, parsearFecha(fechaTexto), mensaje,
+                        resolverAutor(nombre)));
+            } else if (!turnos.isEmpty()) {
+                TurnoParseado anterior = turnos.get(turnos.size() - 1);
+                turnos.set(turnos.size() - 1, new TurnoParseado(
+                        anterior.nombre(), anterior.fechaTexto(), anterior.fecha(),
+                        anterior.mensaje() + "\n\n" + bloque, anterior.autor()));
             }
-
-            String nombre = m.group(1).strip();
-            String fechaTexto = m.group(2).strip();
-            String mensaje = m.group(3).strip();
-            turnos.add(new TurnoParseado(nombre, fechaTexto, parsearFecha(fechaTexto), mensaje,
-                    resolverAutor(nombre)));
         }
         return turnos;
     }

@@ -10,6 +10,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -47,7 +48,7 @@ class ResolverEmpresaPorWebhookSecretoJpaTest {
 
     @Test
     void config_apunta_a_una_empresa_que_no_existe_devuelve_vacio() {
-        EmpresaOmnicanalEntity config = org.mockito.Mockito.mock(EmpresaOmnicanalEntity.class);
+        EmpresaOmnicanalEntity config = mock(EmpresaOmnicanalEntity.class);
         when(config.getEmpresaId()).thenReturn(99L);
         when(empresasOmnicanal.findByWebhookSecret("s3cr3t")).thenReturn(Optional.of(config));
         when(empresasRef.findById(99L)).thenReturn(Optional.empty());
@@ -57,9 +58,9 @@ class ResolverEmpresaPorWebhookSecretoJpaTest {
 
     @Test
     void secreto_valido_devuelve_el_identificador_de_la_empresa() {
-        EmpresaOmnicanalEntity config = org.mockito.Mockito.mock(EmpresaOmnicanalEntity.class);
+        EmpresaOmnicanalEntity config = mock(EmpresaOmnicanalEntity.class);
         when(config.getEmpresaId()).thenReturn(7L);
-        EmpresaRefDeOmnicanal empresa = org.mockito.Mockito.mock(EmpresaRefDeOmnicanal.class);
+        EmpresaRefDeOmnicanal empresa = mock(EmpresaRefDeOmnicanal.class);
         lenient().when(empresa.getId()).thenReturn(7L);
         when(empresa.getIdentificador()).thenReturn("acme");
         when(empresasOmnicanal.findByWebhookSecret("s3cr3t")).thenReturn(Optional.of(config));

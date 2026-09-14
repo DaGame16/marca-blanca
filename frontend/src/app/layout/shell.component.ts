@@ -20,12 +20,19 @@ interface ItemNav {
   icono: string;
   etiqueta: string;
   exacta?: boolean;
+  // Permiso requerido para ver el item -- undefined = siempre visible.
+  // Los 2 layouts (sidebar y header arriba) filtran por esto ademas de
+  // recorrer la misma lista, para que un usuario sin el permiso no vea el
+  // enlace en ninguno de los 2 (antes de esto todo el menu era visible
+  // para cualquier usuario autenticado, sin importar su rol).
+  permiso?: string;
 }
 const ITEMS_NAV: ItemNav[] = [
-  { ruta: '/mis-modulos', icono: 'apps', etiqueta: 'Mis módulos', exacta: true },
-  { ruta: '/usuarios', icono: 'group', etiqueta: 'Usuarios y accesos' },
-  { ruta: '/mi-marca', icono: 'palette', etiqueta: 'Marca y diseño' },
-  { ruta: '/panel/omnicanal/liwa/config', icono: 'settings', etiqueta: 'Configuración de Liwa' },
+  { ruta: '/mis-modulos', icono: 'apps', etiqueta: 'Mis módulos', exacta: true, permiso: 'modulos:leer' },
+  { ruta: '/usuarios', icono: 'group', etiqueta: 'Usuarios y accesos', permiso: 'usuarios:leer' },
+  { ruta: '/roles', icono: 'shield_moon', etiqueta: 'Roles y permisos', permiso: 'roles:leer' },
+  { ruta: '/mi-marca', icono: 'palette', etiqueta: 'Marca y diseño', permiso: 'marca:leer' },
+  { ruta: '/panel/omnicanal/liwa/config', icono: 'settings', etiqueta: 'Configuración de Liwa', permiso: 'omnicanal:configurar' },
 ];
 
 @Component({
@@ -51,12 +58,15 @@ const ITEMS_NAV: ItemNav[] = [
 
           <nav class="topnav" aria-label="Navegación principal">
             @for (item of itemsNav; track item.ruta) {
-              <a [routerLink]="item.ruta" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: !!item.exacta }">
-                <mat-icon>{{ item.icono }}</mat-icon>
-                <span>{{ item.etiqueta }}</span>
-              </a>
+              @if (!item.permiso || auth.tienePermiso(item.permiso)) {
+                <a [routerLink]="item.ruta" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: !!item.exacta }">
+                  <mat-icon>{{ item.icono }}</mat-icon>
+                  <span>{{ item.etiqueta }}</span>
+                </a>
+              }
             }
           </nav>
+
 
           <div class="topbar-actions">
             <button mat-icon-button aria-label="Notificaciones"><mat-icon>notifications_none</mat-icon><span class="notification-dot"></span></button>
@@ -91,16 +101,20 @@ const ITEMS_NAV: ItemNav[] = [
           </div>
           <nav class="sidebar-nav" aria-label="Navegación principal">
             <span class="nav-section">OPERACIÓN</span>
-            @for (item of itemsNav.slice(0, 2); track item.ruta) {
-              <a [routerLink]="item.ruta" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: !!item.exacta }" (mousemove)="onSpotlight($event)">
-                <mat-icon>{{ item.icono }}</mat-icon><span>{{ item.etiqueta }}</span>
-              </a>
+            @for (item of itemsNav.slice(0, 3); track item.ruta) {
+              @if (!item.permiso || auth.tienePermiso(item.permiso)) {
+                <a [routerLink]="item.ruta" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: !!item.exacta }" (mousemove)="onSpotlight($event)">
+                  <mat-icon>{{ item.icono }}</mat-icon><span>{{ item.etiqueta }}</span>
+                </a>
+              }
             }
             <span class="nav-section">CONFIGURACIÓN</span>
-            @for (item of itemsNav.slice(2); track item.ruta) {
-              <a [routerLink]="item.ruta" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: !!item.exacta }" (mousemove)="onSpotlight($event)">
-                <mat-icon>{{ item.icono }}</mat-icon><span>{{ item.etiqueta }}</span>
-              </a>
+            @for (item of itemsNav.slice(3); track item.ruta) {
+              @if (!item.permiso || auth.tienePermiso(item.permiso)) {
+                <a [routerLink]="item.ruta" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: !!item.exacta }" (mousemove)="onSpotlight($event)">
+                  <mat-icon>{{ item.icono }}</mat-icon><span>{{ item.etiqueta }}</span>
+                </a>
+              }
             }
           </nav>
           <div class="sidebar-help"><mat-icon>support</mat-icon><div><strong>¿Necesitas ayuda?</strong><span>Consulta con soporte</span></div></div>
@@ -319,6 +333,9 @@ export class ShellComponent {
     }
     if (path.includes('usuarios')) {
       return 'Usuarios y accesos';
+    }
+    if (path.includes('roles')) {
+      return 'Roles y permisos';
     }
     if (path.includes('panel/omnicanal/liwa/config')) {
       return 'Configuración de Liwa';

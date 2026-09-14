@@ -18,7 +18,7 @@ import java.util.UUID;
  * @Transactional sin nombre es ambiguo entre los dos.
  *
  * No va en RenovarTokenService (capa de aplicacion) a proposito: esa
- * capa se mantiene libre de anotaciones de Spring en todo el proyecto.
+ * capa se mantiene libre de anotaciones de Spring en el proyecto entero.
  */
 @Component
 class AlmacenDeTokensDeRefrescoJpa implements AlmacenDeTokensDeRefresco {

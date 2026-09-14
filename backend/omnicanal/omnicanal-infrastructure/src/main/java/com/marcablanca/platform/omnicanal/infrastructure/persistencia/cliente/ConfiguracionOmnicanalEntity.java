@@ -5,6 +5,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 /** omnicanal.tbl_configuracion_omnicanal -- fila unica por empresa. */
@@ -54,8 +55,8 @@ class ConfiguracionOmnicanalEntity {
         ConfiguracionOmnicanalEntity e = new ConfiguracionOmnicanalEntity();
         e.uuid = UUID.randomUUID();
         e.iaHabilitada = false;
-        e.creadoEn = OffsetDateTime.now();
-        e.actualizadoEn = OffsetDateTime.now();
+        e.creadoEn = OffsetDateTime.now(ZoneOffset.UTC);
+        e.actualizadoEn = OffsetDateTime.now(ZoneOffset.UTC);
         return e;
     }
 
@@ -64,12 +65,12 @@ class ConfiguracionOmnicanalEntity {
         this.openaiModelo = openaiModelo;
         this.liwaBaseUrl = liwaBaseUrl;
         this.liwaCustomFieldAds = liwaCustomFieldAds;
-        this.actualizadoEn = OffsetDateTime.now();
+        this.actualizadoEn = OffsetDateTime.now(ZoneOffset.UTC);
     }
 
     void aplicarLiwaTokenCifrado(String tokenCifrado) {
         this.liwaApiToken = tokenCifrado;
-        this.actualizadoEn = OffsetDateTime.now();
+        this.actualizadoEn = OffsetDateTime.now(ZoneOffset.UTC);
     }
 
     String getLiwaApiToken() {
