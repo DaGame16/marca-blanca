@@ -291,7 +291,7 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
         </div>
       </div>
 
-      <app-liwa-analisis-detalle *ngIf="detalle" [item]="detalle" (close)="detalle = null" />
+      <app-liwa-analisis-detalle *ngIf="detalle" [item]="detalle" (cerrar)="detalle = null" />
     </section>
   `,
   styles: [`

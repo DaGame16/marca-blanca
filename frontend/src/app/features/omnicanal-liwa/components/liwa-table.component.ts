@@ -236,7 +236,7 @@ export class LiwaTableComponent implements OnChanges {
     const clave = chat.idContacto || chat.numero || '';
     let hash = 0;
     for (let i = 0; i < clave.length; i++) {
-      hash = (hash * 31 + clave.charCodeAt(i)) >>> 0;
+      hash = (hash * 31 + (clave.codePointAt(i) ?? 0)) >>> 0;
     }
     return LiwaTableComponent.PALETA_AVATAR[hash % LiwaTableComponent.PALETA_AVATAR.length];
   }

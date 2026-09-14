@@ -13,7 +13,7 @@ function luminanciaRelativa(hex: string): number {
   if (!m) {
     return 0;
   }
-  const [r, g, b] = [m[1], m[2], m[3]].map((h) => parseInt(h, 16) / 255);
+  const [r, g, b] = [m[1], m[2], m[3]].map((h) => Number.parseInt(h, 16) / 255);
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 

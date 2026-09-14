@@ -170,7 +170,7 @@ export class LiwaConversationDrawerComponent implements OnChanges, OnDestroy {
   @Input() chat: LiwaChat | null = null;
   @Input() analizada = false;
   @Input() momento: MomentoResaltado | null = null;
-  @Output() close = new EventEmitter<void>();
+  @Output() cerrado = new EventEmitter<void>();
 
   @ViewChild('scrollContenedor') scrollContenedor?: ElementRef<HTMLDivElement>;
 
@@ -201,7 +201,7 @@ export class LiwaConversationDrawerComponent implements OnChanges, OnDestroy {
   }
 
   cerrar(): void {
-    this.close.emit();
+    this.cerrado.emit();
   }
 
   formatearNumero(numero: string): string {

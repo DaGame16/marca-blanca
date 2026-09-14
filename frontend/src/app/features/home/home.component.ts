@@ -454,8 +454,8 @@ export class HomeComponent implements AfterViewInit {
   // intro cada vez, se volveria molesto.
   protected mostrarIntro = !sessionStorage.getItem(INTRO_YA_VISTA);
 
-  @ViewChild('introLoader') private introLoader?: ElementRef<HTMLDivElement>;
-  @ViewChild('introBrand') private introBrand?: ElementRef<HTMLDivElement>;
+  @ViewChild('introLoader') private readonly introLoader?: ElementRef<HTMLDivElement>;
+  @ViewChild('introBrand') private readonly introBrand?: ElementRef<HTMLDivElement>;
 
   ngAfterViewInit(): void {
     if (!this.mostrarIntro) {

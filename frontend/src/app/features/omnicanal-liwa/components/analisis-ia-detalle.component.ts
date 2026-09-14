@@ -20,7 +20,7 @@ function esTurnoCliente(t: LiwaTurnoAnalizado): boolean {
   standalone: true,
   imports: [CommonModule, MatIconModule],
   template: `
-    <div class="overlay" (click)="close.emit()">
+    <div class="overlay" (click)="cerrar.emit()">
       <div class="modal" (click)="$event.stopPropagation()">
         <header (click)="infoAbierta = !infoAbierta">
           <div class="titulo">
@@ -33,7 +33,7 @@ function esTurnoCliente(t: LiwaTurnoAnalizado): boolean {
               </span>
             </div>
           </div>
-          <button type="button" class="cerrar" (click)="$event.stopPropagation(); close.emit()"><mat-icon>close</mat-icon></button>
+          <button type="button" class="cerrar" (click)="$event.stopPropagation(); cerrar.emit()"><mat-icon>close</mat-icon></button>
         </header>
 
         <div class="info" *ngIf="infoAbierta">
@@ -157,7 +157,7 @@ function esTurnoCliente(t: LiwaTurnoAnalizado): boolean {
 })
 export class LiwaAnalisisDetalleComponent implements OnChanges {
   @Input({ required: true }) item!: LiwaAnalisisItem;
-  @Output() close = new EventEmitter<void>();
+  @Output() cerrar = new EventEmitter<void>();
 
   readonly FCR_DESCRIPCION = FCR_DESCRIPCION;
   readonly ABANDONADO_POR_LABELS = ABANDONADO_POR_LABELS;

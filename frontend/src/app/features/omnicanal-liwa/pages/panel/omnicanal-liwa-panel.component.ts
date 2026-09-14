@@ -178,7 +178,7 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
           <app-liwa-conversation-drawer
             [chat]="chatSeleccionado"
             [analizada]="chatSeleccionado ? contactosAnalizados.has(chatSeleccionado.idContacto) : false"
-            (close)="seleccionarChat(null)"
+            (cerrado)="seleccionarChat(null)"
           />
 
           <app-liwa-summary-modal
@@ -186,7 +186,7 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
             [mode]="modalResumen"
             [chats]="chats"
             [contactosAnalizados]="contactosAnalizados"
-            (close)="modalResumen = null"
+            (cerrar)="modalResumen = null"
             (seleccionado)="seleccionarChat($event.id)"
           />
         </div>

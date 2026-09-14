@@ -1,7 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BaseChartDirective } from 'ng2-charts';
-import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
+import { BaseChartDirective, provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { ChartConfiguration } from 'chart.js';
 
 // Traducción de components/liwa/LiwaCharts.tsx -> ActividadLine. El original

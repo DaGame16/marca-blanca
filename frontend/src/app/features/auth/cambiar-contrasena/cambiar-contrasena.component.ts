@@ -28,7 +28,7 @@ const REGLAS_CONTRASENA: ReglaContrasena[] = [
   { clave: 'longitud', etiqueta: 'Al menos 8 caracteres', cumple: (v) => v.length >= 8 },
   { clave: 'mayuscula', etiqueta: 'Una letra mayúscula', cumple: (v) => /[A-Z]/.test(v) },
   { clave: 'minuscula', etiqueta: 'Una letra minúscula', cumple: (v) => /[a-z]/.test(v) },
-  { clave: 'numero', etiqueta: 'Un número', cumple: (v) => /[0-9]/.test(v) },
+  { clave: 'numero', etiqueta: 'Un número', cumple: (v) => /\d/.test(v) },
   { clave: 'especial', etiqueta: 'Un carácter especial (!@#$...)', cumple: (v) => /[^A-Za-z0-9]/.test(v) },
 ];
 

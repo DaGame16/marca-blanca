@@ -13,7 +13,7 @@ type ModalMode = 'conversaciones' | 'clientes';
   standalone: true,
   imports: [CommonModule, MatIconModule, LiwaTableComponent],
   template: `
-    <div class="overlay" (click)="close.emit()">
+    <div class="overlay" (click)="cerrar.emit()">
       <div class="modal" (click)="$event.stopPropagation()">
         <header>
           <div class="titulo">
@@ -23,7 +23,7 @@ type ModalMode = 'conversaciones' | 'clientes';
               <p>{{ mode === 'clientes' ? (clientes.length + ' clientes') : (chats.length + ' conversaciones') }}</p>
             </div>
           </div>
-          <button type="button" class="cerrar" (click)="close.emit()"><mat-icon>close</mat-icon></button>
+          <button type="button" class="cerrar" (click)="cerrar.emit()"><mat-icon>close</mat-icon></button>
         </header>
         <div class="cuerpo">
           <div class="clientes-grid" *ngIf="mode === 'clientes'; else tabla">
@@ -80,7 +80,7 @@ export class LiwaSummaryModalComponent {
   @Input() mode: ModalMode = 'conversaciones';
   @Input() chats: LiwaChat[] = [];
   @Input() contactosAnalizados: Set<string> = new Set();
-  @Output() close = new EventEmitter<void>();
+  @Output() cerrar = new EventEmitter<void>();
   @Output() seleccionado = new EventEmitter<LiwaChat>();
 
   get clientes(): { id: string; numero: string; nombre: string | null; conversaciones: number; mensajes: number }[] {
@@ -97,7 +97,7 @@ export class LiwaSummaryModalComponent {
   }
 
   seleccionar(chat: LiwaChat): void {
-    this.close.emit();
+    this.cerrar.emit();
     this.seleccionado.emit(chat);
   }
 }
