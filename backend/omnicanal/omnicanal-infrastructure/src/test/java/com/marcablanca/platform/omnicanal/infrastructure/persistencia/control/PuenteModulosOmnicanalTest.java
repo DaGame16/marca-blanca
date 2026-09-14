@@ -16,6 +16,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -40,7 +41,7 @@ class PuenteModulosOmnicanalTest {
 
     private void empresaEnContexto(String slug) {
         ContextoEmpresaActual.establecer(slug);
-        EmpresaRefDeOmnicanal ref = org.mockito.Mockito.mock(EmpresaRefDeOmnicanal.class);
+        EmpresaRefDeOmnicanal ref = mock(EmpresaRefDeOmnicanal.class);
         lenient().when(ref.getUuid()).thenReturn(EMPRESA_UUID);
         lenient().when(empresasRef.findByIdentificador(slug)).thenReturn(Optional.of(ref));
     }

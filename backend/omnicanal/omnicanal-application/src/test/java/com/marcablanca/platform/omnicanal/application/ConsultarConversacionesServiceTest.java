@@ -56,7 +56,8 @@ class ConsultarConversacionesServiceTest {
     @Test
     void contacto_sin_conversacion_lanza_no_encontrada() {
         when(repositorioConversaciones.buscarPorIdContacto("nadie")).thenReturn(Optional.empty());
-        assertThrows(ConversacionNoEncontradaException.class, () -> servicio().resumenDeContacto("nadie"));
+        var servicio = servicio();
+        assertThrows(ConversacionNoEncontradaException.class, () -> servicio.resumenDeContacto("nadie"));
     }
 
     @Test

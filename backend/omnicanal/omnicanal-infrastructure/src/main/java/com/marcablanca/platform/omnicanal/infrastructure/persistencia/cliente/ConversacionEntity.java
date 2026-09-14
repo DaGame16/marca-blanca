@@ -5,6 +5,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 @Entity
@@ -51,8 +52,8 @@ class ConversacionEntity {
         this.historialChatCompleto = historialChatCompleto;
         this.datosCrudos = datosCrudos;
         this.esDeAds = esDeAds;
-        this.creadoEn = OffsetDateTime.now();
-        this.archivadaEn = OffsetDateTime.now();
+        this.creadoEn = OffsetDateTime.now(ZoneOffset.UTC);
+        this.archivadaEn = OffsetDateTime.now(ZoneOffset.UTC);
     }
 
     void actualizar(String historialChatCompleto, String datosCrudos, boolean esDeAds, OffsetDateTime archivadaEn) {

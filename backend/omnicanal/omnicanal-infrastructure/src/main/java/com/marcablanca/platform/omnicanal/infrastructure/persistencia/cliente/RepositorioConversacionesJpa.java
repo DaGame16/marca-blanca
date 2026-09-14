@@ -9,6 +9,7 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -62,7 +63,7 @@ class RepositorioConversacionesJpa implements RepositorioConversaciones {
     @Override
     public void marcarSoloArchivado(Long id, boolean esDeAds) {
         var e = conversaciones.findById(id).orElseThrow();
-        e.marcarSoloArchivado(esDeAds, OffsetDateTime.now());
+        e.marcarSoloArchivado(esDeAds, OffsetDateTime.now(ZoneOffset.UTC));
         conversaciones.save(e);
     }
 

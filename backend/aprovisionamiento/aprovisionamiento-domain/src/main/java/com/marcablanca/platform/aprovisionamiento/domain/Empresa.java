@@ -29,8 +29,13 @@ public class Empresa {
 
     private final List<EventoDeDominio> eventos = new ArrayList<>();
 
-    /** Constructor de reconstruccion: lo usa el adaptador de persistencia al leer de la base. */
-    public Empresa(UUID id, Identificador identificador, String nombreLegal, String nombreComercial,
+    /**
+     * Constructor de reconstruccion: lo usa el adaptador de persistencia al leer
+     * de la base. java:S107: son, uno a uno, los campos propios de este agregado
+     * raiz -- no hay subconjunto natural para agrupar en otro tipo sin mover el
+     * problema.
+     */
+    public Empresa(UUID id, Identificador identificador, String nombreLegal, String nombreComercial, //NOSONAR ver comentario arriba
                    String dominio, String representanteLegal, String correo, String telefono, String sitioWeb,
                    HashContrasenaMaestra hashContrasenaMaestra, EstadoEmpresa estado) {
         this.id = id;

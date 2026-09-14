@@ -228,7 +228,7 @@ interface StatsAsesor {
           </div>
       </app-liwa-modal>
 
-      <app-liwa-conversation-drawer [chat]="chatAbierto" (cerrado)="chatAbierto = null" />
+      <app-liwa-conversation-drawer [chat]="chatAbierto" (cerrar)="chatAbierto = null" />
     </section>
   `,
   styles: [`

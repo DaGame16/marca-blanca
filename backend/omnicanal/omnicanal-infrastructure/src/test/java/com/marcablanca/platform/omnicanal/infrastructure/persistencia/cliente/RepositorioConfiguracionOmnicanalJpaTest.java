@@ -13,11 +13,13 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -48,7 +50,7 @@ class RepositorioConfiguracionOmnicanalJpaTest {
 
     @Test
     void fila_sin_perfil_usa_el_perfil_por_defecto_y_descifra_el_token() {
-        ConfiguracionOmnicanalEntity e = org.mockito.Mockito.mock(ConfiguracionOmnicanalEntity.class);
+        ConfiguracionOmnicanalEntity e = mock(ConfiguracionOmnicanalEntity.class);
         when(e.getPerfilAnalisis()).thenReturn(null);
         when(e.getLiwaApiToken()).thenReturn(cifrador.cifrar("token-liwa-real"));
         when(e.isIaHabilitada()).thenReturn(true);
@@ -65,7 +67,7 @@ class RepositorioConfiguracionOmnicanalJpaTest {
 
     @Test
     void perfil_json_es_override_parcial_sobre_el_por_defecto() {
-        ConfiguracionOmnicanalEntity e = org.mockito.Mockito.mock(ConfiguracionOmnicanalEntity.class);
+        ConfiguracionOmnicanalEntity e = mock(ConfiguracionOmnicanalEntity.class);
         when(e.getPerfilAnalisis()).thenReturn(
                 "{\"nombreEmpresa\":\"Acme ISP\",\"liwaBaseUrl\":\"https://acme.example\"}");
         when(e.getLiwaApiToken()).thenReturn(null);
@@ -82,7 +84,7 @@ class RepositorioConfiguracionOmnicanalJpaTest {
 
     @Test
     void perfil_json_invalido_cae_al_perfil_por_defecto() {
-        ConfiguracionOmnicanalEntity e = org.mockito.Mockito.mock(ConfiguracionOmnicanalEntity.class);
+        ConfiguracionOmnicanalEntity e = mock(ConfiguracionOmnicanalEntity.class);
         when(e.getPerfilAnalisis()).thenReturn("{ esto no es json");
         when(e.getLiwaApiToken()).thenReturn(null);
         when(repo.findFirstByOrderByIdAsc()).thenReturn(Optional.of(e));
@@ -113,7 +115,7 @@ class RepositorioConfiguracionOmnicanalJpaTest {
         var capt = org.mockito.ArgumentCaptor.forClass(ConfiguracionOmnicanalEntity.class);
         verify(repo).save(capt.capture());
         String cifrado = capt.getValue().getLiwaApiToken();
-        assertFalse("mi-token-liwa".equals(cifrado));
+        assertNotEquals("mi-token-liwa", cifrado);
         assertEquals("mi-token-liwa", cifrador.descifrar(cifrado));
     }
 

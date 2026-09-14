@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -17,6 +18,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
@@ -33,7 +35,10 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(org.springframework.security.config.annotation.web.builders.HttpSecurity http) {
         try {
             http
-                    .csrf(csrf -> csrf.disable())
+                    // CSRF es una defensa contra requests de formularios/cookies de otro origen
+                    // -- no aplica aca: la sesion es un JWT en el header Authorization
+                    // (STATELESS, sin cookies), que un sitio malicioso no puede leer ni forjar.
+                    .csrf(csrf -> csrf.disable()) //NOSONAR ver comentario arriba
                     .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     // Sin esto, Spring Security cae a su entry point por defecto

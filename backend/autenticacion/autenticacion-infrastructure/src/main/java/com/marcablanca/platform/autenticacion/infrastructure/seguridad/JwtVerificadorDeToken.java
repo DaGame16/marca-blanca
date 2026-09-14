@@ -10,8 +10,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtVerificadorDeToken implements VerificadorDeToken {
@@ -39,7 +42,11 @@ public class JwtVerificadorDeToken implements VerificadorDeToken {
             UUID usuarioId = UUID.fromString(claims.getSubject());
             String identificadorEmpresa = claims.get("empresa", String.class);
             boolean debeCambiarContrasena = Boolean.TRUE.equals(claims.get("pwd_temp", Boolean.class));
-            return Optional.of(new UsuarioAutenticado(usuarioId, identificadorEmpresa, debeCambiarContrasena));
+            List<?> permisosClaim = claims.get("permisos", List.class);
+            Set<String> permisos = permisosClaim == null
+                    ? Set.of()
+                    : permisosClaim.stream().map(Object::toString).collect(Collectors.toSet());
+            return Optional.of(new UsuarioAutenticado(usuarioId, identificadorEmpresa, debeCambiarContrasena, permisos));
         } catch (JwtException | IllegalArgumentException _) {
             // Firma invalida, token vencido, o formato incorrecto - todos tratados igual: no autenticado.
             return Optional.empty();

@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 @Entity
@@ -96,8 +97,8 @@ class EmpresaMarcaEntity {
         this.tipoPantallaPrincipal = aCorto(tipoPantallaPrincipal, (short) 1);
         this.ajusteLogo = aCorto(ajusteLogo, (short) 1);
         this.formaLogo = aCorto(formaLogo, (short) 1);
-        this.creadoEn = OffsetDateTime.now();
-        this.actualizadoEn = OffsetDateTime.now();
+        this.creadoEn = OffsetDateTime.now(ZoneOffset.UTC);
+        this.actualizadoEn = OffsetDateTime.now(ZoneOffset.UTC);
     }
 
     void actualizar(String urlLogo, String colorPrimario, String colorSecundario, String dominioPropio,
@@ -116,7 +117,7 @@ class EmpresaMarcaEntity {
         this.tipoPantallaPrincipal = aCorto(tipoPantallaPrincipal, this.tipoPantallaPrincipal);
         this.ajusteLogo = aCorto(ajusteLogo, this.ajusteLogo);
         this.formaLogo = aCorto(formaLogo, this.formaLogo);
-        this.actualizadoEn = OffsetDateTime.now();
+        this.actualizadoEn = OffsetDateTime.now(ZoneOffset.UTC);
     }
 
     private static Short aCorto(Integer valor, Short porDefecto) {

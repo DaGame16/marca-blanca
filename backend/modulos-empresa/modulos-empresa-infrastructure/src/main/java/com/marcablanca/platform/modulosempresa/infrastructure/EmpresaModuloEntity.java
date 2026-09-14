@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 @Entity
@@ -49,18 +50,18 @@ class EmpresaModuloEntity {
         this.moduloId = moduloId;
         this.esActivo = esActivo;
         this.activadoEn = activadoEn;
-        this.creadoEn = OffsetDateTime.now();
-        this.actualizadoEn = OffsetDateTime.now();
+        this.creadoEn = OffsetDateTime.now(ZoneOffset.UTC);
+        this.actualizadoEn = OffsetDateTime.now(ZoneOffset.UTC);
     }
 
     void activar() {
         this.esActivo = true;
-        this.activadoEn = OffsetDateTime.now();
-        this.actualizadoEn = OffsetDateTime.now();
+        this.activadoEn = OffsetDateTime.now(ZoneOffset.UTC);
+        this.actualizadoEn = OffsetDateTime.now(ZoneOffset.UTC);
     }
 
     void desactivar() {
         this.esActivo = false;
-        this.actualizadoEn = OffsetDateTime.now();
+        this.actualizadoEn = OffsetDateTime.now(ZoneOffset.UTC);
     }
 }

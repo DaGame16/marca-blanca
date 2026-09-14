@@ -54,7 +54,7 @@ class RepositorioModulosJpa implements RepositorioModulos {
         try {
             moduloJpaRepository.delete(entidad);
             moduloJpaRepository.flush();
-        } catch (DataIntegrityViolationException e) {
+        } catch (DataIntegrityViolationException _) {
             throw new ModuloEnUsoException(entidad.getCodigo());
         }
     }

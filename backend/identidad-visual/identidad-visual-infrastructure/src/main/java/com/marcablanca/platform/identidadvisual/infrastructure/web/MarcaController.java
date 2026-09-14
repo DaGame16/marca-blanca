@@ -6,6 +6,7 @@ import com.marcablanca.platform.identidadvisual.domain.ColorHex;
 import com.marcablanca.platform.identidadvisual.domain.MarcaDeEmpresa;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -36,12 +37,14 @@ public class MarcaController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('marca:leer')")
     public MarcaResponse obtener(HttpServletRequest request) {
         MarcaDeEmpresa marca = obtenerMarcaDeEmpresa.ejecutar(empresaDelToken(request));
         return aResponse(marca);
     }
 
     @PutMapping
+    @PreAuthorize("hasAuthority('marca:editar')")
     public ResponseEntity<Void> actualizar(HttpServletRequest request, @RequestBody MarcaRequest body) {
         MarcaDeEmpresa marca = new MarcaDeEmpresa(
                 body.urlLogo(),

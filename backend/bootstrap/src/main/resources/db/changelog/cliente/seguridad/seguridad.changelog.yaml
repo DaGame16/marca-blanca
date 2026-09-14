@@ -13,3 +13,5 @@ databaseChangeLog:
   - include: {file: 0012-ajustar-anchos-perfiles.yaml, relativeToChangelogFile: true}
   - include: {file: 0013-crear-tabla-consentimientos-de-datos.yaml, relativeToChangelogFile: true}
   - include: {file: 0014-agregar-contrasena-temporal.yaml, relativeToChangelogFile: true}
+  - include: {file: 0015-sembrar-permisos-del-modulo-roles.yaml, relativeToChangelogFile: true}
+  - include: {file: 0016-sembrar-catalogo-granular-de-permisos.yaml, relativeToChangelogFile: true}
