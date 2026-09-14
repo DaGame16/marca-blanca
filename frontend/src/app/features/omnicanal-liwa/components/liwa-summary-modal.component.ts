@@ -3,70 +3,60 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { LiwaChat } from '../models/liwa.model';
 import { LiwaTableComponent } from './liwa-table.component';
+import { LiwaModalComponent } from '../shared/liwa-modal.component';
 
 type ModalMode = 'conversaciones' | 'clientes';
 
 // Traducción fiel de components/liwa/LiwaSummaryModal.tsx — se abre al hacer
-// clic en el KPI "Total de conversaciones".
+// clic en el KPI "Total de conversaciones". El overlay/caja/boton de cerrar
+// los aporta app-liwa-modal (ver shared/liwa-modal.component.ts); aca solo
+// queda el contenido propio (titulo + tabla o grilla de clientes).
 @Component({
   selector: 'app-liwa-summary-modal',
   standalone: true,
-  imports: [CommonModule, MatIconModule, LiwaTableComponent],
+  imports: [CommonModule, MatIconModule, LiwaTableComponent, LiwaModalComponent],
   template: `
-    <div class="overlay" (click)="cerrar.emit()">
-      <div class="modal" (click)="$event.stopPropagation()">
-        <header>
-          <div class="titulo">
-            <mat-icon>{{ mode === 'clientes' ? 'group' : 'chat' }}</mat-icon>
-            <div>
-              <h2>{{ mode === 'clientes' ? 'Clientes distintos' : 'Conversaciones de WhatsApp' }}</h2>
-              <p>{{ mode === 'clientes' ? (clientes.length + ' clientes') : (chats.length + ' conversaciones') }}</p>
-            </div>
+    <app-liwa-modal maxWidth="1024px" (cerrar)="cerrar.emit()">
+      <header>
+        <div class="titulo">
+          <mat-icon>{{ mode === 'clientes' ? 'group' : 'chat' }}</mat-icon>
+          <div>
+            <h2>{{ mode === 'clientes' ? 'Clientes distintos' : 'Conversaciones de WhatsApp' }}</h2>
+            <p>{{ mode === 'clientes' ? (clientes.length + ' clientes') : (chats.length + ' conversaciones') }}</p>
           </div>
-          <button type="button" class="cerrar" (click)="cerrar.emit()"><mat-icon>close</mat-icon></button>
-        </header>
-        <div class="cuerpo">
-          <div class="clientes-grid" *ngIf="mode === 'clientes'; else tabla">
-            <div class="cliente-card" *ngFor="let c of clientes">
-              <p class="nombre">{{ c.nombre || 'Cliente sin nombre' }}</p>
-              <p class="numero">{{ c.numero }}</p>
-              <div class="stats">
-                <span>{{ c.conversaciones }} conversaciones</span>
-                <span>{{ c.mensajes }} mensajes</span>
-              </div>
-            </div>
-            <p class="vacio" *ngIf="!clientes.length">No hay clientes para mostrar.</p>
-          </div>
-          <ng-template #tabla>
-            <app-liwa-table
-              [chats]="chats"
-              [contactosAnalizados]="contactosAnalizados"
-              (seleccionado)="seleccionar($event)"
-            />
-          </ng-template>
         </div>
+      </header>
+      <div class="cuerpo">
+        <div class="clientes-grid" *ngIf="mode === 'clientes'; else tabla">
+          <div class="cliente-card" *ngFor="let c of clientes">
+            <p class="nombre">{{ c.nombre || 'Cliente sin nombre' }}</p>
+            <p class="numero">{{ c.numero }}</p>
+            <div class="stats">
+              <span>{{ c.conversaciones }} conversaciones</span>
+              <span>{{ c.mensajes }} mensajes</span>
+            </div>
+          </div>
+          <p class="vacio" *ngIf="!clientes.length">No hay clientes para mostrar.</p>
+        </div>
+        <ng-template #tabla>
+          <app-liwa-table
+            [chats]="chats"
+            [contactosAnalizados]="contactosAnalizados"
+            (seleccionado)="seleccionar($event)"
+          />
+        </ng-template>
       </div>
-    </div>
+    </app-liwa-modal>
   `,
   styles: [`
-    .overlay {
-      position: fixed; inset: 0; z-index: 100; background: rgba(2,6,23,0.4); display: flex; align-items: center;
-      justify-content: center; padding: 12px;
-    }
-    .modal {
-      width: 100%; max-width: 1024px; max-height: 90vh; min-width: 0; display: flex; flex-direction: column;
-      background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);
-    }
     header {
-      display: flex; align-items: center; justify-content: space-between; padding: 12px 16px;
+      display: flex; align-items: center; justify-content: space-between; padding: 12px 44px 12px 16px;
       border-bottom: 1px solid #f1f5f9; flex-shrink: 0;
     }
     .titulo { display: flex; align-items: center; gap: 8px; }
     .titulo mat-icon { color: #059669; font-size: 18px; width: 18px; height: 18px; }
     .titulo h2 { margin: 0; font-size: 0.85rem; font-weight: 700; color: #1e293b; }
     .titulo p { margin: 0; font-size: 0.68rem; color: #94a3b8; }
-    .cerrar { border: none; background: transparent; cursor: pointer; color: #94a3b8; padding: 6px; border-radius: 8px; }
-    .cerrar:hover { background: #f1f5f9; color: #334155; }
     .cuerpo { min-height: 0; flex: 1; overflow-y: auto; padding: 12px 16px; }
     .clientes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
     .cliente-card { border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; }

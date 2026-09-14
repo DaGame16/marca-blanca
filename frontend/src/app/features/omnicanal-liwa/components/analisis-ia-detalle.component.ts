@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { LiwaService, parsearHistorial } from '../data/liwa.service';
 import { ABANDONADO_POR_LABELS, LiwaAnalisisDetalle, LiwaAnalisisItem, LiwaTurnoAnalizado } from '../models/liwa.model';
+import { LiwaModalComponent } from '../shared/liwa-modal.component';
 
 const FCR_DESCRIPCION = 'FCR (resolución en el primer contacto): el problema que escribió el cliente se respondió de una vez';
 
@@ -18,10 +19,9 @@ function esTurnoCliente(t: LiwaTurnoAnalizado): boolean {
 @Component({
   selector: 'app-liwa-analisis-detalle',
   standalone: true,
-  imports: [CommonModule, MatIconModule],
+  imports: [CommonModule, MatIconModule, LiwaModalComponent],
   template: `
-    <div class="overlay" (click)="cerrar.emit()">
-      <div class="modal" (click)="$event.stopPropagation()">
+    <app-liwa-modal maxWidth="680px" (cerrar)="cerrar.emit()">
         <header (click)="infoAbierta = !infoAbierta">
           <div class="titulo">
             <span class="icono"><mat-icon>psychology</mat-icon></span>
@@ -33,7 +33,6 @@ function esTurnoCliente(t: LiwaTurnoAnalizado): boolean {
               </span>
             </div>
           </div>
-          <button type="button" class="cerrar" (click)="$event.stopPropagation(); cerrar.emit()"><mat-icon>close</mat-icon></button>
         </header>
 
         <div class="info" *ngIf="infoAbierta">
@@ -97,21 +96,16 @@ function esTurnoCliente(t: LiwaTurnoAnalizado): boolean {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+    </app-liwa-modal>
   `,
   styles: [`
-    .overlay { position: fixed; inset: 0; z-index: 110; background: rgba(2,6,23,0.55); display: flex; align-items: center; justify-content: center; padding: 12px; }
-    .modal { width: 100%; max-width: 680px; max-height: 92vh; background: #fff; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
-    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #f1f5f9; cursor: pointer; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 44px 14px 18px; border-bottom: 1px solid #f1f5f9; cursor: pointer; }
     .titulo { display: flex; align-items: center; gap: 10px; min-width: 0; }
     .icono { width: 34px; height: 34px; border-radius: 10px; background: #f5f3ff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .icono mat-icon { color: #8b5cf6; font-size: 18px; width: 18px; height: 18px; }
     .min0 { min-width: 0; }
     .motivo { display: block; font-weight: 700; font-size: 0.82rem; color: #1e293b; }
     .meta { display: block; font-size: 0.68rem; color: #94a3b8; }
-    .cerrar { border: none; background: transparent; color: #94a3b8; cursor: pointer; padding: 6px; border-radius: 8px; }
-    .cerrar:hover { background: #f1f5f9; }
     .info { overflow-y: auto; max-height: 45vh; border-bottom: 1px solid #f1f5f9; padding: 12px 18px; }
     .alertas { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
     .alerta { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: 0.62rem; font-weight: 700; }

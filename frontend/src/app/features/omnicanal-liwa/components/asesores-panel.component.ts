@@ -8,6 +8,7 @@ import {
   MOTIVO_IA_LABELS, RESULTADO_LABELS,
 } from '../models/liwa.model';
 import { LiwaConversationDrawerComponent } from './conversation-drawer.component';
+import { LiwaModalComponent } from '../shared/liwa-modal.component';
 
 function formatTiempo(ms: number | null): string {
   if (ms == null || !Number.isFinite(ms)) return '—';
@@ -58,7 +59,7 @@ interface StatsAsesor {
 @Component({
   selector: 'app-liwa-asesores-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule, LiwaConversationDrawerComponent],
+  imports: [CommonModule, FormsModule, MatIconModule, LiwaConversationDrawerComponent, LiwaModalComponent],
   template: `
     <section class="tarjeta">
       <header>
@@ -154,9 +155,8 @@ interface StatsAsesor {
         (no resueltos, abandonados…) para ver solo esos casos.
       </p>
 
-      <div class="modal-overlay" *ngIf="asesorDetalle" (click)="detalleAsesor = null">
-        <div class="modal" (click)="$event.stopPropagation()">
-          <header>
+      <app-liwa-modal *ngIf="asesorDetalle" maxWidth="860px" (cerrar)="detalleAsesor = null">
+          <header class="detalle-header">
             <div class="asesor-cell">
               <span class="avatar"><mat-icon>person</mat-icon></span>
               <div>
@@ -164,7 +164,6 @@ interface StatsAsesor {
                 <p>{{ asesorDetalle.casosFiltrados.length }} casos · {{ asesorDetalle.chatsDebajo }} conversaciones · {{ asesorDetalle.pendientes }} pendientes</p>
               </div>
             </div>
-            <button type="button" (click)="detalleAsesor = null"><mat-icon>close</mat-icon></button>
           </header>
           <div class="modal-body">
             <div class="grid-mini">
@@ -227,8 +226,7 @@ interface StatsAsesor {
               <p class="mostrando" *ngIf="casosDetalle.length > 60">Mostrando 60 de {{ casosDetalle.length }} casos.</p>
             </div>
           </div>
-        </div>
-      </div>
+      </app-liwa-modal>
 
       <app-liwa-conversation-drawer [chat]="chatAbierto" (cerrado)="chatAbierto = null" />
     </section>
@@ -283,12 +281,9 @@ interface StatsAsesor {
     .cero { color: #cbd5e1; font-size: 0.7rem; }
     .ok-text { color: #047857; font-weight: 700; }
     .nota { margin: 14px 0 0; font-size: 0.63rem; color: #94a3b8; line-height: 1.4; }
-    .modal-overlay { position: fixed; inset: 0; z-index: 95; background: rgba(2,6,23,0.45); display: flex; align-items: center; justify-content: center; padding: 16px; }
-    .modal { width: 100%; max-width: 860px; max-height: 88vh; background: #fff; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
-    .modal header { padding: 14px 18px; border-bottom: 1px solid #f1f5f9; margin: 0; }
-    .modal header h3 { margin: 0; font-size: 0.95rem; font-weight: 800; color: #1e293b; }
-    .modal header p { margin: 2px 0 0; font-size: 0.68rem; color: #94a3b8; }
-    .modal header button { border: none; background: transparent; color: #94a3b8; cursor: pointer; padding: 6px; border-radius: 8px; }
+    .detalle-header { display: flex; padding: 14px 44px 14px 18px; border-bottom: 1px solid #f1f5f9; margin: 0; }
+    .detalle-header h3 { margin: 0; font-size: 0.95rem; font-weight: 800; color: #1e293b; }
+    .detalle-header p { margin: 2px 0 0; font-size: 0.68rem; color: #94a3b8; }
     .modal-body { overflow-y: auto; padding: 14px 18px; }
     .grid-mini { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-bottom: 12px; }
     .mini-card { text-align: left; border: 1px solid #f1f5f9; background: #f8fafc; border-radius: 10px; padding: 8px 10px; cursor: pointer; }

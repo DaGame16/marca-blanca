@@ -10,6 +10,7 @@ import {
 import { LiwaTablaAnalisisIaComponent } from './analisis-ia-tabla.component';
 import { LiwaConversationDrawerComponent } from './conversation-drawer.component';
 import { ScrollRevealDirective } from '../../../shared/animations/scroll-reveal.directive';
+import { LiwaModalComponent } from '../shared/liwa-modal.component';
 
 type DetalleKpi = 'conversaciones' | 'analizadas' | null;
 
@@ -39,7 +40,7 @@ function etiquetaSentimiento(s: string): string {
     CommonModule, MatIconModule, LiwaKpiGridCalidadComponent, LiwaBarrasCategoriasComponent,
     LiwaAnilloSentimientoComponent, LiwaMapaCalorComponent, LiwaBurbujasDispersionComponent,
     LiwaLineaTendenciaComponent, LiwaBarrasAreaComponent, LiwaTablaAnalisisIaComponent, LiwaConversationDrawerComponent,
-    ScrollRevealDirective,
+    ScrollRevealDirective, LiwaModalComponent,
   ],
   template: `
     <div class="dashboard">
@@ -47,27 +48,24 @@ function etiquetaSentimiento(s: string): string {
 
       <app-liwa-kpi-grid-calidad [kpis]="kpis" />
 
-      <div class="modal-overlay" *ngIf="detalleKpi" (click)="detalleKpi = null">
-        <div class="modal" (click)="$event.stopPropagation()">
-          <header>
-            <h3>{{ detalleKpi === 'conversaciones' ? ('Conversaciones archivadas (' + chats.length + ')') : ('Conversaciones analizadas por IA (' + analisisVisibles.length + ')') }}</h3>
-            <button type="button" (click)="detalleKpi = null"><mat-icon>close</mat-icon></button>
-          </header>
-          <div class="modal-body">
-            <div class="lista" *ngIf="detalleKpi === 'conversaciones'">
-              <button type="button" class="chat-item" *ngFor="let chat of chats" (click)="detalleKpi = null; chatSeleccionado = chat">
-                <div>
-                  <p class="nombre">{{ chat.nombre || formatear(chat.numero) }}</p>
-                  <p class="sub">{{ chat.nombre ? formatear(chat.numero) : 'Cliente de WhatsApp' }} · {{ chat.cantidadMensajes }} mensajes</p>
-                </div>
-                <mat-icon>chevron_right</mat-icon>
-              </button>
-              <p class="vacio" *ngIf="!chats.length">No hay conversaciones en el periodo.</p>
-            </div>
-            <app-liwa-tabla-analisis-ia *ngIf="detalleKpi === 'analizadas'" [items]="analisisVisibles" [cargando]="cargandoAnalisis" [mostrarResumen]="false" />
+      <app-liwa-modal *ngIf="detalleKpi" maxWidth="760px" (cerrar)="detalleKpi = null">
+        <header>
+          <h3>{{ detalleKpi === 'conversaciones' ? ('Conversaciones archivadas (' + chats.length + ')') : ('Conversaciones analizadas por IA (' + analisisVisibles.length + ')') }}</h3>
+        </header>
+        <div class="modal-body">
+          <div class="lista" *ngIf="detalleKpi === 'conversaciones'">
+            <button type="button" class="chat-item" *ngFor="let chat of chats" (click)="detalleKpi = null; chatSeleccionado = chat">
+              <div>
+                <p class="nombre">{{ chat.nombre || formatear(chat.numero) }}</p>
+                <p class="sub">{{ chat.nombre ? formatear(chat.numero) : 'Cliente de WhatsApp' }} · {{ chat.cantidadMensajes }} mensajes</p>
+              </div>
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+            <p class="vacio" *ngIf="!chats.length">No hay conversaciones en el periodo.</p>
           </div>
+          <app-liwa-tabla-analisis-ia *ngIf="detalleKpi === 'analizadas'" [items]="analisisVisibles" [cargando]="cargandoAnalisis" [mostrarResumen]="false" />
         </div>
-      </div>
+      </app-liwa-modal>
 
       <div class="grid-2">
         <div class="tarjeta" appScrollReveal>
@@ -124,11 +122,8 @@ function etiquetaSentimiento(s: string): string {
     .cargando { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 24px; color: #94a3b8; font-size: 0.75rem; }
     .spin { animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .modal-overlay { position: fixed; inset: 0; z-index: 90; background: rgba(2,6,23,0.45); display: flex; align-items: center; justify-content: center; padding: 16px; }
-    .modal { width: 100%; max-width: 760px; max-height: 88vh; background: #fff; border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
-    .modal header { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid #f1f5f9; }
-    .modal header h3 { margin: 0; font-size: 0.85rem; font-weight: 700; color: #1e293b; }
-    .modal header button { border: none; background: transparent; color: #94a3b8; cursor: pointer; padding: 6px; border-radius: 8px; }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 14px 44px 14px 18px; border-bottom: 1px solid #f1f5f9; }
+    header h3 { margin: 0; font-size: 0.85rem; font-weight: 700; color: #1e293b; }
     .modal-body { overflow-y: auto; padding: 14px 18px; }
     .lista { display: flex; flex-direction: column; gap: 8px; }
     .chat-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 12px; background: #fff; cursor: pointer; text-align: left; }

@@ -6,6 +6,7 @@ import { LiwaService } from '../data/liwa.service';
 import { LiwaAnalisisItem, LiwaCasoResumenAnalisis, LiwaChat, LiwaResumenContacto } from '../models/liwa.model';
 import { LiwaAnalisisDetalleComponent } from './analisis-ia-detalle.component';
 import { ScrollRevealDirective } from '../../../shared/animations/scroll-reveal.directive';
+import { LiwaModalComponent } from '../shared/liwa-modal.component';
 
 type Filtro = 'todos' | 'sentimiento' | 'soporte' | 'matriz' | 'asesor' | 'mapa' | 'ventas' | 'ads';
 
@@ -51,7 +52,7 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
 @Component({
   selector: 'app-liwa-case-reports-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatIconModule, LiwaAnalisisDetalleComponent, ScrollRevealDirective],
+  imports: [CommonModule, FormsModule, MatIconModule, LiwaAnalisisDetalleComponent, ScrollRevealDirective, LiwaModalComponent],
   template: `
     <section class="panel">
       <div class="cabecera">
@@ -263,33 +264,30 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
         </div>
       </div>
 
-      <div class="modal-overlay" *ngIf="resumenContacto" (click)="resumenContacto = null">
-        <div class="modal" (click)="$event.stopPropagation()">
-          <header>
-            <div>
-              <h3>{{ resumenContacto!.nombreContacto || 'Contacto sin nombre' }}</h3>
-              <p>{{ resumenContacto!.idContacto }} · {{ resumenContacto!.totalCasos }} caso{{ resumenContacto!.totalCasos === 1 ? '' : 's' }}</p>
-            </div>
-            <button type="button" (click)="resumenContacto = null">Cerrar</button>
-          </header>
-          <div class="modal-body">
-            <div class="caso-resumen" *ngFor="let caso of resumenContacto!.casos">
-              <div class="fila-caso">
-                <span class="fecha">{{ (caso.archivadaEn || '').slice(0, 10) || '—' }}</span>
-                <span class="badge" [class.res-ok]="caso.procesada" [class.res-amber]="!caso.procesada">
-                  {{ caso.procesada ? (caso.analisis?.resultado || 'Analizado') : 'Pendiente de análisis' }}
-                </span>
-              </div>
-              <ng-container *ngIf="caso.analisis as a">
-                <p class="motivo-texto">{{ a.resumenMotivo }}</p>
-                <p class="sub-caso">{{ a.motivoContacto || 'Sin motivo' }} {{ a.sentimientoFinal ? '· ' + a.sentimientoFinal : '' }}</p>
-                <button type="button" class="ver-caso" (click)="verDesdeResumen(a)">Ver caso</button>
-              </ng-container>
-            </div>
-            <p class="vacio" *ngIf="!resumenContacto!.casos.length">Sin casos registrados.</p>
+      <app-liwa-modal *ngIf="resumenContacto" maxWidth="640px" (cerrar)="resumenContacto = null">
+        <header>
+          <div>
+            <h3>{{ resumenContacto!.nombreContacto || 'Contacto sin nombre' }}</h3>
+            <p>{{ resumenContacto!.idContacto }} · {{ resumenContacto!.totalCasos }} caso{{ resumenContacto!.totalCasos === 1 ? '' : 's' }}</p>
           </div>
+        </header>
+        <div class="modal-body">
+          <div class="caso-resumen" *ngFor="let caso of resumenContacto!.casos">
+            <div class="fila-caso">
+              <span class="fecha">{{ (caso.archivadaEn || '').slice(0, 10) || '—' }}</span>
+              <span class="badge" [class.res-ok]="caso.procesada" [class.res-amber]="!caso.procesada">
+                {{ caso.procesada ? (caso.analisis?.resultado || 'Analizado') : 'Pendiente de análisis' }}
+              </span>
+            </div>
+            <ng-container *ngIf="caso.analisis as a">
+              <p class="motivo-texto">{{ a.resumenMotivo }}</p>
+              <p class="sub-caso">{{ a.motivoContacto || 'Sin motivo' }} {{ a.sentimientoFinal ? '· ' + a.sentimientoFinal : '' }}</p>
+              <button type="button" class="ver-caso" (click)="verDesdeResumen(a)">Ver caso</button>
+            </ng-container>
+          </div>
+          <p class="vacio" *ngIf="!resumenContacto!.casos.length">Sin casos registrados.</p>
         </div>
-      </div>
+      </app-liwa-modal>
 
       <app-liwa-analisis-detalle *ngIf="detalle" [item]="detalle" (cerrar)="detalle = null" />
     </section>
@@ -400,13 +398,10 @@ function countValue(data: Record<string, unknown> | null | undefined, keys: stri
     .botones { display: flex; gap: 6px; }
     .botones button { border: 1px solid #e2e8f0; background: #fff; padding: 6px 12px; border-radius: 8px; font-size: 0.7rem; font-weight: 600; color: #475569; cursor: pointer; }
     .botones button:disabled { opacity: 0.4; cursor: not-allowed; }
-    .modal-overlay { position: fixed; inset: 0; z-index: 95; background: rgba(2,6,23,0.4); display: flex; align-items: center; justify-content: center; padding: 16px; }
-    .modal { width: 100%; max-width: 640px; max-height: 85vh; overflow: auto; background: #fff; border-radius: 16px; padding: 18px; }
-    .modal header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-    .modal header h3 { margin: 0; font-size: 0.95rem; font-weight: 700; color: #1e293b; }
-    .modal header p { margin: 2px 0 0; font-size: 0.7rem; color: #64748b; }
-    .modal header button { border: none; background: transparent; color: #64748b; cursor: pointer; font-size: 0.72rem; }
-    .modal-body { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+    header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding: 18px 44px 0 18px; flex-shrink: 0; }
+    header h3 { margin: 0; font-size: 0.95rem; font-weight: 700; color: #1e293b; }
+    header p { margin: 2px 0 0; font-size: 0.7rem; color: #64748b; }
+    .modal-body { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding: 0 18px 18px; }
     .caso-resumen { border: 1px solid #f1f5f9; border-radius: 12px; padding: 10px; }
     .fila-caso { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; font-size: 0.72rem; }
     .fila-caso .fecha { font-weight: 700; color: #334155; }

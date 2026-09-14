@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BaseChartDirective, provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { ChartConfiguration } from 'chart.js';
+import { CHARTJS_TOOLTIP } from '../shared/liwa-paleta';
 
 // Traducción de components/liwa/LiwaCharts.tsx -> ActividadLine. El original
 // usa Chart.js (react-chartjs-2); acá se replica con ng2-charts manteniendo
@@ -76,15 +77,7 @@ export class LiwaActividadLineComponent {
     maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
-      tooltip: {
-        backgroundColor: '#ffffff',
-        titleColor: '#0f172a',
-        bodyColor: '#334155',
-        borderColor: '#e2e8f0',
-        borderWidth: 1,
-        cornerRadius: 8,
-        padding: 10,
-      },
+      tooltip: CHARTJS_TOOLTIP,
     },
     scales: {
       x: {
