@@ -58,4 +58,37 @@
         <module>consola/consola-infrastructure</module>
         <module>bootstrap</module>
     </modules>
+
+    <build>
+        <plugins>
+            <!-- Sin esto, "mvn verify" corria los tests reales pero nunca
+                 generaba target/site/jacoco/jacoco.xml, asi que SonarQube
+                 reportaba 0.0% de coverage aunque los tests pasaran.
+                 prepare-agent instrumenta el bytecode antes de correr los
+                 tests (fase initialize); report genera el XML despues de
+                 que corren (fase test), a tiempo para que sonar-maven-plugin
+                 (que corre en la fase verify siguiente) lo detecte solo
+                 via su ruta por defecto. -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.13</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
