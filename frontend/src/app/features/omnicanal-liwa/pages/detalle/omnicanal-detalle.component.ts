@@ -21,21 +21,21 @@ import { ScrollRevealDirective } from '../../../../shared/animations/scroll-reve
           </a>
 
           <div class="module-icon-lg" appScrollReveal>
-            <mat-icon>support_agent</mat-icon>
+            <mat-icon>insights</mat-icon>
           </div>
-          <div class="eyebrow" appScrollReveal [appScrollRevealDelay]="0.05"><span></span>COMUNICACIÓN OMNICANAL</div>
+          <div class="eyebrow" appScrollReveal [appScrollRevealDelay]="0.05"><span></span>ANÁLISIS DE CONVERSACIONES (LIWA)</div>
           <h1 appScrollReveal [appScrollRevealDelay]="0.1">
-            Todas tus <span class="highlight">conversaciones</span>, un solo lugar.
+            Cada conversación de WhatsApp, <span class="highlight">analizada por IA</span>.
           </h1>
           <p appScrollReveal [appScrollRevealDelay]="0.15">
-            Gestiona la comunicación con tus clientes desde todos los canales, sin perder
-            contexto ni saltar entre aplicaciones.
+            Liwa revisa automáticamente cada caso archivado del bot de WhatsApp: motivo de
+            contacto, sentimiento, resolución, causa de abandono y oportunidades de venta.
           </p>
 
           <div class="hero-highlights" appScrollReveal [appScrollRevealDelay]="0.2">
-            <span><mat-icon>forum</mat-icon> Bandeja unificada</span>
-            <span><mat-icon>hub</mat-icon> WhatsApp, chat y correo</span>
-            <span><mat-icon>history</mat-icon> Historial por cliente</span>
+            <span><mat-icon>psychology</mat-icon> Análisis IA por caso</span>
+            <span><mat-icon>leaderboard</mat-icon> Ranking de asesores</span>
+            <span><mat-icon>campaign</mat-icon> ROI de Meta Ads</span>
           </div>
         </div>
       </section>
@@ -43,33 +43,33 @@ import { ScrollRevealDirective } from '../../../../shared/animations/scroll-reve
       <section class="module-body">
         <div class="section-heading" appScrollReveal>
           <div class="eyebrow dark"><span></span>¿QUÉ INCLUYE?</div>
-          <h2>Todo lo que tu equipo de atención necesita.</h2>
+          <h2>Todo lo que tu equipo de atención necesita para medir calidad.</h2>
         </div>
 
         <div class="feature-grid">
           <div class="feature-card" appScrollReveal [appScrollRevealDelay]="0.05" (mousemove)="onSpotlight($event)">
             <div class="card-glow"></div>
-            <div class="feature-icon violet"><mat-icon>inbox</mat-icon></div>
-            <h3>Atención unificada</h3>
-            <p>Todas las conversaciones de tus clientes centralizadas en una sola bandeja de entrada.</p>
+            <div class="feature-icon violet"><mat-icon>psychology</mat-icon></div>
+            <h3>Análisis automático por caso</h3>
+            <p>Motivo de contacto, sentimiento, resolución y causa de abandono, calculados por IA en cada conversación archivada.</p>
           </div>
           <div class="feature-card" appScrollReveal [appScrollRevealDelay]="0.12" (mousemove)="onSpotlight($event)">
             <div class="card-glow"></div>
-            <div class="feature-icon blue"><mat-icon>hub</mat-icon></div>
-            <h3>Múltiples canales</h3>
-            <p>WhatsApp, chat web, correo y más, conectados a un mismo flujo de atención.</p>
+            <div class="feature-icon blue"><mat-icon>leaderboard</mat-icon></div>
+            <h3>Ranking de asesores</h3>
+            <p>Indicadores tipo call center (FCR, tiempo de respuesta, tasa de resolución) por asesor y por equipo.</p>
           </div>
           <div class="feature-card" appScrollReveal [appScrollRevealDelay]="0.19" (mousemove)="onSpotlight($event)">
             <div class="card-glow"></div>
-            <div class="feature-icon green"><mat-icon>history</mat-icon></div>
-            <h3>Historial centralizado</h3>
-            <p>El historial completo de cada cliente disponible para todo tu equipo de atención.</p>
+            <div class="feature-icon green"><mat-icon>campaign</mat-icon></div>
+            <h3>ROI de Meta Ads</h3>
+            <p>Detecta qué conversaciones vinieron de una campaña y mide su resultado real, no solo clics.</p>
           </div>
         </div>
 
         <div class="cta-panel" appScrollReveal>
           <div>
-            <h3>Listo para centralizar tu comunicación.</h3>
+            <h3>Listo para analizar tus conversaciones de WhatsApp.</h3>
             <p>Actívalo desde el wizard de registro o desde "Mis módulos" si tu empresa ya tiene una cuenta.</p>
           </div>
           <a mat-flat-button color="primary" routerLink="/registro" [queryParams]="{ modulo: 'omnicanal' }" class="cta-btn">

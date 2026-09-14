@@ -85,9 +85,9 @@ const INTRO_YA_VISTA = 'mb_intro_vista';
                 (mousemove)="onSpotlight($event)"
               >
                 <div class="card-glow"></div>
-                <div class="icon-box"><mat-icon>support_agent</mat-icon></div>
-                <h3>Comunicación omnicanal</h3>
-                <p>WhatsApp, redes y correo en una sola bandeja de casos.</p>
+                <div class="icon-box"><mat-icon>insights</mat-icon></div>
+                <h3>Análisis de conversaciones (Liwa)</h3>
+                <p>Cada caso de WhatsApp analizado por IA: motivo, sentimiento y resolución.</p>
                 <span>Conocer solución <mat-icon>arrow_forward</mat-icon></span>
               </a>
 
