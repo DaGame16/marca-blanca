@@ -7,34 +7,22 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MisModulosService } from './mis-modulos.service';
 import { ModuloDeEmpresa } from '../../../../core/admin/models';
-import { CODIGOS_EXCLUIDOS, colorAcento, colorClaro, icono, rutaPanel } from './modulo-apariencia';
+import { CODIGOS_EXCLUIDOS, colorAcento, colorClaro, icono } from './modulo-apariencia';
 
 @Component({
-  selector: 'app-mis-modulos',
+  selector: 'app-instalar-modulos',
   standalone: true,
   imports: [FormsModule, RouterLink, MatIconModule, MatButtonModule, MatProgressSpinnerModule, MatSnackBarModule],
   template: `
     <div class="apps-page">
       <header class="apps-header">
         <div class="apps-header-text">
-          <h1>Mis módulos</h1>
-          <p>Estos son los módulos que tu empresa tiene activos. Puedes desinstalarlos cuando quieras.</p>
-          <a routerLink="/mi-marca" class="marca-link">
-            <mat-icon inline>palette</mat-icon>
-            Personalizar mi marca
+          <a routerLink="/mis-modulos" class="volver-link">
+            <mat-icon inline>arrow_back</mat-icon>
+            Volver a Mis módulos
           </a>
-          <a routerLink="/tema-login" class="marca-link">
-            <mat-icon inline>login</mat-icon>
-            Diseño de inicio de sesión
-          </a>
-          <a routerLink="/usuarios" class="marca-link">
-            <mat-icon inline>group</mat-icon>
-            Gestionar usuarios
-          </a>
-          <a routerLink="/instalar-modulos" class="marca-link marca-link-destacado">
-            <mat-icon inline>add_circle</mat-icon>
-            Instalar módulos
-          </a>
+          <h1>Instalar módulos</h1>
+          <p>Módulos disponibles que todavía no has activado en tu empresa.</p>
         </div>
 
         <div class="search-box">
@@ -64,20 +52,16 @@ import { CODIGOS_EXCLUIDOS, colorAcento, colorClaro, icono, rutaPanel } from './
         <div class="state-container">
           @if (busqueda()) {
             <mat-icon>search_off</mat-icon>
-            <p>No encontramos módulos instalados que coincidan con "{{ busqueda() }}"</p>
+            <p>No encontramos módulos que coincidan con "{{ busqueda() }}"</p>
           } @else {
-            <mat-icon>extension_off</mat-icon>
-            <p>Todavía no tienes ningún módulo instalado.</p>
-            <a routerLink="/instalar-modulos" mat-flat-button color="primary">
-              <mat-icon inline>add_circle</mat-icon>
-              Instalar módulos
-            </a>
+            <mat-icon>check_circle</mat-icon>
+            <p>Ya tienes todos los módulos disponibles instalados.</p>
           }
         </div>
       } @else {
         <div class="apps-grid">
           @for (modulo of modulosFiltrados(); track modulo.codigo) {
-            <div class="app-card app-card-activo">
+            <div class="app-card">
               <div
                 class="app-icon"
                 [style.background]="colorClaro(modulo.codigo)"
@@ -90,24 +74,16 @@ import { CODIGOS_EXCLUIDOS, colorAcento, colorClaro, icono, rutaPanel } from './
               <p class="app-desc">{{ modulo.descripcion }}</p>
 
               <div class="app-action">
-                <a [routerLink]="rutaPanel(modulo.codigo)" class="btn-abrir">
-                  <mat-icon inline>open_in_new</mat-icon>
-                  Abrir
-                </a>
                 <button
-                  class="btn-installed"
+                  class="btn-install"
+                  [style.--accent]="colorAcento(modulo.codigo)"
                   [disabled]="procesando() === modulo.codigo"
-                  (click)="desinstalar(modulo)"
+                  (click)="instalar(modulo)"
                 >
                   @if (procesando() === modulo.codigo) {
                     <mat-spinner diameter="16"></mat-spinner>
                   } @else {
-                    <ng-container>
-                      <mat-icon class="icon-default">check_circle</mat-icon>
-                      <mat-icon class="icon-hover">close</mat-icon>
-                      <span class="label-default">Instalado</span>
-                      <span class="label-hover">Desinstalar</span>
-                    </ng-container>
+                    Instalar
                   }
                 </button>
               </div>
@@ -133,31 +109,26 @@ import { CODIGOS_EXCLUIDOS, colorAcento, colorClaro, icono, rutaPanel } from './
       margin-bottom: 40px;
     }
 
+    .volver-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #2563eb;
+      text-decoration: none;
+      margin-bottom: 10px;
+    }
+
+    .volver-link:hover {
+      text-decoration: underline;
+    }
+
     .apps-header-text h1 {
       font-size: 1.9rem;
       font-weight: 800;
       margin: 0 0 6px;
       color: #0f172a;
-    }
-
-    .marca-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 10px;
-      margin-right: 16px;
-      font-size: 13px;
-      font-weight: 600;
-      color: #2563eb;
-      text-decoration: none;
-    }
-
-    .marca-link:hover {
-      text-decoration: underline;
-    }
-
-    .marca-link-destacado {
-      color: #16a34a;
     }
 
     .apps-header-text p {
@@ -224,10 +195,6 @@ import { CODIGOS_EXCLUIDOS, colorAcento, colorClaro, icono, rutaPanel } from './
       border-color: transparent;
     }
 
-    .app-card-activo {
-      border-color: #c7d2fe;
-    }
-
     .app-icon {
       width: 56px;
       height: 56px;
@@ -267,74 +234,27 @@ import { CODIGOS_EXCLUIDOS, colorAcento, colorClaro, icono, rutaPanel } from './
       gap: 8px;
     }
 
-    .btn-abrir {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      height: 34px;
-      border-radius: 8px;
-      background: #eff6ff;
-      color: #2563eb;
-      font-weight: 600;
-      font-size: 0.85rem;
-      text-decoration: none;
-    }
-
-    .btn-abrir:hover {
-      background: #dbeafe;
-    }
-
-    .btn-abrir mat-icon {
-      font-size: 16px;
-      width: 16px;
-      height: 16px;
-    }
-
-    .btn-installed {
+    .btn-install {
       width: 100%;
       height: 38px;
-      border: 1px solid #bbf7d0;
+      border: none;
       border-radius: 8px;
-      background: #f0fdf4;
-      color: #16a34a;
+      background: var(--accent, #2563eb);
+      color: white;
       font-weight: 600;
       font-size: 0.88rem;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      transition: opacity 0.2s ease;
     }
 
-    .icon-hover,
-    .label-hover {
-      display: none;
+    .btn-install:hover {
+      opacity: 0.9;
     }
 
-    .btn-installed:hover {
-      border-color: #fecaca;
-      background: #fef2f2;
-      color: #dc2626;
-    }
-
-    .btn-installed:hover .icon-default,
-    .btn-installed:hover .label-default {
-      display: none;
-    }
-
-    .btn-installed:hover .icon-hover,
-    .btn-installed:hover .label-hover {
-      display: inline-flex;
-    }
-
-    .btn-installed mat-icon {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
-    }
-
-    .btn-installed:disabled {
+    .btn-install:disabled {
       opacity: 0.6;
       cursor: default;
     }
@@ -351,14 +271,13 @@ import { CODIGOS_EXCLUIDOS, colorAcento, colorClaro, icono, rutaPanel } from './
     }
   `],
 })
-export class MisModulosComponent implements OnInit {
+export class InstalarModulosComponent implements OnInit {
   private readonly misModulosService = inject(MisModulosService);
   private readonly snackBar = inject(MatSnackBar);
 
   protected readonly icono = icono;
   protected readonly colorAcento = colorAcento;
   protected readonly colorClaro = colorClaro;
-  protected readonly rutaPanel = rutaPanel;
 
   readonly modulos = signal<ModuloDeEmpresa[]>([]);
   readonly cargando = signal(false);
@@ -366,15 +285,15 @@ export class MisModulosComponent implements OnInit {
   readonly procesando = signal<string | null>(null);
   readonly busqueda = signal('');
 
-  // Solo los modulos ya activos -- para instalar uno nuevo, ver "Instalar
-  // módulos" (instalar-modulos.component.ts).
+  // Solo los modulos que la empresa todavia NO tiene activos -- una vez
+  // instalado, desaparece de aca y pasa a "Mis módulos".
   readonly modulosFiltrados = computed(() => {
     const termino = this.busqueda().trim().toLowerCase();
-    const instalados = this.modulos().filter((m) => m.activo);
+    const disponibles = this.modulos().filter((m) => !m.activo);
     if (!termino) {
-      return instalados;
+      return disponibles;
     }
-    return instalados.filter(
+    return disponibles.filter(
       (m) => m.nombre.toLowerCase().includes(termino) || m.descripcion.toLowerCase().includes(termino)
     );
   });
@@ -393,18 +312,18 @@ export class MisModulosComponent implements OnInit {
         this.cargando.set(false);
       },
       error: () => {
-        this.error.set('No pudimos cargar tus módulos. Intenta de nuevo en unos segundos.');
+        this.error.set('No pudimos cargar los módulos disponibles. Intenta de nuevo en unos segundos.');
         this.cargando.set(false);
       },
     });
   }
 
-  desinstalar(modulo: ModuloDeEmpresa): void {
+  instalar(modulo: ModuloDeEmpresa): void {
     this.procesando.set(modulo.codigo);
-    this.misModulosService.desactivar(modulo.codigo).subscribe({
+    this.misModulosService.activar(modulo.codigo).subscribe({
       next: () => {
-        this.modulos.set(this.modulos().map((m) => (m.codigo === modulo.codigo ? { ...m, activo: false } : m)));
-        this.snackBar.open(`${modulo.nombre} desinstalado`, 'Cerrar', { duration: 2500 });
+        this.modulos.set(this.modulos().map((m) => (m.codigo === modulo.codigo ? { ...m, activo: true } : m)));
+        this.snackBar.open(`${modulo.nombre} instalado`, 'Cerrar', { duration: 2500 });
         this.procesando.set(null);
       },
       error: () => {

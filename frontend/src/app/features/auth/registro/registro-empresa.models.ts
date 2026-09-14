@@ -20,8 +20,8 @@ export interface RegistrarEmpresaResponse {
 // Pasos 3-5 -- PUT /api/v1/registro/empresas/{empresaId}/personalizacion
 // (reemplazo total: se manda todo lo acumulado en cada llamada). tipoLogin y
 // tipoPantallaPrincipal son codigos 1..3: coinciden con el orden de las
-// opciones mostradas en el wizard (lateral/clasico=1, centrado/compacto=2,
-// fondo/amplio=3).
+// opciones mostradas en el wizard (lateral/clasico=1, centrado/derecha=2,
+// fondo/encabezado=3).
 export interface PersonalizacionRequest {
   colorPrimario: string | null;
   colorSecundario: string | null;

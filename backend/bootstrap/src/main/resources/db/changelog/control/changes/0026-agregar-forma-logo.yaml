@@ -1,0 +1,22 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0026-agregar-forma-logo
+      author: claude
+      comment: Forma de la caja del logo (1=cuadrado, 2=rectangular, 3=circular) -- self-service desde "Mi marca", mismo patron que ajuste_logo.
+      changes:
+        - addColumn:
+            schemaName: plataforma
+            tableName: tbl_empresas_marca
+            columns:
+              - column:
+                  name: forma_logo
+                  type: SMALLINT
+                  defaultValueNumeric: 1
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: >
+              ALTER TABLE plataforma.tbl_empresas_marca
+              ADD CONSTRAINT ck_empresas_marca_forma_logo CHECK (forma_logo BETWEEN 1 AND 3)
+      rollback:
+        - dropColumn: {schemaName: plataforma, tableName: tbl_empresas_marca, columnName: forma_logo}

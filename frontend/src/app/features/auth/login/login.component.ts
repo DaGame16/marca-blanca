@@ -13,6 +13,8 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { MarcaService } from '../../../core/identidad-visual/marca.service';
 import { MarcaDeEmpresa } from '../../../core/identidad-visual/models';
 import { BrandMarkComponent } from '../../../shared/brand/brand-mark.component';
+import { ordenarClaroOscuro } from '../../../shared/brand/color-utils';
+import { estiloFormaLogo } from '../../../shared/brand/logo-forma';
 
 type TemaVisual = 'lateral' | 'centrado' | 'fondo';
 
@@ -67,25 +69,16 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
          ngTemplateOutlet para no triplicar los bindings del form. -->
     <ng-template #formularioTpl>
       <form [formGroup]="form" (ngSubmit)="submit()">
-        @if (sinSubdominio()) {
-          <!-- Solo aparece cuando no hay subdominio (ej. probando en un
-               dominio sin wildcard configurado todavia, como *.onrender.com)
-               -- ahi el correo solo no alcanza para saber la empresa si el
-               mismo correo se uso para registrar varias (ver resolver por
-               correo en submit(), que falla si es ambiguo). -->
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Identificador de tu empresa (opcional)</mat-label>
-            <input matInput type="text" formControlName="identificadorEmpresa" autocomplete="off" />
-            <mat-icon matPrefix>business</mat-icon>
-            <mat-hint>Solo hace falta si tu correo se uso para mas de una empresa de prueba.</mat-hint>
-          </mat-form-field>
-        }
-
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Correo electrónico</mat-label>
           <input matInput type="email" formControlName="correo" autocomplete="email" />
           <mat-icon matPrefix>mail_outline</mat-icon>
         </mat-form-field>
+        @if (form.controls.correo.invalid && form.controls.correo.touched) {
+          <p class="campo-error">
+            {{ form.controls.correo.hasError('required') ? 'El correo es obligatorio.' : 'Ingresa un correo válido.' }}
+          </p>
+        }
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Contraseña</mat-label>
@@ -106,6 +99,9 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
             <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
         </mat-form-field>
+        @if (form.controls.contrasena.invalid && form.controls.contrasena.touched) {
+          <p class="campo-error">La contraseña es obligatoria.</p>
+        }
 
         <label class="recordarme">
           <input type="checkbox" formControlName="recordarme" />
@@ -148,11 +144,18 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
     <!-- El logo real de la empresa (si lo configuro) reemplaza el icono
          generico -- ver MarcaPublicaController (backend) y marcaPublica()
          aca abajo. -->
-    <ng-template #logoTpl>
+    <ng-template #logoTpl let-variante="variante">
       @if (marcaPublica()?.urlLogo; as logo) {
-        <img [src]="logo" alt="" class="brand-logo-img" />
+        <img
+          [src]="logo"
+          alt=""
+          class="brand-logo-img"
+          [style.object-fit]="ajusteLogoCss()"
+          [style.border-radius]="formaLogoRadio()"
+          [style.aspect-ratio]="formaLogoAspecto()"
+        />
       } @else {
-        <app-brand-mark class="brand-logo-icon" />
+        <app-brand-mark class="brand-logo-icon" [variante]="variante || 'blanco'" />
       }
     </ng-template>
 
@@ -160,12 +163,12 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
       @case ('centrado') {
         <div
           class="login-page tema-centrado"
-          [style.--brand-light]="colorPrimario()"
-          [style.--brand-dark]="colorSecundario()"
+          [style.--brand-light]="colorAcento()"
+          [style.--brand-dark]="colorFondo()"
         >
-          <div class="tarjeta-centrada">
+          <div class="tarjeta-centrada entrada-animada">
             <div class="logo-centrado">
-              <ng-container [ngTemplateOutlet]="logoTpl"></ng-container>
+              <ng-container [ngTemplateOutlet]="logoTpl" [ngTemplateOutletContext]="{ variante: 'negro' }"></ng-container>
             </div>
             <h2>{{ nombreEmpresa() }}</h2>
             <p class="form-subtitle">Iniciar sesión</p>
@@ -176,11 +179,11 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
       @case ('fondo') {
         <div
           class="login-page tema-fondo"
-          [style.--brand-light]="colorPrimario()"
-          [style.--brand-dark]="colorSecundario()"
+          [style.--brand-light]="colorAcento()"
+          [style.--brand-dark]="colorFondo()"
         >
           <div class="fondo-overlay"></div>
-          <div class="tarjeta-flotante">
+          <div class="tarjeta-flotante entrada-animada">
             <div class="logo-centrado">
               <ng-container [ngTemplateOutlet]="logoTpl"></ng-container>
             </div>
@@ -202,8 +205,8 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
       @default {
         <div
           class="login-page tema-lateral"
-          [style.--brand-light]="colorPrimario()"
-          [style.--brand-dark]="colorSecundario()"
+          [style.--brand-light]="colorAcento()"
+          [style.--brand-dark]="colorFondo()"
         >
           <section class="brand-panel">
             <div class="brand-shape shape-a"></div>
@@ -212,7 +215,7 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
             @if (marcaPublica()?.nombreEmpresa; as nombre) {
               <!-- Empresa identificada por el subdominio: el panel es de
                    ELLA, no un aviso publicitario de la plataforma. -->
-              <div class="brand-content brand-content-empresa">
+              <div class="brand-content brand-content-empresa entrada-animada">
                 <div class="brand-logo-grande">
                   <ng-container [ngTemplateOutlet]="logoTpl"></ng-container>
                 </div>
@@ -220,10 +223,10 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
                 <p class="brand-tagline">Inicia sesión para entrar a tu plataforma</p>
               </div>
             } @else {
-              <div class="brand-content">
+              <div class="brand-content entrada-animada">
                 <div class="brand-logo">
                   <ng-container [ngTemplateOutlet]="logoTpl"></ng-container>
-                  <span>Marca Blanca</span>
+                  <span>LINELCA</span>
                 </div>
 
                 <h1>Gestiona tu empresa desde un solo lugar</h1>
@@ -250,7 +253,7 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
           </section>
 
           <section class="form-panel">
-            <div class="form-wrapper">
+            <div class="form-wrapper entrada-animada entrada-animada-retraso">
               <a routerLink="/" class="back-link">
                 <mat-icon>arrow_back</mat-icon>
                 Volver al inicio
@@ -292,6 +295,12 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
         color: #b3261e;
         font-size: 13px;
         margin: 4px 0 16px;
+      }
+
+      .campo-error {
+        margin: -12px 0 12px;
+        font-size: 0.78rem;
+        color: #dc2626;
       }
 
       .error mat-icon {
@@ -584,8 +593,8 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
         align-items: center;
         justify-content: center;
         padding: 24px;
-        background: radial-gradient(circle at 15% 15%, #4c1d95 0%, transparent 45%),
-          radial-gradient(circle at 85% 30%, #1d4ed8 0%, transparent 50%),
+        background: radial-gradient(circle at 15% 15%, var(--brand-dark) 0%, transparent 45%),
+          radial-gradient(circle at 85% 30%, var(--brand-light) 0%, transparent 50%),
           linear-gradient(160deg, #05030f 0%, #0f0a24 55%, #1a1035 100%);
         overflow: hidden;
       }
@@ -593,8 +602,8 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
       .fondo-overlay {
         position: absolute;
         inset: 0;
-        background: radial-gradient(circle at 20% 80%, rgba(124, 58, 237, 0.18), transparent 55%),
-          radial-gradient(circle at 80% 15%, rgba(37, 99, 235, 0.18), transparent 50%);
+        background: radial-gradient(circle at 20% 80%, color-mix(in srgb, var(--brand-dark) 45%, transparent), transparent 55%),
+          radial-gradient(circle at 80% 15%, color-mix(in srgb, var(--brand-light) 45%, transparent), transparent 50%);
       }
 
       .tarjeta-flotante {
@@ -640,7 +649,7 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, #7c3aed, #2563eb);
+        background: linear-gradient(135deg, var(--brand-dark), var(--brand-light));
         margin-bottom: 10px;
       }
 
@@ -683,6 +692,10 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
         color: #93c5fd;
       }
 
+      .tema-fondo .campo-error {
+        color: #fca5a5;
+      }
+
       .tema-fondo .brand-logo-icon {
         color: #f8fafc;
       }
@@ -714,7 +727,7 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
       }
 
       .tema-fondo .submit-btn {
-        background: linear-gradient(90deg, #7c3aed, #2563eb) !important;
+        background: linear-gradient(90deg, var(--brand-dark), var(--brand-light)) !important;
         border-radius: 12px;
       }
 
@@ -722,6 +735,26 @@ function temaVisualDesdeCodigo(codigo: number | null | undefined): TemaVisual {
         max-height: 32px;
         max-width: 140px;
         object-fit: contain;
+      }
+
+      /* ---------- Entrada animada ---------- */
+      @keyframes login-entrada {
+        from { opacity: 0; transform: translateY(18px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .entrada-animada {
+        animation: login-entrada 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+
+      .entrada-animada-retraso {
+        animation-delay: 0.12s;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .entrada-animada {
+          animation: none;
+        }
       }
     `,
   ],
@@ -742,21 +775,31 @@ export class LoginComponent {
   // todavia, se ve el diseno generico de siempre.
   protected readonly marcaPublica = signal<MarcaDeEmpresa | null>(null);
   protected readonly temaVisual = computed(() => temaVisualDesdeCodigo(this.marcaPublica()?.tipoLogin));
-  protected readonly colorPrimario = computed(() => this.marcaPublica()?.colorPrimario || undefined);
-  protected readonly colorSecundario = computed(() => this.marcaPublica()?.colorSecundario || undefined);
-  protected readonly nombreEmpresa = computed(() => this.marcaPublica()?.nombreEmpresa || 'Marca Blanca');
+  private readonly colorPrimario = computed(() => this.marcaPublica()?.colorPrimario || undefined);
+  private readonly colorSecundario = computed(() => this.marcaPublica()?.colorSecundario || undefined);
+  // El mas oscuro de los 2 va de fondo (paneles oscuros de los 3 temas) y el
+  // mas claro queda como acento (boton, degradados) -- ver color-utils.ts:
+  // sin esto, una paleta con el secundario mas claro que el primario (ej.
+  // "Coast") pintaba el panel oscuro con el color equivocado.
+  protected readonly colorFondo = computed(() => ordenarClaroOscuro(this.colorPrimario(), this.colorSecundario()).oscuro);
+  protected readonly colorAcento = computed(() => ordenarClaroOscuro(this.colorPrimario(), this.colorSecundario()).claro);
+  protected readonly nombreEmpresa = computed(() => this.marcaPublica()?.nombreEmpresa || 'LINELCA');
+  // 1=contener (default), 2=cubrir, 3=estirar -- elegido en "Mi marca".
+  protected readonly ajusteLogoCss = computed<'contain' | 'cover' | 'fill'>(() => {
+    switch (this.marcaPublica()?.ajusteLogo) {
+      case 2: return 'cover';
+      case 3: return 'fill';
+      default: return 'contain';
+    }
+  });
+  protected readonly formaLogoRadio = computed(() => estiloFormaLogo(this.marcaPublica()?.formaLogo).borderRadius);
+  protected readonly formaLogoAspecto = computed(() => estiloFormaLogo(this.marcaPublica()?.formaLogo).aspectRatio);
 
   protected readonly form = this.fb.nonNullable.group({
     correo: ['', [Validators.required, Validators.email]],
     contrasena: ['', [Validators.required]],
     recordarme: [false],
-    identificadorEmpresa: [''],
   });
-
-  // true cuando no hay subdominio de empresa (ver identificadorDesdeSubdominio) --
-  // ahi se muestra el campo manual de identificador, porque el resolver por
-  // correo solo funciona si el correo pertenece a una unica empresa activa.
-  protected readonly sinSubdominio = signal(identificadorDesdeSubdominio() === null);
 
   constructor() {
     const identificador = identificadorDesdeSubdominio();
@@ -786,13 +829,14 @@ export class LoginComponent {
   // una pantalla de login generica en el dominio raiz.
   submit(): void {
     if (this.form.invalid) {
+      this.form.markAllAsTouched();
       return;
     }
     this.loading.set(true);
     this.errorMessage.set(null);
 
-    const { correo, contrasena, recordarme, identificadorEmpresa } = this.form.getRawValue();
-    const identificadorResuelto = identificadorDesdeSubdominio() || identificadorEmpresa.trim() || null;
+    const { correo, contrasena, recordarme } = this.form.getRawValue();
+    const identificadorResuelto = identificadorDesdeSubdominio();
     const identificadorEmpresa$ = identificadorResuelto
       ? of({ identificadorEmpresa: identificadorResuelto })
       : this.auth.resolverIdentificadorEmpresa(correo);

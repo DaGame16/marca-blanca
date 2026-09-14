@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0028-backfill-colores-originales
+      author: claude
+      comment: Para empresas que ya existian antes de 0027 no hay forma de recuperar el color que el wizard de registro les asigno en su momento (nunca se guardo aparte) -- se usa el color actual como el nuevo punto de partida, para que "volver a los colores iniciales" tenga un valor real desde ya en vez de quedar null para siempre.
+      changes:
+        - sql:
+            sql: >
+              UPDATE plataforma.tbl_empresas_marca
+              SET color_primario_original = color_primario
+              WHERE color_primario_original IS NULL AND color_primario IS NOT NULL
+        - sql:
+            sql: >
+              UPDATE plataforma.tbl_empresas_marca
+              SET color_secundario_original = color_secundario
+              WHERE color_secundario_original IS NULL AND color_secundario IS NOT NULL
+      rollback:
+        - empty: {}

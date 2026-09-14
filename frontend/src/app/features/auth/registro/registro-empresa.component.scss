@@ -865,12 +865,12 @@
         box-shadow: 0 3px 10px rgba(15, 23, 42, .10);
       }
 
-      /* clasico = sidebar + contenido lado a lado (row, el default de arriba).
-         compacto/amplio = topbar arriba y contenido debajo -- sin esto, el
-         topbar y el contenido quedaban uno al lado del otro en vez de
-         apilados. */
-      .pagina-window-compacto,
-      .pagina-window-amplio {
+      /* clasico/derecha = sidebar + contenido lado a lado (row, el default de
+         arriba) -- "derecha" solo invierte el orden en el DOM (contenido
+         primero, sidebar despues) para que quede visualmente a la derecha.
+         encabezado = topbar arriba y contenido debajo -- sin esto, el topbar
+         y el contenido quedaban uno al lado del otro en vez de apilados. */
+      .pagina-window-encabezado {
         flex-direction: column;
       }
 

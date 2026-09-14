@@ -55,7 +55,7 @@ const POR_PAGINA = 15;
             <tr *ngFor="let c of filaVisibles" class="fila" (click)="seleccionado.emit(c)">
               <td>
                 <div class="contacto">
-                  <div class="avatar"><mat-icon>chat</mat-icon></div>
+                  <div class="avatar" [style.background]="colorAvatar(c)">{{ iniciales(c) }}</div>
                   <div class="contacto-texto">
                     <p class="nombre">{{ c.nombre || formatear(c.numero) || c.idContacto }}</p>
                     <p class="extracto">{{ extracto(c) }}</p>
@@ -121,11 +121,16 @@ const POR_PAGINA = 15;
     td { padding: 10px 20px; border-bottom: 1px solid #f8fafc; color: #1e293b; }
     .fila { cursor: pointer; transition: background-color 0.15s; }
     .fila:hover { background: #f8fafc; }
+    .fila:hover .avatar { transform: scale(1.06); }
+    .avatar { transition: transform 0.15s ease; }
     .vacio { text-align: center; color: #94a3b8; padding: 40px; }
 
     .contacto { display: flex; align-items: center; gap: 10px; min-width: 0; }
-    .avatar { width: 36px; height: 36px; border-radius: 999px; background: #ecfdf5; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .avatar mat-icon { color: #10b981; font-size: 16px; width: 16px; height: 16px; }
+    .avatar {
+      width: 36px; height: 36px; border-radius: 999px; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; color: #fff; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.02em;
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.35);
+    }
     .contacto-texto { min-width: 0; }
     .nombre { margin: 0; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .extracto { margin: 2px 0 0; font-size: 0.68rem; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px; }
@@ -212,6 +217,28 @@ export class LiwaTableComponent implements OnChanges {
 
   formatear(numero: string): string {
     return formatearNumero(numero);
+  }
+
+  // Iniciales + color estables por contacto (mismo hash -> mismo color
+  // siempre) en vez de un icono generico de chat para todas las filas --
+  // ayuda a distinguir contactos de un vistazo en listas largas.
+  private static readonly PALETA_AVATAR = ['#2563eb', '#7c3aed', '#0d9488', '#d97706', '#dc2626', '#4f46e5', '#059669', '#db2777'];
+
+  iniciales(chat: LiwaChat): string {
+    const texto = (chat.nombre || this.formatear(chat.numero) || chat.idContacto || '').trim();
+    if (!texto) return '?';
+    const partes = texto.split(/\s+/).filter(Boolean);
+    if (partes.length === 1) return partes[0].slice(0, 2).toUpperCase();
+    return (partes[0][0] + partes[1][0]).toUpperCase();
+  }
+
+  colorAvatar(chat: LiwaChat): string {
+    const clave = chat.idContacto || chat.numero || '';
+    let hash = 0;
+    for (let i = 0; i < clave.length; i++) {
+      hash = (hash * 31 + clave.charCodeAt(i)) >>> 0;
+    }
+    return LiwaTableComponent.PALETA_AVATAR[hash % LiwaTableComponent.PALETA_AVATAR.length];
   }
 
   extracto(chat: LiwaChat): string {

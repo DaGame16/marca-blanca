@@ -6,5 +6,7 @@ public record MarcaRequest(
         String colorSecundario,
         String dominioPropio,
         Integer tipoLogin,
-        Integer tipoPantallaPrincipal) {
+        Integer tipoPantallaPrincipal,
+        Integer ajusteLogo,
+        Integer formaLogo) {
 }

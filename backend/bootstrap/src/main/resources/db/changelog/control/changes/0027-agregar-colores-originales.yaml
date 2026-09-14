@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0027-agregar-colores-originales
+      author: claude
+      comment: Colores originales (los que se le asignaron a la empresa la primera vez, en el wizard de registro o en su primer guardado de "Mi marca") -- se guardan aparte de color_primario/color_secundario, que la empresa puede seguir cambiando, para poder ofrecer un "volver a los colores iniciales" real y no solo deshacer cambios sin guardar.
+      changes:
+        - addColumn:
+            schemaName: plataforma
+            tableName: tbl_empresas_marca
+            columns:
+              - column:
+                  name: color_primario_original
+                  type: VARCHAR(20)
+              - column:
+                  name: color_secundario_original
+                  type: VARCHAR(20)
+      rollback:
+        - dropColumn: {schemaName: plataforma, tableName: tbl_empresas_marca, columnName: color_primario_original}
+        - dropColumn: {schemaName: plataforma, tableName: tbl_empresas_marca, columnName: color_secundario_original}

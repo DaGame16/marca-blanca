@@ -19,9 +19,9 @@ const TIPOS_LOGIN = [
   { valor: 3, etiqueta: 'Fondo' },
 ];
 const TIPOS_PANTALLA = [
-  { valor: 1, etiqueta: 'Opción 1' },
-  { valor: 2, etiqueta: 'Opción 2' },
-  { valor: 3, etiqueta: 'Opción 3' },
+  { valor: 1, etiqueta: 'Clásico (sidebar izquierda)' },
+  { valor: 2, etiqueta: 'Sidebar a la derecha' },
+  { valor: 3, etiqueta: 'Header arriba' },
 ];
 
 /**
@@ -57,152 +57,177 @@ const TIPOS_PANTALLA = [
 
       @if (empresa(); as e) {
         <header>
+          <div class="avatar-header">{{ e.nombreLegal.charAt(0) }}</div>
           <div>
             <h1>{{ e.nombreLegal }}</h1>
-            <p class="ident">{{ e.identificador }} · {{ e.dominio }} · <span class="chip">{{ e.estado }}</span></p>
+            <p class="ident">
+              {{ e.identificador }} · {{ e.dominio }} ·
+              <span class="chip" [attr.data-estado]="e.estado">{{ e.estado }}</span>
+            </p>
           </div>
         </header>
 
-        <!-- DATOS -->
-        <section class="tarjeta">
-          <h2>Datos de contacto</h2>
-          <p class="hint">
-            El correo de acá es el de contacto (facturación y avisos de la plataforma). No cambia el
-            correo con el que inician sesión los usuarios de la empresa.
-          </p>
-          <form [formGroup]="datosForm" (ngSubmit)="guardarDatos()">
-            <div class="grid">
-              <mat-form-field appearance="outline">
-                <mat-label>Nombre legal</mat-label>
-                <input matInput formControlName="nombreLegal" />
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Representante legal</mat-label>
-                <input matInput formControlName="representanteLegal" />
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Correo de contacto</mat-label>
-                <input matInput type="email" formControlName="correo" />
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Teléfono</mat-label>
-                <input matInput formControlName="telefono" />
-              </mat-form-field>
-              <mat-form-field appearance="outline" class="ancho">
-                <mat-label>Sitio web</mat-label>
-                <input matInput formControlName="sitioWeb" />
-              </mat-form-field>
-            </div>
-            <button mat-flat-button color="primary" type="submit" [disabled]="datosForm.invalid || guardando() === 'datos'">
-              Guardar datos
-            </button>
-          </form>
-        </section>
-
-        <!-- MARCA -->
-        <section class="tarjeta">
-          <h2>Marca</h2>
-          <form [formGroup]="marcaForm" (ngSubmit)="guardarMarca()">
-            <div class="grid">
-              <label class="color">
-                Color primario
-                <input type="color" formControlName="colorPrimario" />
-              </label>
-              <label class="color">
-                Color secundario
-                <input type="color" formControlName="colorSecundario" />
-              </label>
-              <mat-form-field appearance="outline" class="ancho">
-                <mat-label>URL del logo</mat-label>
-                <input matInput formControlName="urlLogo" placeholder="https://…" />
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Tipo de login</mat-label>
-                <mat-select formControlName="tipoLogin">
-                  @for (t of tiposLogin; track t.valor) {
-                    <mat-option [value]="t.valor">{{ t.etiqueta }}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Pantalla principal</mat-label>
-                <mat-select formControlName="tipoPantallaPrincipal">
-                  @for (t of tiposPantalla; track t.valor) {
-                    <mat-option [value]="t.valor">{{ t.etiqueta }}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-            </div>
-            <button mat-flat-button color="primary" type="submit" [disabled]="guardando() === 'marca'">
-              Guardar marca
-            </button>
-          </form>
-        </section>
-
-        <!-- MÓDULOS -->
-        <section class="tarjeta">
-          <h2>Módulos</h2>
-          @if (modulos().length === 0) {
-            <p class="vacio">No hay módulos en el catálogo.</p>
-          }
-          <ul class="modulos">
-            @for (m of modulos(); track m.codigo) {
-              <li>
-                <div>
-                  <span class="nombre">{{ m.nombre }}</span>
-                  <span class="codigo">{{ m.codigo }}</span>
+        <div class="columnas">
+          <div class="columna">
+            <!-- DATOS -->
+            <section class="tarjeta">
+              <h2><span class="h2-icono azul"><mat-icon>badge</mat-icon></span>Datos de contacto</h2>
+              <p class="hint">
+                El correo de acá es el de contacto (facturación y avisos de la plataforma). No cambia el
+                correo con el que inician sesión los usuarios de la empresa.
+              </p>
+              <form [formGroup]="datosForm" (ngSubmit)="guardarDatos()">
+                <div class="grid">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Nombre legal</mat-label>
+                    <input matInput formControlName="nombreLegal" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Representante legal</mat-label>
+                    <input matInput formControlName="representanteLegal" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Correo de contacto</mat-label>
+                    <input matInput type="email" formControlName="correo" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Teléfono</mat-label>
+                    <input matInput formControlName="telefono" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="ancho">
+                    <mat-label>Sitio web</mat-label>
+                    <input matInput formControlName="sitioWeb" />
+                  </mat-form-field>
                 </div>
-                <mat-slide-toggle
-                  [checked]="m.activo"
-                  [disabled]="moduloOcupado() === m.codigo"
-                  (change)="alternarModulo(m, $event.checked)"
-                />
-              </li>
-            }
-          </ul>
-        </section>
+                <button mat-flat-button color="primary" type="submit" [disabled]="datosForm.invalid || guardando() === 'datos'">
+                  Guardar datos
+                </button>
+              </form>
+            </section>
 
-        <!-- OMNICANAL (LIWA) -- solo el super admin ve/toca esto. El tenant
-             ni siquiera tiene el toggle de IA en su propia pantalla de
-             configuracion (se le oculto: viene con default de plataforma). -->
-        <section class="tarjeta">
-          <h2>Omnicanal (Liwa)</h2>
-          @if (cargandoOmnicanal()) {
-            <p class="hint">Cargando…</p>
-          } @else if (omnicanal(); as o) {
-            <p class="hint">
-              El analisis con IA y el secreto del webhook son de control exclusivo del super admin -- la
-              empresa no puede cambiarlos desde su propia pantalla de configuracion.
-            </p>
-            <div class="fila-ia">
-              <mat-slide-toggle [checked]="o.iaHabilitada" [disabled]="guardandoIa()" (change)="alternarIa($event.checked)">
-                Analizar conversaciones con IA
-              </mat-slide-toggle>
-            </div>
-            <div class="grid">
-              <mat-form-field appearance="outline" class="ancho">
-                <mat-label>URL del webhook</mat-label>
-                <input matInput [value]="o.webhookUrl" readonly />
-              </mat-form-field>
-              <mat-form-field appearance="outline" class="ancho">
-                <mat-label>Secreto del webhook</mat-label>
-                <input matInput [value]="o.webhookSecret ?? '••••••••  (rota para verlo)'" readonly />
-              </mat-form-field>
-            </div>
-            <button mat-stroked-button type="button" [disabled]="rotandoSecreto()" (click)="rotarSecreto()">
-              <mat-icon>autorenew</mat-icon>
-              Rotar secreto del webhook
-            </button>
-            <p class="hint aviso">Rotar el secreto invalida el anterior de inmediato -- hay que actualizarlo en Liwa.</p>
-          }
-        </section>
+            <!-- MÓDULOS -->
+            <section class="tarjeta">
+              <h2><span class="h2-icono verde"><mat-icon>extension</mat-icon></span>Módulos</h2>
+              @if (modulos().length === 0) {
+                <p class="vacio">No hay módulos en el catálogo.</p>
+              }
+              <ul class="modulos">
+                @for (m of modulos(); track m.codigo) {
+                  <li [class.activo]="m.activo">
+                    <div class="modulo-icono" [class.activo]="m.activo"><mat-icon>{{ m.activo ? 'check' : 'power_settings_new' }}</mat-icon></div>
+                    <div>
+                      <span class="nombre">{{ m.nombre }}</span>
+                      <span class="codigo">{{ m.codigo }}</span>
+                    </div>
+                    <mat-slide-toggle
+                      [checked]="m.activo"
+                      [disabled]="moduloOcupado() === m.codigo"
+                      (change)="alternarModulo(m, $event.checked)"
+                    />
+                  </li>
+                }
+              </ul>
+            </section>
+          </div>
+
+          <div class="columna">
+            <!-- MARCA -->
+            <section class="tarjeta">
+              <h2><span class="h2-icono violeta"><mat-icon>palette</mat-icon></span>Marca</h2>
+              <form [formGroup]="marcaForm" (ngSubmit)="guardarMarca()">
+                <div class="grid">
+                  <label class="color">
+                    Color primario
+                    <input type="color" formControlName="colorPrimario" />
+                  </label>
+                  <label class="color">
+                    Color secundario
+                    <input type="color" formControlName="colorSecundario" />
+                  </label>
+                  <mat-form-field appearance="outline" class="ancho">
+                    <mat-label>URL del logo</mat-label>
+                    <input matInput formControlName="urlLogo" placeholder="https://…" />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Tipo de login</mat-label>
+                    <mat-select formControlName="tipoLogin">
+                      @for (t of tiposLogin; track t.valor) {
+                        <mat-option [value]="t.valor">{{ t.etiqueta }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Pantalla principal</mat-label>
+                    <mat-select formControlName="tipoPantallaPrincipal">
+                      @for (t of tiposPantalla; track t.valor) {
+                        <mat-option [value]="t.valor">{{ t.etiqueta }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+                <button mat-flat-button color="primary" type="submit" [disabled]="guardando() === 'marca'">
+                  Guardar marca
+                </button>
+              </form>
+            </section>
+
+            <!-- OMNICANAL (LIWA) -- solo el super admin ve/toca esto. El tenant
+                 ni siquiera tiene el toggle de IA en su propia pantalla de
+                 configuracion (se le oculto: viene con default de plataforma). -->
+            <section class="tarjeta tarjeta-sensible">
+              <h2><span class="h2-icono ambar"><mat-icon>admin_panel_settings</mat-icon></span>Omnicanal (Liwa)</h2>
+              @if (cargandoOmnicanal()) {
+                <p class="hint">Cargando…</p>
+              } @else if (omnicanal(); as o) {
+                <p class="hint">
+                  El analisis con IA y el secreto del webhook son de control exclusivo del super admin -- la
+                  empresa no puede cambiarlos desde su propia pantalla de configuracion.
+                </p>
+                <div class="fila-ia">
+                  <mat-slide-toggle [checked]="o.iaHabilitada" [disabled]="guardandoIa()" (change)="alternarIa($event.checked)">
+                    Analizar conversaciones con IA
+                  </mat-slide-toggle>
+                </div>
+                <div class="grid">
+                  <mat-form-field appearance="outline" class="ancho">
+                    <mat-label>URL del webhook</mat-label>
+                    <input matInput [value]="o.webhookUrl" readonly />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="ancho">
+                    <mat-label>Secreto del webhook</mat-label>
+                    <input matInput [value]="o.webhookSecret ?? '••••••••  (rota para verlo)'" readonly />
+                  </mat-form-field>
+                </div>
+                <button mat-stroked-button type="button" [disabled]="rotandoSecreto()" (click)="rotarSecreto()">
+                  <mat-icon>autorenew</mat-icon>
+                  Rotar secreto del webhook
+                </button>
+                <p class="hint aviso">Rotar el secreto invalida el anterior de inmediato -- hay que actualizarlo en Liwa.</p>
+              }
+            </section>
+          </div>
+        </div>
       }
     </div>
   `,
   styles: [
     `
       :host { display: block; min-height: 100vh; background: #f1f5f9; }
-      .marco { max-width: 860px; margin: 0 auto; padding: 24px; }
+      .marco { max-width: 1280px; margin: 0 auto; padding: 24px; }
+
+      .columnas {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        align-items: start;
+        margin-top: 16px;
+      }
+      .columna {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .columna .tarjeta { margin-top: 0; }
 
       .volver {
         display: inline-flex;
@@ -215,19 +240,36 @@ const TIPOS_PANTALLA = [
       }
       .volver mat-icon { font-size: 18px; width: 18px; height: 18px; }
 
-      header { margin-bottom: 8px; }
+      header { display: flex; align-items: center; gap: 16px; margin-bottom: 8px; }
+      .avatar-header {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        background: linear-gradient(135deg, #22d3ee, #0e7490);
+        color: #fff;
+        font-weight: 800;
+        font-size: 1.3rem;
+        text-transform: uppercase;
+      }
       h1 { font-size: 1.35rem; font-weight: 700; margin: 0; color: #0f172a; }
       .ident { margin: 4px 0 0; font-size: 0.82rem; color: #64748b; }
       .chip {
         display: inline-block;
         font-size: 0.7rem;
-        font-weight: 600;
+        font-weight: 700;
         text-transform: uppercase;
-        padding: 2px 8px;
+        padding: 2px 9px;
         border-radius: 999px;
         background: #e2e8f0;
         color: #334155;
       }
+      .chip[data-estado='activa'] { background: #dcfce7; color: #166534; }
+      .chip[data-estado='suspendida'] { background: #fee2e2; color: #991b1b; }
+      .chip[data-estado='pendiente_aprovisionamiento'] { background: #fef9c3; color: #854d0e; }
+      .chip[data-estado='borrador'] { background: #e0e7ff; color: #3730a3; }
 
       .tarjeta {
         background: #fff;
@@ -235,8 +277,26 @@ const TIPOS_PANTALLA = [
         border-radius: 14px;
         padding: 20px 22px;
         margin-top: 16px;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, .03);
       }
-      h2 { font-size: 1.05rem; font-weight: 700; margin: 0 0 14px; color: #0f172a; }
+      .tarjeta-sensible {
+        border-color: #fde68a;
+        background: linear-gradient(180deg, #fffbeb 0%, #fff 90px);
+      }
+      h2 { display: flex; align-items: center; gap: 10px; font-size: 1.05rem; font-weight: 700; margin: 0 0 14px; color: #0f172a; }
+      .h2-icono {
+        width: 30px;
+        height: 30px;
+        border-radius: 9px;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+      }
+      .h2-icono mat-icon { color: #fff; font-size: 17px; width: 17px; height: 17px; }
+      .h2-icono.azul { background: linear-gradient(135deg, #38bdf8, #2563eb); }
+      .h2-icono.violeta { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+      .h2-icono.verde { background: linear-gradient(135deg, #34d399, #059669); }
+      .h2-icono.ambar { background: linear-gradient(135deg, #fbbf24, #d97706); }
       .hint { margin: -6px 0 16px; font-size: 0.82rem; color: #64748b; line-height: 1.5; }
 
       .grid {
@@ -264,16 +324,31 @@ const TIPOS_PANTALLA = [
         cursor: pointer;
       }
 
-      .modulos { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+      .modulos { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
       .modulos li {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        gap: 12px;
         padding: 10px 12px;
         border: 1px solid #e2e8f0;
-        border-radius: 8px;
+        border-radius: 10px;
+        transition: border-color .15s ease, background .15s ease;
       }
-      .modulos .nombre { font-weight: 600; color: #0f172a; }
+      .modulos li.activo { border-color: #bbf7d0; background: #f0fdf4; }
+      .modulos li > div { flex: 1; }
+      .modulo-icono {
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        background: #e2e8f0;
+        color: #64748b;
+      }
+      .modulo-icono.activo { background: linear-gradient(135deg, #34d399, #059669); color: #fff; }
+      .modulo-icono mat-icon { font-size: 17px; width: 17px; height: 17px; }
+      .modulos .nombre { display: block; font-weight: 600; color: #0f172a; }
       .modulos .codigo { display: block; font-size: 0.75rem; color: #94a3b8; }
 
       .vacio { color: #64748b; font-size: 0.88rem; }
@@ -288,6 +363,10 @@ const TIPOS_PANTALLA = [
         margin: 12px 0;
       }
       .error mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
+      @media (max-width: 900px) {
+        .columnas { grid-template-columns: 1fr; }
+      }
 
       @media (max-width: 620px) {
         .grid { grid-template-columns: 1fr; }

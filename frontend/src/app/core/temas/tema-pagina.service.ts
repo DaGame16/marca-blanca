@@ -1,16 +1,15 @@
 import { Injectable, signal } from '@angular/core';
 
-export type TemaPagina = 'clasico' | 'compacto' | 'amplio';
+export type TemaPagina = 'clasico' | 'derecha' | 'encabezado';
 
 const CLAVE_STORAGE = 'mp_tema_pagina';
 const TEMA_POR_DEFECTO: TemaPagina = 'clasico';
 
 /**
- * Selector de estilo de las paginas generales (fuera del login), puramente
- * visual por ahora -- igual que TemaLoginService. Pendiente: hoy ninguna
- * otra pantalla lee este valor todavia; cuando se decida aplicarlo (por ejemplo
- * variando densidad/espaciado del layout base), hacerlo leyendo esta misma
- * senal en vez de duplicar el mecanismo de guardado.
+ * Selector de layout de las paginas generales (fuera del login) -- lo lee
+ * ShellComponent para elegir donde va la barra de navegacion: a la
+ * izquierda ('clasico'), a la derecha ('derecha', mismo sidebar solo que
+ * invertido) o arriba en horizontal, sin sidebar ('encabezado').
  */
 @Injectable({ providedIn: 'root' })
 export class TemaPaginaService {
@@ -30,7 +29,7 @@ export class TemaPaginaService {
   private leerDeStorage(): TemaPagina {
     try {
       const valor = localStorage.getItem(CLAVE_STORAGE);
-      if (valor === 'clasico' || valor === 'compacto' || valor === 'amplio') {
+      if (valor === 'clasico' || valor === 'derecha' || valor === 'encabezado') {
         return valor;
       }
     } catch {

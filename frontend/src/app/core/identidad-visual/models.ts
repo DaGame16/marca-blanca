@@ -5,10 +5,21 @@ export interface MarcaDeEmpresa {
   colorPrimario: string | null;
   colorSecundario: string | null;
   dominioPropio: string | null;
-  // 1..3 -- que panel de login (lateral/centrado/fondo) y que densidad de
-  // pantalla (clasico/compacto/amplio) usa esta empresa.
+  // 1..3 -- que panel de login (lateral/centrado/fondo) y que diseño de
+  // pagina (clasico/derecha/encabezado) usa esta empresa.
   tipoLogin: number | null;
   tipoPantallaPrincipal: number | null;
+  // 1=contener (no recorta, puede dejar espacio vacio), 2=cubrir (llena la
+  // caja, puede recortar), 3=estirar (llena exacto, puede deformar).
+  ajusteLogo: number | null;
+  // 1=cuadrado, 2=rectangular, 3=circular -- forma de la caja del logo
+  // (border-radius/aspect-ratio), independiente de ajusteLogo.
+  formaLogo: number | null;
+  // Snapshot de solo lectura del primer color que tuvo la empresa (wizard de
+  // registro o primer guardado en "Mi marca"). El backend lo calcula solo --
+  // nunca se manda en un PUT, por eso son opcionales aca.
+  colorPrimarioOriginal?: string | null;
+  colorSecundarioOriginal?: string | null;
   // Solo lo llena el endpoint publico (login) -- ver MarcaPublicaController.
   nombreEmpresa?: string | null;
 }
