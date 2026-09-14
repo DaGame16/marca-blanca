@@ -10,6 +10,7 @@ import com.marcablanca.platform.autenticacion.domain.TokenDeRefrescoInvalidoExce
 import com.marcablanca.platform.empresas.application.ContextoEmpresaActual;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Set;
 import java.util.UUID;
 
@@ -36,7 +37,7 @@ public class RenovarTokenService implements RenovarToken {
     public ResultadoAutenticacion ejecutar(String refreshTokenActual) {
         String hashActual = GeneradorTokenDeRefresco.hashear(refreshTokenActual);
 
-        UUID usuarioId = almacenDeTokensDeRefresco.buscarUsuarioPorHashActivo(hashActual, OffsetDateTime.now())
+        UUID usuarioId = almacenDeTokensDeRefresco.buscarUsuarioPorHashActivo(hashActual, OffsetDateTime.now(ZoneOffset.UTC))
                 .orElseThrow(TokenDeRefrescoInvalidoException::new);
 
         DatosDeUsuario usuario = verificadorDeUsuarios.buscarPorId(usuarioId)
@@ -55,7 +56,7 @@ public class RenovarTokenService implements RenovarToken {
 
         String nuevoRefrescoValor = GeneradorTokenDeRefresco.generarValor();
         String nuevoRefrescoHash = GeneradorTokenDeRefresco.hashear(nuevoRefrescoValor);
-        OffsetDateTime expiraEn = OffsetDateTime.now().plusDays(REFRESCO_DIAS_VALIDEZ);
+        OffsetDateTime expiraEn = OffsetDateTime.now(ZoneOffset.UTC).plusDays(REFRESCO_DIAS_VALIDEZ);
         almacenDeTokensDeRefresco.guardar(usuario.id(), nuevoRefrescoHash, expiraEn, null);
 
         return new ResultadoAutenticacion(usuario.id(), nuevoToken, nuevoRefrescoValor,

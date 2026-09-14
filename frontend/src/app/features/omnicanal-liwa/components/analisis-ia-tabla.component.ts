@@ -109,7 +109,7 @@ function fechaDeAnalisis(item: LiwaAnalisisItem): Date | null {
         </div>
       </div>
 
-      <app-liwa-analisis-detalle *ngIf="seleccionado" [item]="seleccionado" (close)="seleccionado = null" />
+      <app-liwa-analisis-detalle *ngIf="seleccionado" [item]="seleccionado" (cerrar)="seleccionado = null" />
     </div>
   `,
   styles: [`

@@ -10,7 +10,7 @@ import { LiwaChat } from '../models/liwa.model';
   standalone: true,
   imports: [CommonModule, MatIconModule],
   template: `
-    <div class="overlay" *ngIf="chat" (click)="cerrar()"></div>
+    <div class="overlay" *ngIf="chat" (click)="alCerrar()"></div>
     <aside class="drawer" [class.abierto]="!!chat">
       <ng-container *ngIf="chat">
         <header class="drawer-header">
@@ -18,7 +18,7 @@ import { LiwaChat } from '../models/liwa.model';
             <h3>{{ chat.nombre || 'Sin nombre' }}</h3>
             <p>{{ chat.numero }}</p>
           </div>
-          <button type="button" class="cerrar" (click)="cerrar()">
+          <button type="button" class="cerrar" (click)="alCerrar()">
             <mat-icon>close</mat-icon>
           </button>
         </header>
@@ -62,9 +62,9 @@ import { LiwaChat } from '../models/liwa.model';
 })
 export class LiwaConversationDrawerComponent {
   @Input() chat: LiwaChat | null = null;
-  @Output() close = new EventEmitter<void>();
+  @Output() cerrar = new EventEmitter<void>();
 
-  cerrar(): void {
-    this.close.emit();
+  alCerrar(): void {
+    this.cerrar.emit();
   }
 }

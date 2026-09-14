@@ -7,7 +7,12 @@ import java.util.Optional;
 
 public interface RepositorioAnalisis {
 
-    void guardar(Long casoId, String idContacto, com.marcablanca.platform.omnicanal.domain.ResultadoAnalisisIa r,
+    // java:S107 (muchos parametros): persiste el resultado completo de un
+    // analisis de caso -- combina el resultado de la IA (ResultadoAnalisisIa)
+    // con metadata de seguimiento del caso (timing, abandono, ads) que no
+    // pertenece al mismo objeto de dominio. No se agrupa en un record nuevo
+    // sin revisar con cuidado los 2+ llamadores (aplicacion + adaptador JPA).
+    void guardar(Long casoId, String idContacto, com.marcablanca.platform.omnicanal.domain.ResultadoAnalisisIa r, //NOSONAR ver comentario arriba
                  Boolean abandono, com.marcablanca.platform.omnicanal.domain.AbandonadoPor abandonadoPor,
                  java.util.List<String> banderasCalidad, OffsetDateTime primerMensajeEn,
                  OffsetDateTime primeraRespuestaEn, OffsetDateTime cerradoEn, OffsetDateTime procesadoEn,
@@ -22,7 +27,10 @@ public interface RepositorioAnalisis {
 
     Optional<AnalisisDeCaso> buscarPorCasoId(Long casoId);
 
-    RepositorioConversaciones.Pagina<AnalisisDeCaso> listar(int pagina, int porPagina, OffsetDateTime desde,
+    // java:S107: paginado + 4 filtros independientes de un listado -- misma
+    // forma que ConsultarAnalisisDeCasos.listar (port in), que ya recibe
+    // exactamente estos parametros del controller.
+    RepositorioConversaciones.Pagina<AnalisisDeCaso> listar(int pagina, int porPagina, OffsetDateTime desde, //NOSONAR ver comentario arriba
             OffsetDateTime hasta, String resultado, String motivoContacto, Boolean abandono,
             String abandonadoPor);
 

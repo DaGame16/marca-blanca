@@ -131,7 +131,10 @@ class AnalisisEntity {
         return e;
     }
 
-    void setCampos(String areaDestino, String municipio, String barrio, String categoriaOficina,
+    // java:S107: mapea 1:1 los campos del analisis de un caso -- misma forma
+    // que el record de dominio AnalisisDeCaso, que ya "explica" por que
+    // viajan juntos (resultado completo del analisis de IA de un caso).
+    void setCampos(String areaDestino, String municipio, String barrio, String categoriaOficina, //NOSONAR ver comentario arriba
                     String motivoContacto, String submotivo, String resumenMotivo, String resumenDesenlace,
                     String sentimientoInicial, String sentimientoFinal, Resultado resultado, Boolean fcr,
                     String esfuerzoCliente, List<String> temas, List<String> banderasCalidad,

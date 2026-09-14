@@ -72,7 +72,7 @@ public class OmnicanalController {
     public Object estadisticas(@RequestParam(required = false, defaultValue = "dia") String agrupacion,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
-        OffsetDateTime h = hasta == null ? OffsetDateTime.now() : aFinDelDia(hasta);
+        OffsetDateTime h = hasta == null ? OffsetDateTime.now(ZoneId.systemDefault()) : aFinDelDia(hasta);
         OffsetDateTime d = desde == null ? h.minusDays(30) : aInicioDelDia(desde);
         return consultarReportesOmnicanal.estadisticas(agrupacion, d, h);
     }

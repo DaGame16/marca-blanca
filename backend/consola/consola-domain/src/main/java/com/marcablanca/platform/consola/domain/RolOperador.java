@@ -6,7 +6,7 @@ package com.marcablanca.platform.consola.domain;
  * en la base de cada tenant, este en la base de control.
  *
  * <ul>
- *   <li>{@code SUPER_ADMIN}: todo, incluido dar de alta/baja a otros operadores
+ *   <li>{@code SUPER_ADMIN}: acceso completo, incluido dar de alta/baja a otros operadores
  *       y las acciones irreversibles sobre bases de cliente.</li>
  *   <li>{@code SOPORTE}: lectura y acciones no destructivas (reenviar bienvenida,
  *       re-aprovisionar).</li>

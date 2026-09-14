@@ -228,8 +228,8 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
             cliente.update("insert into seguridad.tbl_usuarios_roles (usuario_id, rol_id) values (?, ?)",
                     usuarioId, rolId);
         }
-        log.info("Usuario admin sembrado en {}: {}", //NOSONAR se ejecuta una vez por onboarding, no un hot path
-                empresa.getIdentificador().nombreBaseDeDatos(), correo);
+        log.info("Usuario admin sembrado en {}: {}",
+                empresa.getIdentificador().nombreBaseDeDatos(), correo); //NOSONAR se ejecuta una vez por onboarding, no un hot path
     }
 
     /** id del usuario con ese correo, o null si aun no existe (semilla idempotente). */
@@ -267,8 +267,8 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
         // contra SLUG_SEGURO para dejar la interpolacion demostrablemente segura.
         exigirNombreSeguro(rol);
         exigirNombreSeguro(grupo);
-        mantenimiento.execute( //NOSONAR rol y grupo ya se validaron contra SLUG_SEGURO arriba
-                "do $$ begin "
+        mantenimiento.execute(
+                "do $$ begin " //NOSONAR rol y grupo ya se validaron contra SLUG_SEGURO arriba
                         + "if not exists (select from pg_roles where rolname = '" + rol + "') then "
                         + "create role " + rol + " login password '" + rol + "'; "
                         + "grant " + grupo + " to " + rol + "; "

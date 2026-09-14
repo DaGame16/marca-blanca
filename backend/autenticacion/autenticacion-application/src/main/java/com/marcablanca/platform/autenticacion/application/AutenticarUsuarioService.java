@@ -9,6 +9,7 @@ import com.marcablanca.platform.autenticacion.application.port.out.VerificadorDe
 import com.marcablanca.platform.empresas.application.ContextoEmpresaActual;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Set;
 
 /**
@@ -49,7 +50,7 @@ public class AutenticarUsuarioService implements AutenticarUsuario {
 
         String refrescoValor = GeneradorTokenDeRefresco.generarValor();
         String refrescoHash = GeneradorTokenDeRefresco.hashear(refrescoValor);
-        OffsetDateTime expiraEn = OffsetDateTime.now().plusDays(REFRESCO_DIAS_VALIDEZ);
+        OffsetDateTime expiraEn = OffsetDateTime.now(ZoneOffset.UTC).plusDays(REFRESCO_DIAS_VALIDEZ);
         almacenDeTokensDeRefresco.guardar(usuario.id(), refrescoHash, expiraEn, null);
 
         return new ResultadoAutenticacion(usuario.id(), token, refrescoValor, usuario.debeCambiarContrasena());

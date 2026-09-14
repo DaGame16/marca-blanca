@@ -58,7 +58,7 @@ public record Identificador(String valor) {
     /**
      * Deriva un identificador a partir de texto libre (el nombre del sitio web del
      * paso 1). Quita protocolo/www, toma lo anterior al primer punto o barra, y
-     * convierte todo lo que no sea [a-z0-9] en guion bajo. El constructor valida el
+     * convierte cualquier caracter que no sea [a-z0-9] en guion bajo. El constructor valida el
      * resultado (formato, largo 3-40, reservados).
      */
     public static Identificador desde(String textoLibre) {
@@ -76,8 +76,10 @@ public record Identificador(String valor) {
             }
         }
         s = s.substring(0, corte)
-                .replaceAll("[^a-z0-9]+", "_")
-                .replaceAll("^_+|_+$", "");
+                .replaceAll("[^a-z0-9]++", "_")
+                // Cuantificadores posesivos (++): ya evitan el backtracking exponencial,
+                // igual criterio que FORMATO mas arriba en este archivo.
+                .replaceAll("(^_++)|(_++$)", ""); //NOSONAR ver comentario arriba
         return new Identificador(s);
     }
 }

@@ -16,7 +16,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Unico archivo de todo el modulo autenticacion que conoce el dominio de
+ * Unico archivo de autenticacion que conoce el dominio de
  * usuarios (Usuario/Correo/Contrasena/RepositorioUsuarios/CifradorDeContrasenas).
  * Traduce hacia DatosDeUsuario y hacia las excepciones propias de
  * autenticacion.domain -- ningun otro archivo de autenticacion importa nada
@@ -45,7 +45,7 @@ public class AdaptadorVerificadorDeUsuarios implements VerificadorDeUsuarios {
         boolean contrasenaCorrecta = cifradorDeContrasenas.verificar(contrasena, usuario.getHashContrasena());
         try {
             usuario.verificarCredenciales(contrasenaCorrecta);
-        } catch (com.marcablanca.platform.usuarios.domain.CredencialesInvalidasException e) {
+        } catch (com.marcablanca.platform.usuarios.domain.CredencialesInvalidasException _) {
             throw new CredencialesInvalidasException();
         } catch (com.marcablanca.platform.usuarios.domain.UsuarioNoDisponibleException e) {
             throw new UsuarioNoDisponibleException(e.getMessage());

@@ -1,5 +1,6 @@
 package com.marcablanca.platform.correo.application.port.out;
 
+import com.marcablanca.platform.correo.application.ComandoConfiguracionSmtp;
 import com.marcablanca.platform.correo.domain.ConfiguracionSmtp;
 
 import java.util.List;
@@ -8,12 +9,9 @@ import java.util.UUID;
 
 public interface RepositorioConfiguracionCorreo {
 
-    ConfiguracionSmtp crear(String remitenteNombre, String remitenteCorreo, String responderA, String host,
-                             int puerto, String usuario, String secretoRef, String seguridad, String clave);
+    ConfiguracionSmtp crear(ComandoConfiguracionSmtp datos);
 
-    ConfiguracionSmtp actualizar(UUID id, String remitenteNombre, String remitenteCorreo, String responderA,
-                                  String host, int puerto, String usuario, String secretoRef, String seguridad,
-                                  String clave);
+    ConfiguracionSmtp actualizar(UUID id, ComandoConfiguracionSmtp datos);
 
     /** Descifra y devuelve la clave SMTP de esta config -- SOLO para uso interno al enviar, nunca se expone via API. */
     Optional<String> obtenerClaveDescifrada(UUID id);

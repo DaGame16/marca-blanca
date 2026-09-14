@@ -162,14 +162,14 @@ type Vista = 'conversaciones' | 'analisis' | 'calidad' | 'indicadores' | 'asesor
             />
           </div>
 
-          <app-liwa-conversation-drawer [chat]="chatSeleccionado" (close)="seleccionarChat(null)" />
+          <app-liwa-conversation-drawer [chat]="chatSeleccionado" (cerrar)="seleccionarChat(null)" />
 
           <app-liwa-summary-modal
             *ngIf="modalResumen"
             [mode]="modalResumen"
             [chats]="chats"
             [contactosAnalizados]="contactosAnalizados"
-            (close)="modalResumen = null"
+            (cerrar)="modalResumen = null"
             (seleccionado)="seleccionarChat($event.id)"
           />
         </div>

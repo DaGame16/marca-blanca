@@ -33,7 +33,10 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(org.springframework.security.config.annotation.web.builders.HttpSecurity http) {
         try {
             http
-                    .csrf(csrf -> csrf.disable())
+                    // CSRF es una defensa contra requests de formularios/cookies de otro origen
+                    // -- no aplica aca: la sesion es un JWT en el header Authorization
+                    // (STATELESS, sin cookies), que un sitio malicioso no puede leer ni forjar.
+                    .csrf(csrf -> csrf.disable()) //NOSONAR ver comentario arriba
                     .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(auth -> auth

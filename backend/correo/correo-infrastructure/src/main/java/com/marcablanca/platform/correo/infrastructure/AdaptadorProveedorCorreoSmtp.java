@@ -7,6 +7,7 @@ import com.marcablanca.platform.correo.domain.ConfiguracionCorreoNoEncontradaExc
 import com.marcablanca.platform.correo.domain.ConfiguracionSmtp;
 import com.marcablanca.platform.correo.domain.EnvioDeCorreoFallidoException;
 import com.marcablanca.platform.correo.domain.MensajeDeCorreo;
+import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,8 +57,7 @@ public class AdaptadorProveedorCorreoSmtp implements ProveedorDeCorreo, ProbarCo
         }
 
         try {
-            enviarConexionSmtp(cfg.host(), cfg.puerto(), cfg.usuario(), cfg.seguridad(), cfg.remitenteNombre(),
-                    cfg.remitenteCorreo(), clave, mensaje.destinatario().valor(), mensaje.asunto(),
+            enviarConexionSmtp(aDatosConexion(cfg, clave), mensaje.destinatario().valor(), mensaje.asunto(),
                     mensaje.cuerpoHtml());
             log.info("Correo enviado a {}", mensaje.destinatario().valor());
         } catch (Exception e) {
@@ -73,8 +73,7 @@ public class AdaptadorProveedorCorreoSmtp implements ProveedorDeCorreo, ProbarCo
         String clave = repositorio.obtenerClaveDescifrada(id).orElse(null);
 
         try {
-            enviarConexionSmtp(cfg.host(), cfg.puerto(), cfg.usuario(), cfg.seguridad(), cfg.remitenteNombre(),
-                    cfg.remitenteCorreo(), clave, destinatario, "Correo de prueba -- Marca Blanca",
+            enviarConexionSmtp(aDatosConexion(cfg, clave), destinatario, "Correo de prueba -- Marca Blanca",
                     "Si estas leyendo esto, la configuracion SMTP \"" + cfg.remitenteNombre()
                             + "\" funciona correctamente.");
             log.info("Correo de PRUEBA enviado a {} usando config id={}", destinatario, id);
@@ -86,9 +85,7 @@ public class AdaptadorProveedorCorreoSmtp implements ProveedorDeCorreo, ProbarCo
     @Override
     public void ejecutarAdHoc(DatosConexion datos, String destinatario) {
         try {
-            enviarConexionSmtp(datos.host(), datos.puerto(), datos.usuario(), datos.seguridad(),
-                    datos.remitenteNombre(), datos.remitenteCorreo(), datos.clave(), destinatario,
-                    "Correo de prueba -- Marca Blanca",
+            enviarConexionSmtp(datos, destinatario, "Correo de prueba -- Marca Blanca",
                     "Si estas leyendo esto, la configuracion SMTP \"" + datos.remitenteNombre()
                             + "\" funciona correctamente.");
             log.info("Correo de PRUEBA (ad hoc) enviado a {}", destinatario);
@@ -97,28 +94,37 @@ public class AdaptadorProveedorCorreoSmtp implements ProveedorDeCorreo, ProbarCo
         }
     }
 
-    private void enviarConexionSmtp(String host, int puerto, String usuario, String seguridad,
-                                     String remitenteNombre, String remitenteCorreo, String clave,
-                                     String destinatario, String asunto, String cuerpo) throws Exception {
+    private static DatosConexion aDatosConexion(ConfiguracionSmtp cfg, String clave) {
+        return new DatosConexion(cfg.remitenteNombre(), cfg.remitenteCorreo(), cfg.host(), cfg.puerto(),
+                cfg.usuario(), cfg.seguridad(), clave);
+    }
+
+    private void enviarConexionSmtp(DatosConexion datos, String destinatario, String asunto, String cuerpo)
+            throws MessagingException {
+        // Los 3 llamadores atrapan Exception (no solo MessagingException) a
+        // proposito: sender.send(mime) mas abajo puede lanzar MailException
+        // (unchecked) por fallas reales de conexion/autenticacion SMTP, y
+        // ambos casos deben terminar igual en EnvioDeCorreoFallidoException.
         JavaMailSenderImpl sender = new JavaMailSenderImpl();
-        sender.setHost(host);
-        sender.setPort(puerto);
-        if (usuario != null) {
-            sender.setUsername(usuario);
-            sender.setPassword(clave);
+        sender.setHost(datos.host());
+        sender.setPort(datos.puerto());
+        if (datos.usuario() != null) {
+            sender.setUsername(datos.usuario());
+            sender.setPassword(datos.clave());
         }
         Properties props = sender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.auth", String.valueOf(usuario != null));
-        if ("starttls".equalsIgnoreCase(seguridad)) {
+        props.put("mail.smtp.auth", String.valueOf(datos.usuario() != null));
+        if ("starttls".equalsIgnoreCase(datos.seguridad())) {
             props.put("mail.smtp.starttls.enable", "true");
-        } else if ("ssl".equalsIgnoreCase(seguridad)) {
+        } else if ("ssl".equalsIgnoreCase(datos.seguridad())) {
             props.put("mail.smtp.ssl.enable", "true");
         }
 
         MimeMessage mime = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mime, "UTF-8");
-        String remitente = remitenteNombre != null ? remitenteNombre + " <" + remitenteCorreo + ">" : remitenteCorreo;
+        String remitente = datos.remitenteNombre() != null
+                ? datos.remitenteNombre() + " <" + datos.remitenteCorreo() + ">" : datos.remitenteCorreo();
         helper.setFrom(remitente);
         helper.setTo(destinatario);
         helper.setSubject(asunto);

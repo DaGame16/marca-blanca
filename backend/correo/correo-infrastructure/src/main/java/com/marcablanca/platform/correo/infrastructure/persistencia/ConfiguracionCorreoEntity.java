@@ -1,8 +1,10 @@
 package com.marcablanca.platform.correo.infrastructure.persistencia;
 
+import com.marcablanca.platform.correo.application.ComandoConfiguracionSmtp;
 import jakarta.persistence.*;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 @Entity
@@ -56,48 +58,45 @@ class ConfiguracionCorreoEntity {
     protected ConfiguracionCorreoEntity() {
     }
 
-    ConfiguracionCorreoEntity(String remitenteNombre, String remitenteCorreo, String responderA, String host,
-                               int puerto, String usuario, String secretoRef, String seguridad,
-                               String claveCifrada) {
+    ConfiguracionCorreoEntity(ComandoConfiguracionSmtp datos, String claveCifrada) {
         this.uuid = UUID.randomUUID();
-        this.remitenteNombre = remitenteNombre;
-        this.remitenteCorreo = remitenteCorreo;
-        this.responderA = responderA;
-        this.host = host;
-        this.puerto = puerto;
-        this.usuario = usuario;
-        this.secretoRef = secretoRef;
-        this.seguridad = seguridad;
+        this.remitenteNombre = datos.remitenteNombre();
+        this.remitenteCorreo = datos.remitenteCorreo();
+        this.responderA = datos.responderA();
+        this.host = datos.host();
+        this.puerto = datos.puerto();
+        this.usuario = datos.usuario();
+        this.secretoRef = datos.secretoRef();
+        this.seguridad = datos.seguridad();
         this.claveCifrada = claveCifrada;
         this.esActiva = false;
-        this.creadoEn = OffsetDateTime.now();
-        this.actualizadoEn = OffsetDateTime.now();
+        this.creadoEn = OffsetDateTime.now(ZoneOffset.UTC);
+        this.actualizadoEn = OffsetDateTime.now(ZoneOffset.UTC);
     }
 
-    void actualizar(String remitenteNombre, String remitenteCorreo, String responderA, String host, int puerto,
-                     String usuario, String secretoRef, String seguridad) {
-        this.remitenteNombre = remitenteNombre;
-        this.remitenteCorreo = remitenteCorreo;
-        this.responderA = responderA;
-        this.host = host;
-        this.puerto = puerto;
-        this.usuario = usuario;
-        this.secretoRef = secretoRef;
-        this.seguridad = seguridad;
-        this.actualizadoEn = OffsetDateTime.now();
+    void actualizar(ComandoConfiguracionSmtp datos) {
+        this.remitenteNombre = datos.remitenteNombre();
+        this.remitenteCorreo = datos.remitenteCorreo();
+        this.responderA = datos.responderA();
+        this.host = datos.host();
+        this.puerto = datos.puerto();
+        this.usuario = datos.usuario();
+        this.secretoRef = datos.secretoRef();
+        this.seguridad = datos.seguridad();
+        this.actualizadoEn = OffsetDateTime.now(ZoneOffset.UTC);
     }
 
     /** Null = "no cambiar la clave que ya tenia" -- así el admin no tiene que reescribirla en cada edicion. */
     void actualizarClave(String claveCifrada) {
         if (claveCifrada != null) {
             this.claveCifrada = claveCifrada;
-            this.actualizadoEn = OffsetDateTime.now();
+            this.actualizadoEn = OffsetDateTime.now(ZoneOffset.UTC);
         }
     }
 
     void marcarActiva(boolean valor) {
         this.esActiva = valor;
-        this.actualizadoEn = OffsetDateTime.now();
+        this.actualizadoEn = OffsetDateTime.now(ZoneOffset.UTC);
     }
 
     Long getId() { return id; }

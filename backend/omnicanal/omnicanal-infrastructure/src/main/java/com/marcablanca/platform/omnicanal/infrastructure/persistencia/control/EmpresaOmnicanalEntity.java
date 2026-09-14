@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 /**
@@ -51,13 +52,13 @@ class EmpresaOmnicanalEntity {
         this.uuid = UUID.randomUUID();
         this.empresaId = empresaId;
         this.webhookSecret = webhookSecret;
-        this.creadoEn = OffsetDateTime.now();
-        this.actualizadoEn = OffsetDateTime.now();
+        this.creadoEn = OffsetDateTime.now(ZoneOffset.UTC);
+        this.actualizadoEn = OffsetDateTime.now(ZoneOffset.UTC);
     }
 
     void rotarSecreto(String nuevoSecreto) {
         this.webhookSecret = nuevoSecreto;
-        this.actualizadoEn = OffsetDateTime.now();
+        this.actualizadoEn = OffsetDateTime.now(ZoneOffset.UTC);
     }
 
     Long getEmpresaId() {

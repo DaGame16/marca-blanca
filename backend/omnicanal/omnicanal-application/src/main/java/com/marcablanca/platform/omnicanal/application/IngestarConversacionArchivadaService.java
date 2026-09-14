@@ -7,6 +7,7 @@ import com.marcablanca.platform.omnicanal.application.port.out.RepositorioConver
 import com.marcablanca.platform.omnicanal.domain.*;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -65,7 +66,7 @@ public class IngestarConversacionArchivadaService implements IngestarConversacio
                                                Map<String, Object> payload) {
         return existente.isPresent()
                 ? repositorioConversaciones.actualizar(existente.get().id(), datos.historial(), payload, datos.esDeAds(),
-                        OffsetDateTime.now())
+                        OffsetDateTime.now(ZoneOffset.UTC))
                 : repositorioConversaciones.crear(datos.idContacto(), datos.nombreContacto(), datos.historial(), payload,
                         datos.esDeAds());
     }
