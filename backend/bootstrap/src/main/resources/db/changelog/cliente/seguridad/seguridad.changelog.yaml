@@ -15,3 +15,4 @@ databaseChangeLog:
   - include: {file: 0014-agregar-contrasena-temporal.yaml, relativeToChangelogFile: true}
   - include: {file: 0015-sembrar-permisos-del-modulo-roles.yaml, relativeToChangelogFile: true}
   - include: {file: 0016-sembrar-catalogo-granular-de-permisos.yaml, relativeToChangelogFile: true}
+  - include: {file: 0017-otorgar-catalogo-completo-a-rol-admin.yaml, relativeToChangelogFile: true}

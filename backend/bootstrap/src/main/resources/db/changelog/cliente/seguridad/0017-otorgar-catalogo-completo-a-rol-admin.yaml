@@ -1,0 +1,33 @@
+databaseChangeLog:
+  - changeSet:
+      id: seguridad-0017-otorgar-catalogo-completo-a-rol-admin
+      author: claude
+      comment: >
+        0015/0016 sembraron el catalogo de permisos pero, a proposito, no
+        otorgaron ninguno al rol ADMIN (eso ya lo hace
+        EjecutorDdlPostgres.aplicarSemilla para empresas NUEVAS al
+        aprovisionar). Los tenants aprovisionados antes de ese fix se
+        quedaron con el rol ADMIN "pelado": el usuario admin existente
+        seguia asignado al rol, pero el rol no tenia ni un permiso
+        otorgado, asi que el JWT le salia con permisos=[] y todo
+        permisoGuard/@PreAuthorize lo rechazaba -- sintoma: login "exitoso"
+        pero rebota de vuelta al inicio en cualquier ruta protegida. Este
+        changeset aplica el otorgamiento documentado en
+        docs/backend/modulos/roles/README.md (seccion "Bootstrap de
+        permisos del rol ADMIN") como migracion en vez de dejarlo como
+        paso manual -- INSERT ... SELECT contra el catalogo completo
+        vigente (no una lista fija), asi que tambien cubre altas futuras
+        de permisos sin tocar este archivo.
+      changes:
+        - sql:
+            sql: >
+              INSERT INTO seguridad.tbl_permisos_de_rol (rol_id, permiso_id)
+              SELECT r.id, p.id
+              FROM seguridad.tbl_roles r
+              CROSS JOIN seguridad.tbl_permisos p
+              WHERE r.nombre = 'ADMIN'
+                AND NOT EXISTS (
+                  SELECT 1 FROM seguridad.tbl_permisos_de_rol pr
+                  WHERE pr.rol_id = r.id AND pr.permiso_id = p.id)
+      rollback:
+        - empty: {}
