@@ -24,12 +24,14 @@ autenticacion/
 │   └── port/
 │       ├── in/AutenticarUsuario.java, RenovarToken.java
 │       └── out/GeneradorDeToken.java, VerificadorDeToken.java, UsuarioAutenticado.java,
-│              AlmacenDeTokensDeRefresco.java, DatosDeUsuario.java, VerificadorDeUsuarios.java
+│              AlmacenDeTokensDeRefresco.java, DatosDeUsuario.java, VerificadorDeUsuarios.java,
+│              ConsultarPermisosDeUsuario.java   <- nuevo, ver ADR 0008
 └── autenticacion-infrastructure/.../autenticacion/infrastructure/
     ├── seguridad/
     │   ├── JwtGeneradorDeToken.java, JwtVerificadorDeToken.java
-    │   ├── JwtAuthFilter.java, SecurityConfig.java
-    │   └── AdaptadorVerificadorDeUsuarios.java   <- UNICO archivo que conoce usuarios.domain
+    │   ├── JwtAuthFilter.java, SecurityConfig.java (@EnableMethodSecurity, ADR 0008)
+    │   ├── AdaptadorVerificadorDeUsuarios.java   <- UNICO archivo que conoce usuarios.domain
+    │   └── AdaptadorConsultarPermisosDeUsuario.java   <- UNICO archivo que conoce roles.application (ADR 0008)
     ├── persistencia/
     │   ├── SesionEntity.java, SesionJpaRepository.java
     │   └── AlmacenDeTokensDeRefrescoJpa.java
@@ -54,9 +56,10 @@ Ya no conoce `Usuario`/`Correo`/`Contrasena` — delega la verificación complet
 Mismo cambio: usa `VerificadorDeUsuarios.buscarPorId(...)` en vez de `RepositorioUsuarios` directo.
 
 ### Puertos de salida
-- `GeneradorDeToken.generarPara(DatosDeUsuario, String identificadorEmpresa): String` — cambió de firma (antes recibía `Usuario`).
-- `VerificadorDeToken.verificar(String): Optional<UsuarioAutenticado>`.
+- `GeneradorDeToken.generarPara(DatosDeUsuario, Set<String> permisos, String identificadorEmpresa): String` — gana `permisos` (ADR 0008).
+- `VerificadorDeToken.verificar(String): Optional<UsuarioAutenticado>` — `UsuarioAutenticado` gana el campo `permisos` (ADR 0008).
 - `VerificadorDeUsuarios` (nuevo, ADR 0006): `verificarCredenciales(...)`, `buscarPorId(...)` — el único puerto de este módulo que, del otro lado, toca `usuarios`.
+- `ConsultarPermisosDeUsuario` (nuevo, ADR 0008): `permisosDe(UUID): Set<String>` — el único puerto de este módulo que, del otro lado, toca `roles`.
 - `DatosDeUsuario` (nuevo): `record(UUID id, String correo)` — no confundir con `UsuarioAutenticado` (eso sale de verificar un JWT: usuario + empresa; esto es lo que entra para generar uno).
 - `AlmacenDeTokensDeRefresco`: sin cambios.
 
@@ -80,6 +83,7 @@ Sin cambios respecto a la versión anterior — ver tabla en versiones previas d
 - [`decisiones/2026-09-03-0004-refresh-token-postgres-tbl-sesiones.md`](decisiones/2026-09-03-0004-refresh-token-postgres-tbl-sesiones.md)
 - [`decisiones/2026-09-04-0005-jwt-lleva-empresa-como-claim.md`](decisiones/2026-09-04-0005-jwt-lleva-empresa-como-claim.md)
 - [`decisiones/2026-09-05-0006-acl-contra-usuarios.md`](decisiones/2026-09-05-0006-acl-contra-usuarios.md) — Anti-Corruption Layer, este cambio.
+- [`decisiones/2026-09-14-0008-permisos-como-claim-del-jwt.md`](decisiones/2026-09-14-0008-permisos-como-claim-del-jwt.md) — permisos efectivos embebidos en el JWT, ACL propio hacia el módulo `roles`.
 
 ## 8. Pendiente / próximos pasos
 
@@ -103,3 +107,4 @@ mvn -f backend/pom.xml install -DskipTests -pl autenticacion/autenticacion-domai
 - **2026-09-05** — Luis — Anti-Corruption Layer contra `usuarios` (ADR 0006): ya no depende de su dominio en absoluto.
 - **2026-09-08** — Leidi — Contraseña temporal en el primer login: `login`/`refresh` devuelven `debeCambiarContrasena`, el JWT lleva el claim `pwd_temp`, `JwtAuthFilter` bloquea todo salvo `/api/v1/auth/**` mientras esté activo, y nuevo `POST /api/v1/auth/cambiar-contrasena`. Ver [flujo de onboarding](../../flujos/onboarding-de-empresas.md#8-paso-8--primer-login-con-contrase%C3%B1a-temporal) y [ADR 0007 de aprovisionamiento](../aprovisionamiento/decisiones/2026-09-08-0007-contrasena-temporal-y-primer-login.md).
 - **2026-09-09** — Aislamiento del token de la consola de operación (comparte `app.jwt.secret`): `JwtAuthFilter.shouldNotFilter` para `/api/v1/consola/**`, y `JwtVerificadorDeToken` rechaza cualquier token que traiga la claim `scope`. Ver [`consola`](../consola/README.md) y su [ADR 0002](../consola/decisiones/2026-09-09-0002-identidad-de-operador-separada.md).
+- **2026-09-14** — Leidi — Permisos efectivos del usuario como claim del JWT (ADR 0008): nuevo puerto `ConsultarPermisosDeUsuario` + `AdaptadorConsultarPermisosDeUsuario` (ACL hacia el módulo `roles`, nuevo), `JwtAuthFilter` arma `GrantedAuthority` desde el claim `permisos`, `@EnableMethodSecurity` habilitado en `SecurityConfig`. Ver [módulo `roles`](../roles/README.md).

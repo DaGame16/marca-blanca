@@ -114,7 +114,7 @@ reanuda desde el siguiente; reintentos con backoff; tras N intentos →
 | # | Paso (`paso_actual`) | Qué hace | Conexión |
 |---|---|---|---|
 | 1 | `base_creada` | `CREATE DATABASE db_cliente_<slug> TEMPLATE db_plantilla_maestra` | mantenimiento (owner @ `postgres`) |
-| 2 | `semilla_aplicada` | Crea el rol `ADMIN` (idempotente). El usuario admin se crea en el paso 8. | `db_cliente_<slug>` |
+| 2 | `semilla_aplicada` | Crea el rol `ADMIN` y le otorga todo el catálogo de `seguridad.tbl_permisos` (idempotente, ver [módulo `roles`](../modulos/roles/README.md#6-bootstrap-de-permisos-del-rol-admin)). El usuario admin se crea en el paso 8. | `db_cliente_<slug>` |
 | 3 | `roles_creados` | `CREATE ROLE cli_<slug>_app` / `cli_<slug>_lectura` + `GRANT` a los grupos motor | mantenimiento |
 | 4 | `conexion_registrada` | `INSERT` en `tbl_empresa_conexiones` (host, puerto, `nombre_bd`, `secreto_ref='dev-local'`) | control |
 | 5 | `version_registrada` | `INSERT` en `tbl_empresa_esquema_version` con el último id de `databasechangelog` de la base clonada | control + cliente |

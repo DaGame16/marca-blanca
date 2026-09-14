@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - changeSet:
+      id: seguridad-0015-sembrar-permisos-del-modulo-roles
+      author: leidi
+      comment: >
+        Catalogo de permisos que protege los endpoints del propio modulo roles
+        (RolController, PermisoController, AsignacionUsuarioRolController).
+        No se asignan a ningun rol aca -- para empresas nuevas eso ya lo hace
+        EjecutorDdlPostgres.aplicarSemilla (modulo aprovisionamiento) al
+        aprovisionar, otorgandole al rol ADMIN todo el catalogo vigente en ese
+        momento. Los tenants aprovisionados o migrados ANTES de ese fix
+        necesitan el otorgamiento una vez por SQL directo. Ver "Pendientes
+        conocidos" en docs/backend/modulos/roles/README.md.
+      changes:
+        - insert:
+            schemaName: seguridad
+            tableName: tbl_permisos
+            columns:
+              - column: {name: nombre, value: "roles:leer"}
+              - column: {name: descripcion, value: "Consultar roles, el catalogo de permisos, y las asignaciones de un usuario"}
+        - insert:
+            schemaName: seguridad
+            tableName: tbl_permisos
+            columns:
+              - column: {name: nombre, value: "roles:gestionar"}
+              - column: {name: descripcion, value: "Crear, editar y eliminar roles; asignar/quitar permisos de un rol o de un usuario"}
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "0"
+            sql: SELECT COUNT(*) FROM seguridad.tbl_permisos WHERE nombre IN ('roles:leer', 'roles:gestionar')
+      rollback:
+        - delete:
+            schemaName: seguridad
+            tableName: tbl_permisos
+            where: nombre IN ('roles:leer', 'roles:gestionar')

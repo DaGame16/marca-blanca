@@ -129,6 +129,24 @@ class ArquitecturaHexagonalTest {
     }
 
     @Test
+    void roles_dominio_y_aplicacion_no_dependen_de_otros_contextos() {
+        // El nucleo del contexto de roles solo habla con el exterior por sus
+        // puertos -- identifica usuarios por su uuid, nunca importando el tipo
+        // Usuario. El unico acoplamiento hacia roles-application permitido desde
+        // afuera es el ACL de autenticacion (AdaptadorConsultarPermisosDeUsuario),
+        // que vive en infrastructure, nunca aca.
+        ArchRule regla = noClasses()
+                .that().resideInAnyPackage(
+                        "..roles.domain..", "..roles.application..")
+                .should().dependOnClassesThat().resideInAnyPackage(
+                        "..empresas..", "..modulosempresa..", "..identidadvisual..",
+                        "..usuarios..", "..autenticacion..", "..aprovisionamiento..",
+                        "..consola..", "..correo..", "..omnicanal..");
+
+        regla.check(clases);
+    }
+
+    @Test
     void las_excepciones_de_dominio_terminan_en_exception() {
         ArchRule regla = classes()
                 .that().resideInAPackage("..domain..")

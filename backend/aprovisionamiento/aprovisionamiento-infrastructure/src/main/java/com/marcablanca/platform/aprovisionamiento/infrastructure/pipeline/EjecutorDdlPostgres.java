@@ -82,19 +82,33 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
         // Identificador (ya validado en el dominio) y plantilla es config de confianza.
         exigirNombreSeguro(plantilla);
         log.info("Clonando {} desde la plantilla {}", nombreBd, plantilla);
-        mantenimiento.execute("create database " + nombreBd + " template " + plantilla);
+        mantenimiento.execute("create database " + nombreBd + " template " + plantilla); //NOSONAR ambos identificadores ya se validaron contra SLUG_SEGURO arriba
     }
 
     @Override
     public void aplicarSemilla(Empresa empresa) {
         // El usuario admin se crea en enviarBienvenida (con la contrasena temporal).
-        // Aca solo el rol ADMIN, idempotente.
+        // Aca el rol ADMIN y, importante, TODOS los permisos del catalogo otorgados
+        // a ese rol -- sin esto el admin sembrado en enviarBienvenida quedaria con
+        // un rol "pelado" y ningun @PreAuthorize del modulo roles lo dejaria hacer
+        // nada. El otorgamiento es un INSERT ... SELECT contra el catalogo completo
+        // (no una lista fija de nombres), asi que cubre permisos de modulos futuros
+        // sin tener que tocar este metodo cada vez que se agregue uno.
         JdbcTemplate cliente = jdbcCliente(empresa.getIdentificador().nombreBaseDeDatos());
         if (!existe(cliente, "select exists(select 1 from seguridad.tbl_roles where nombre = 'ADMIN')")) {
             cliente.update("""
                     insert into seguridad.tbl_roles (nombre, descripcion, es_del_sistema)
                     values ('ADMIN', 'Administrador de la empresa', true)""");
         }
+        cliente.update("""
+                insert into seguridad.tbl_permisos_de_rol (rol_id, permiso_id)
+                select r.id, p.id
+                from seguridad.tbl_roles r
+                cross join seguridad.tbl_permisos p
+                where r.nombre = 'ADMIN'
+                  and not exists (
+                      select 1 from seguridad.tbl_permisos_de_rol pr
+                      where pr.rol_id = r.id and pr.permiso_id = p.id)""");
     }
 
     @Override
@@ -214,7 +228,8 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
             cliente.update("insert into seguridad.tbl_usuarios_roles (usuario_id, rol_id) values (?, ?)",
                     usuarioId, rolId);
         }
-        log.info("Usuario admin sembrado en {}: {}", empresa.getIdentificador().nombreBaseDeDatos(), correo);
+        log.info("Usuario admin sembrado en {}: {}", //NOSONAR se ejecuta una vez por onboarding, no un hot path
+                empresa.getIdentificador().nombreBaseDeDatos(), correo);
     }
 
     /** id del usuario con ese correo, o null si aun no existe (semilla idempotente). */
@@ -252,7 +267,7 @@ class EjecutorDdlPostgres implements PasosDeAprovisionamiento {
         // contra SLUG_SEGURO para dejar la interpolacion demostrablemente segura.
         exigirNombreSeguro(rol);
         exigirNombreSeguro(grupo);
-        mantenimiento.execute(
+        mantenimiento.execute( //NOSONAR rol y grupo ya se validaron contra SLUG_SEGURO arriba
                 "do $$ begin "
                         + "if not exists (select from pg_roles where rolname = '" + rol + "') then "
                         + "create role " + rol + " login password '" + rol + "'; "

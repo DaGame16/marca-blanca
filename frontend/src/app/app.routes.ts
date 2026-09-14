@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { moduloActivoGuard } from './core/guards/modulo-activo.guard';
+import { permisoGuard } from './core/guards/permiso.guard';
 import { HomeComponent } from './features/home/home.component';
 import { LoginComponent } from './features/auth/login/login.component';
 import { CambiarContrasenaComponent } from './features/auth/cambiar-contrasena/cambiar-contrasena.component';
@@ -44,6 +45,12 @@ export const routes: Routes = [
       { path: 'mi-marca', component: MiMarcaComponent },
       { path: 'tema-login', component: SelectorTemaLoginComponent },
       { path: 'usuarios', component: ListaUsuariosComponent },
+      {
+        path: 'roles',
+        loadComponent: () =>
+          import('./features/roles/pages/lista-roles/lista-roles.component').then((m) => m.ListaRolesComponent),
+        canActivate: [permisoGuard('roles:leer')],
+      },
       // Omnicanal quedo unificado en un solo modulo (omnicanal-liwa):
       // 'panel/omnicanal' y 'panel/omnicanal/liwa' apuntan al mismo panel
       // real (conversaciones, analisis IA, calidad, indicadores, asesores,

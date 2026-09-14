@@ -2,12 +2,14 @@ package com.marcablanca.platform.autenticacion.application;
 
 import com.marcablanca.platform.autenticacion.application.port.in.AutenticarUsuario;
 import com.marcablanca.platform.autenticacion.application.port.out.AlmacenDeTokensDeRefresco;
+import com.marcablanca.platform.autenticacion.application.port.out.ConsultarPermisosDeUsuario;
 import com.marcablanca.platform.autenticacion.application.port.out.DatosDeUsuario;
 import com.marcablanca.platform.autenticacion.application.port.out.GeneradorDeToken;
 import com.marcablanca.platform.autenticacion.application.port.out.VerificadorDeUsuarios;
 import com.marcablanca.platform.empresas.application.ContextoEmpresaActual;
 
 import java.time.OffsetDateTime;
+import java.util.Set;
 
 /**
  * Orquesta el login. La validacion de credenciales vive del otro lado de
@@ -23,13 +25,16 @@ public class AutenticarUsuarioService implements AutenticarUsuario {
     private final VerificadorDeUsuarios verificadorDeUsuarios;
     private final GeneradorDeToken generadorDeToken;
     private final AlmacenDeTokensDeRefresco almacenDeTokensDeRefresco;
+    private final ConsultarPermisosDeUsuario consultarPermisosDeUsuario;
 
     public AutenticarUsuarioService(VerificadorDeUsuarios verificadorDeUsuarios,
                                      GeneradorDeToken generadorDeToken,
-                                     AlmacenDeTokensDeRefresco almacenDeTokensDeRefresco) {
+                                     AlmacenDeTokensDeRefresco almacenDeTokensDeRefresco,
+                                     ConsultarPermisosDeUsuario consultarPermisosDeUsuario) {
         this.verificadorDeUsuarios = verificadorDeUsuarios;
         this.generadorDeToken = generadorDeToken;
         this.almacenDeTokensDeRefresco = almacenDeTokensDeRefresco;
+        this.consultarPermisosDeUsuario = consultarPermisosDeUsuario;
     }
 
     @Override
@@ -39,7 +44,8 @@ public class AutenticarUsuarioService implements AutenticarUsuario {
         String identificadorEmpresa = ContextoEmpresaActual.obtener()
                 .orElseThrow(() -> new IllegalStateException("No hay empresa activa en el contexto de la peticion"));
 
-        String token = generadorDeToken.generarPara(usuario, identificadorEmpresa);
+        Set<String> permisos = consultarPermisosDeUsuario.permisosDe(usuario.id());
+        String token = generadorDeToken.generarPara(usuario, permisos, identificadorEmpresa);
 
         String refrescoValor = GeneradorTokenDeRefresco.generarValor();
         String refrescoHash = GeneradorTokenDeRefresco.hashear(refrescoValor);

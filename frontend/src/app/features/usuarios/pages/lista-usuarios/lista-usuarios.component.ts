@@ -8,8 +8,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatChipsModule } from '@angular/material/chips';
 import { UsuarioService } from '../../data/usuario.service';
 import { ActualizarPerfilRequest, Usuario } from '../../models/usuario.model';
+import { AuthService } from '../../../../core/auth/auth.service';
+import { AsignacionUsuarioRolService } from '../../../roles/data/asignacion-usuario-rol.service';
+import { RolService } from '../../../roles/data/rol.service';
+import { Rol } from '../../../roles/models/rol.model';
 
 @Component({
   selector: 'app-lista-usuarios',
@@ -25,6 +30,7 @@ import { ActualizarPerfilRequest, Usuario } from '../../models/usuario.model';
     MatProgressSpinnerModule,
     MatSlideToggleModule,
     MatSnackBarModule,
+    MatChipsModule,
   ],
   template: `
     <div class="usuarios-page">
@@ -125,9 +131,54 @@ import { ActualizarPerfilRequest, Usuario } from '../../models/usuario.model';
                   <button mat-icon-button (click)="alternarPerfil(usuario)" aria-label="Editar perfil">
                     <mat-icon>badge</mat-icon>
                   </button>
+                  @if (puedeVerRoles()) {
+                    <button mat-icon-button (click)="alternarRoles(usuario)" aria-label="Roles">
+                      <mat-icon>shield_moon</mat-icon>
+                    </button>
+                  }
                 }
               </span>
             </div>
+
+            @if (rolesAbiertoUuid() === usuario.uuid) {
+              <div class="roles-panel">
+                @if (cargandoRoles()) {
+                  <mat-spinner diameter="28"></mat-spinner>
+                } @else {
+                  <mat-chip-set class="roles-chips">
+                    @for (rol of rolesDelUsuario(); track rol.uuid) {
+                      <mat-chip [removable]="puedeGestionarRoles()" (removed)="quitarRol(usuario, rol)">
+                        {{ rol.nombre }}
+                        @if (puedeGestionarRoles()) {
+                          <button matChipRemove aria-label="Quitar rol">
+                            <mat-icon>cancel</mat-icon>
+                          </button>
+                        }
+                      </mat-chip>
+                    } @empty {
+                      <span class="sin-roles">Sin roles asignados.</span>
+                    }
+                  </mat-chip-set>
+
+                  @if (puedeGestionarRoles()) {
+                    <div class="asignar-rol">
+                      <mat-form-field appearance="outline">
+                        <mat-label>Asignar rol</mat-label>
+                        <select matNativeControl [(ngModel)]="rolSeleccionadoUuid" [ngModelOptions]="{standalone: true}">
+                          <option value="" disabled>Selecciona un rol</option>
+                          @for (rol of rolesDisponiblesParaAsignar(); track rol.uuid) {
+                            <option [value]="rol.uuid">{{ rol.nombre }}</option>
+                          }
+                        </select>
+                      </mat-form-field>
+                      <button mat-stroked-button (click)="asignarRol(usuario)" [disabled]="!rolSeleccionadoUuid">
+                        Asignar
+                      </button>
+                    </div>
+                  }
+                }
+              </div>
+            }
 
             @if (perfilAbiertoUuid() === usuario.uuid) {
               <div class="perfil-panel">
@@ -282,6 +333,37 @@ import { ActualizarPerfilRequest, Usuario } from '../../models/usuario.model';
       border-bottom: 1px solid #f1f5f9;
     }
 
+    .roles-panel {
+      padding: 16px 20px 20px;
+      background: #f8fafc;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .roles-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .sin-roles {
+      color: #94a3b8;
+      font-size: 0.88rem;
+    }
+
+    .asignar-rol {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .asignar-rol mat-form-field {
+      flex: 1 1 220px;
+    }
+
     .perfil-panel form {
       display: flex;
       flex-wrap: wrap;
@@ -313,6 +395,9 @@ import { ActualizarPerfilRequest, Usuario } from '../../models/usuario.model';
 })
 export class ListaUsuariosComponent implements OnInit {
   private readonly usuarioService = inject(UsuarioService);
+  private readonly authService = inject(AuthService);
+  private readonly asignacionRolService = inject(AsignacionUsuarioRolService);
+  private readonly rolService = inject(RolService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly fb = inject(FormBuilder);
 
@@ -329,6 +414,12 @@ export class ListaUsuariosComponent implements OnInit {
 
   readonly perfilAbiertoUuid = signal<string | null>(null);
   readonly guardandoPerfil = signal(false);
+
+  readonly rolesAbiertoUuid = signal<string | null>(null);
+  readonly cargandoRoles = signal(false);
+  readonly rolesDelUsuario = signal<Rol[]>([]);
+  readonly catalogoRoles = signal<Rol[]>([]);
+  rolSeleccionadoUuid = '';
 
   readonly formCrear = this.fb.nonNullable.group({
     nombreCompleto: ['', Validators.required],
@@ -473,6 +564,76 @@ export class ListaUsuariosComponent implements OnInit {
       error: () => {
         this.guardandoPerfil.set(false);
         this.snackBar.open('No se pudo actualizar el perfil. Intenta de nuevo.', 'Cerrar', { duration: 4000 });
+      },
+    });
+  }
+
+  puedeVerRoles(): boolean {
+    return this.authService.tienePermiso('roles:leer');
+  }
+
+  puedeGestionarRoles(): boolean {
+    return this.authService.tienePermiso('roles:gestionar');
+  }
+
+  rolesDisponiblesParaAsignar(): Rol[] {
+    const asignados = new Set(this.rolesDelUsuario().map((r) => r.uuid));
+    return this.catalogoRoles().filter((r) => !asignados.has(r.uuid));
+  }
+
+  alternarRoles(usuario: Usuario): void {
+    if (this.rolesAbiertoUuid() === usuario.uuid) {
+      this.rolesAbiertoUuid.set(null);
+      return;
+    }
+    this.rolesAbiertoUuid.set(usuario.uuid);
+    this.cargarRolesDeUsuario(usuario);
+  }
+
+  private cargarRolesDeUsuario(usuario: Usuario): void {
+    this.cargandoRoles.set(true);
+    this.rolSeleccionadoUuid = '';
+
+    if (this.catalogoRoles().length === 0 && this.puedeGestionarRoles()) {
+      this.rolService.listar().subscribe({ next: (roles) => this.catalogoRoles.set(roles) });
+    }
+
+    this.asignacionRolService.listarRolesDeUsuario(usuario.uuid).subscribe({
+      next: (roles) => {
+        this.rolesDelUsuario.set(roles);
+        this.cargandoRoles.set(false);
+      },
+      error: () => {
+        this.cargandoRoles.set(false);
+        this.snackBar.open('No se pudieron cargar los roles del usuario.', 'Cerrar', { duration: 4000 });
+      },
+    });
+  }
+
+  asignarRol(usuario: Usuario): void {
+    if (!this.rolSeleccionadoUuid) {
+      return;
+    }
+    this.asignacionRolService.asignarRol(usuario.uuid, this.rolSeleccionadoUuid).subscribe({
+      next: () => {
+        this.rolSeleccionadoUuid = '';
+        this.cargarRolesDeUsuario(usuario);
+        this.snackBar.open('Rol asignado', 'Cerrar', { duration: 2500 });
+      },
+      error: () => {
+        this.snackBar.open('No se pudo asignar el rol. Intenta de nuevo.', 'Cerrar', { duration: 4000 });
+      },
+    });
+  }
+
+  quitarRol(usuario: Usuario, rol: Rol): void {
+    this.asignacionRolService.quitarRol(usuario.uuid, rol.uuid).subscribe({
+      next: () => {
+        this.rolesDelUsuario.set(this.rolesDelUsuario().filter((r) => r.uuid !== rol.uuid));
+        this.snackBar.open('Rol quitado', 'Cerrar', { duration: 2500 });
+      },
+      error: () => {
+        this.snackBar.open('No se pudo quitar el rol. Intenta de nuevo.', 'Cerrar', { duration: 4000 });
       },
     });
   }

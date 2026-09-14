@@ -38,6 +38,9 @@
         <module>usuarios/usuarios-domain</module>
         <module>usuarios/usuarios-application</module>
         <module>usuarios/usuarios-infrastructure</module>
+        <module>roles/roles-domain</module>
+        <module>roles/roles-application</module>
+        <module>roles/roles-infrastructure</module>
         <module>autenticacion/autenticacion-domain</module>
         <module>autenticacion/autenticacion-application</module>
         <module>autenticacion/autenticacion-infrastructure</module>
