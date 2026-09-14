@@ -3,6 +3,7 @@ package com.marcablanca.platform.omnicanal.infrastructure.web;
 import com.marcablanca.platform.omnicanal.application.port.in.ConfigurarOmnicanal;
 import com.marcablanca.platform.omnicanal.application.port.in.ConfigurarOmnicanal.VistaConfig;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,6 +28,7 @@ public class OmnicanalConfigController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('omnicanal:configurar')")
     public VistaConfig ver() {
         return configurarOmnicanal.ver();
     }
@@ -36,6 +38,7 @@ public class OmnicanalConfigController {
     }
 
     @PutMapping
+    @PreAuthorize("hasAuthority('omnicanal:configurar')")
     public VistaConfig actualizarAjustes(@RequestBody AjustesRequest req) {
         configurarOmnicanal.actualizarAjustes(req.iaHabilitada(), req.openaiModelo(), req.liwaBaseUrl(),
                 req.liwaCustomFieldAds());
@@ -46,18 +49,21 @@ public class OmnicanalConfigController {
     }
 
     @PutMapping("/liwa-token")
+    @PreAuthorize("hasAuthority('omnicanal:configurar')")
     public ResponseEntity<Void> definirLiwaToken(@RequestBody TokenRequest req) {
         configurarOmnicanal.definirLiwaToken(req.token());
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/liwa-token")
+    @PreAuthorize("hasAuthority('omnicanal:configurar')")
     public ResponseEntity<Void> borrarLiwaToken() {
         configurarOmnicanal.borrarLiwaToken();
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/rotar-secreto")
+    @PreAuthorize("hasAuthority('omnicanal:configurar')")
     public VistaConfig rotarSecreto() {
         return configurarOmnicanal.rotarSecreto();
     }

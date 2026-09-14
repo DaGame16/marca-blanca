@@ -7,6 +7,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MarcaService } from '../../../../core/identidad-visual/marca.service';
 import type { MarcaDeEmpresa } from '../../../../core/identidad-visual/models';
 import { TemaPaginaService, TemaPagina } from '../../../../core/temas/tema-pagina.service';
+import { AuthService } from '../../../../core/auth/auth.service';
 
 type CodigoTema = 'lateral' | 'centrado' | 'fondo';
 
@@ -119,7 +120,7 @@ const OPCIONES_PAGINA: OpcionPagina[] = [
                 En uso
               </button>
             } @else {
-              <button mat-stroked-button [disabled]="guardando()" (click)="elegir(opcion)">Usar este diseño</button>
+              <button mat-stroked-button [disabled]="guardando() || !authService.tienePermiso('marca:editar')" (click)="elegir(opcion)">Usar este diseño</button>
             }
           </div>
         }
@@ -148,7 +149,7 @@ const OPCIONES_PAGINA: OpcionPagina[] = [
                 En uso
               </button>
             } @else {
-              <button mat-stroked-button [disabled]="guardandoPagina()" (click)="elegirPagina(opcion)">
+              <button mat-stroked-button [disabled]="guardandoPagina() || !authService.tienePermiso('marca:editar')" (click)="elegirPagina(opcion)">
                 Usar esta densidad
               </button>
             }
@@ -362,6 +363,7 @@ const OPCIONES_PAGINA: OpcionPagina[] = [
   `],
 })
 export class SelectorTemaLoginComponent implements OnInit {
+  protected readonly authService = inject(AuthService);
   private readonly marcaService = inject(MarcaService);
   private readonly temaPaginaService = inject(TemaPaginaService);
   private readonly snackBar = inject(MatSnackBar);

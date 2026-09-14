@@ -1,0 +1,61 @@
+databaseChangeLog:
+  - changeSet:
+      id: seguridad-0016-sembrar-catalogo-granular-de-permisos
+      author: leidi
+      comment: >
+        Catalogo granular de permisos por modulo y accion, para @PreAuthorize
+        en los endpoints de tenant (usuarios, identidad-visual, modulos-empresa,
+        omnicanal) que hasta ahora solo exigian JWT valido, sin permiso
+        especifico. roles:leer/roles:gestionar ya existian (0015).
+      changes:
+        - insert: {schemaName: seguridad, tableName: tbl_permisos, columns: [
+            {column: {name: nombre, value: "usuarios:leer"}},
+            {column: {name: descripcion, value: "Consultar la lista y el detalle de usuarios"}}]}
+        - insert: {schemaName: seguridad, tableName: tbl_permisos, columns: [
+            {column: {name: nombre, value: "usuarios:crear"}},
+            {column: {name: descripcion, value: "Crear usuarios nuevos"}}]}
+        - insert: {schemaName: seguridad, tableName: tbl_permisos, columns: [
+            {column: {name: nombre, value: "usuarios:editar"}},
+            {column: {name: descripcion, value: "Editar nombre y datos de perfil de un usuario"}}]}
+        - insert: {schemaName: seguridad, tableName: tbl_permisos, columns: [
+            {column: {name: nombre, value: "usuarios:activar"}},
+            {column: {name: descripcion, value: "Activar un usuario desactivado"}}]}
+        - insert: {schemaName: seguridad, tableName: tbl_permisos, columns: [
+            {column: {name: nombre, value: "usuarios:desactivar"}},
+            {column: {name: descripcion, value: "Desactivar un usuario"}}]}
+        - insert: {schemaName: seguridad, tableName: tbl_permisos, columns: [
+            {column: {name: nombre, value: "marca:leer"}},
+            {column: {name: descripcion, value: "Ver la identidad de marca y la experiencia de acceso de la empresa"}}]}
+        - insert: {schemaName: seguridad, tableName: tbl_permisos, columns: [
+            {column: {name: nombre, value: "marca:editar"}},
+            {column: {name: descripcion, value: "Editar logo, colores, dominio y experiencia de acceso de la empresa"}}]}
+        - insert: {schemaName: seguridad, tableName: tbl_permisos, columns: [
+            {column: {name: nombre, value: "modulos:leer"}},
+            {column: {name: descripcion, value: "Ver los modulos disponibles y su estado para la empresa"}}]}
+        - insert: {schemaName: seguridad, tableName: tbl_permisos, columns: [
+            {column: {name: nombre, value: "modulos:activar"}},
+            {column: {name: descripcion, value: "Activar un modulo para la empresa"}}]}
+        - insert: {schemaName: seguridad, tableName: tbl_permisos, columns: [
+            {column: {name: nombre, value: "modulos:desactivar"}},
+            {column: {name: descripcion, value: "Desactivar un modulo de la empresa"}}]}
+        - insert: {schemaName: seguridad, tableName: tbl_permisos, columns: [
+            {column: {name: nombre, value: "omnicanal:leer"}},
+            {column: {name: descripcion, value: "Ver conversaciones, analisis, estadisticas y reportes de omnicanal"}}]}
+        - insert: {schemaName: seguridad, tableName: tbl_permisos, columns: [
+            {column: {name: nombre, value: "omnicanal:configurar"}},
+            {column: {name: descripcion, value: "Ver y editar la configuracion de omnicanal (token LIWA, modelo IA, secreto de webhook)"}}]}
+        - insert: {schemaName: seguridad, tableName: tbl_permisos, columns: [
+            {column: {name: nombre, value: "omnicanal:reprocesar"}},
+            {column: {name: descripcion, value: "Reintentar/reprocesar analisis de IA y backfill de ads"}}]}
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "0"
+            sql: SELECT COUNT(*) FROM seguridad.tbl_permisos WHERE nombre = 'usuarios:leer'
+      rollback:
+        - delete:
+            schemaName: seguridad
+            tableName: tbl_permisos
+            where: nombre IN ('usuarios:leer','usuarios:crear','usuarios:editar','usuarios:activar','usuarios:desactivar',
+              'marca:leer','marca:editar','modulos:leer','modulos:activar','modulos:desactivar',
+              'omnicanal:leer','omnicanal:configurar','omnicanal:reprocesar')

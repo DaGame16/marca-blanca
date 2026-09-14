@@ -39,10 +39,12 @@ import { Rol } from '../../../roles/models/rol.model';
           <h1>Usuarios</h1>
           <p>Crea, edita y activa o desactiva los usuarios de tu empresa.</p>
         </div>
-        <button mat-flat-button color="primary" (click)="alternarFormularioCreacion()">
-          <mat-icon>{{ mostrarFormularioCreacion() ? 'close' : 'person_add' }}</mat-icon>
-          {{ mostrarFormularioCreacion() ? 'Cancelar' : 'Nuevo usuario' }}
-        </button>
+        @if (authService.tienePermiso('usuarios:crear')) {
+          <button mat-flat-button color="primary" (click)="alternarFormularioCreacion()">
+            <mat-icon>{{ mostrarFormularioCreacion() ? 'close' : 'person_add' }}</mat-icon>
+            {{ mostrarFormularioCreacion() ? 'Cancelar' : 'Nuevo usuario' }}
+          </button>
+        }
       </header>
 
       @if (mostrarFormularioCreacion()) {
@@ -110,7 +112,7 @@ import { Rol } from '../../../roles/models/rol.model';
               <span>
                 <mat-slide-toggle
                   [checked]="usuario.activo"
-                  [disabled]="procesandoUuid() === usuario.uuid"
+                  [disabled]="procesandoUuid() === usuario.uuid || !authService.tienePermiso(usuario.activo ? 'usuarios:desactivar' : 'usuarios:activar')"
                   (change)="alternarActivo(usuario)"
                 >
                   {{ usuario.activo ? 'Activo' : 'Inactivo' }}
@@ -125,12 +127,14 @@ import { Rol } from '../../../roles/models/rol.model';
                     <mat-icon>close</mat-icon>
                   </button>
                 } @else {
-                  <button mat-icon-button (click)="iniciarEdicion(usuario)" aria-label="Editar nombre">
-                    <mat-icon>edit</mat-icon>
-                  </button>
-                  <button mat-icon-button (click)="alternarPerfil(usuario)" aria-label="Editar perfil">
-                    <mat-icon>badge</mat-icon>
-                  </button>
+                  @if (authService.tienePermiso('usuarios:editar')) {
+                    <button mat-icon-button (click)="iniciarEdicion(usuario)" aria-label="Editar nombre">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button (click)="alternarPerfil(usuario)" aria-label="Editar perfil">
+                      <mat-icon>badge</mat-icon>
+                    </button>
+                  }
                   @if (puedeVerRoles()) {
                     <button mat-icon-button (click)="alternarRoles(usuario)" aria-label="Roles">
                       <mat-icon>shield_moon</mat-icon>
@@ -395,7 +399,7 @@ import { Rol } from '../../../roles/models/rol.model';
 })
 export class ListaUsuariosComponent implements OnInit {
   private readonly usuarioService = inject(UsuarioService);
-  private readonly authService = inject(AuthService);
+  protected readonly authService = inject(AuthService);
   private readonly asignacionRolService = inject(AsignacionUsuarioRolService);
   private readonly rolService = inject(RolService);
   private readonly snackBar = inject(MatSnackBar);

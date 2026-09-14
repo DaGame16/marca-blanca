@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -13,6 +13,7 @@ import { RolService } from '../../data/rol.service';
 import { PermisoService } from '../../data/permiso.service';
 import { Rol } from '../../models/rol.model';
 import { Permiso } from '../../models/permiso.model';
+import { agruparPermisosPorModulo } from '../../models/modulo-permiso.util';
 
 @Component({
   selector: 'app-lista-roles',
@@ -130,15 +131,21 @@ import { Permiso } from '../../models/permiso.model';
                   @if (cargandoPermisos()) {
                     <mat-spinner diameter="28"></mat-spinner>
                   } @else {
-                    @for (permiso of catalogoPermisos(); track permiso.uuid) {
-                      <mat-checkbox
-                        [checked]="permisosDelRol().has(permiso.uuid)"
-                        [disabled]="!puedeGestionar() || procesandoPermiso()"
-                        (change)="alternarPermisoDeRol(rol, permiso, $event.checked)"
-                      >
-                        {{ permiso.nombre }}
-                        <span class="permiso-descripcion">{{ permiso.descripcion }}</span>
-                      </mat-checkbox>
+                    @for (grupo of gruposDePermisos(); track grupo.modulo) {
+                      <div class="permisos-grupo">
+                        <span class="permisos-grupo-titulo">{{ grupo.tituloModulo }}</span>
+                        @for (permiso of grupo.permisos; track permiso.uuid) {
+                          <mat-checkbox
+                            class="permiso-item"
+                            [checked]="permisosDelRol().has(permiso.uuid)"
+                            [disabled]="!puedeGestionar() || procesandoPermiso()"
+                            (change)="alternarPermisoDeRol(rol, permiso, $event.checked)"
+                          >
+                            <span class="permiso-nombre">{{ permiso.descripcion }}</span>
+                            <code class="permiso-codigo">{{ permiso.nombre }}</code>
+                          </mat-checkbox>
+                        }
+                      </div>
                     }
                   }
                 </div>
@@ -276,16 +283,42 @@ import { Permiso } from '../../models/permiso.model';
     .permisos-panel {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 18px;
       padding: 16px 20px 20px;
       background: #f8fafc;
       border-top: 1px solid #f1f5f9;
     }
 
-    .permiso-descripcion {
+    .permisos-grupo {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .permisos-grupo-titulo {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #64748b;
+      margin-bottom: 2px;
+    }
+
+    .permiso-item {
+      display: block;
+    }
+
+    .permiso-nombre {
+      color: #1e293b;
+      font-size: 0.92rem;
+    }
+
+    .permiso-codigo {
       display: block;
       color: #94a3b8;
-      font-size: 0.78rem;
+      font-size: 0.72rem;
+      font-family: 'SFMono-Regular', Consolas, monospace;
+      margin-top: 1px;
     }
 
     @media (max-width: 720px) {
@@ -317,6 +350,7 @@ export class ListaRolesComponent implements OnInit {
   readonly cargandoPermisos = signal(false);
   readonly procesandoPermiso = signal(false);
   readonly catalogoPermisos = signal<Permiso[]>([]);
+  readonly gruposDePermisos = computed(() => agruparPermisosPorModulo(this.catalogoPermisos()));
   readonly permisosDelRol = signal<Set<string>>(new Set());
 
   readonly formCrear = this.fb.nonNullable.group({

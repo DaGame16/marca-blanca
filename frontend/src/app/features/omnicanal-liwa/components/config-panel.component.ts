@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { LiwaService } from '../data/liwa.service';
 import { VistaConfig } from '../models/liwa.model';
+import { AuthService } from '../../../core/auth/auth.service';
 
 // Pantalla de configuración self-service del tenant para el módulo Liwa --
 // las llamadas HTTP (obtenerConfig/actualizarConfig/token/rotar-secreto) ya
@@ -30,13 +31,13 @@ import { VistaConfig } from '../models/liwa.model';
                 <mat-icon>{{ config.liwaTokenConfigurado ? 'check_circle' : 'error_outline' }}</mat-icon>
                 {{ config.liwaTokenConfigurado ? 'Token configurado' : 'Sin token' }}
               </span>
-              <button type="button" *ngIf="config.liwaTokenConfigurado" class="btn-outline" (click)="eliminarToken()" [disabled]="guardandoToken">
+              <button type="button" *ngIf="config.liwaTokenConfigurado" class="btn-outline" (click)="eliminarToken()" [disabled]="guardandoToken || !puedeConfigurar()">
                 Eliminar token
               </button>
             </div>
             <div class="fila-nuevo-token">
-              <input type="password" [(ngModel)]="tokenNuevo" placeholder="Pegar nuevo token de Liwa" autocomplete="off" />
-              <button type="button" class="btn-primario" [disabled]="!tokenNuevo.trim() || guardandoToken" (click)="guardarToken()">
+              <input type="password" [(ngModel)]="tokenNuevo" placeholder="Pegar nuevo token de Liwa" autocomplete="off" [disabled]="!puedeConfigurar()" />
+              <button type="button" class="btn-primario" [disabled]="!tokenNuevo.trim() || guardandoToken || !puedeConfigurar()" (click)="guardarToken()">
                 @if (guardandoToken) {
                   <mat-icon class="spin">progress_activity</mat-icon>
                 } @else {
@@ -74,7 +75,7 @@ import { VistaConfig } from '../models/liwa.model';
             </div>
           </div>
 
-          <button type="button" class="btn-outline peligro" (click)="rotarSecreto()" [disabled]="rotando">
+          <button type="button" class="btn-outline peligro" (click)="rotarSecreto()" [disabled]="rotando || !puedeConfigurar()">
             @if (rotando) {
               <mat-icon class="spin">progress_activity</mat-icon>
             } @else {
@@ -86,7 +87,7 @@ import { VistaConfig } from '../models/liwa.model';
         </div>
 
         <div class="acciones-guardar">
-          <button type="button" class="btn-primario grande" [disabled]="guardando" (click)="guardar()">
+          <button type="button" class="btn-primario grande" [disabled]="guardando || !puedeConfigurar()" (click)="guardar()">
             @if (guardando) {
               <mat-icon class="spin">progress_activity</mat-icon> Guardando…
             } @else {
@@ -168,7 +169,11 @@ export class LiwaConfigPanelComponent implements OnInit {
   mensajeOk = '';
   mensajeError = '';
 
-  constructor(private readonly liwa: LiwaService) {}
+  constructor(private readonly liwa: LiwaService, private readonly authService: AuthService) {}
+
+  puedeConfigurar(): boolean {
+    return this.authService.tienePermiso('omnicanal:configurar');
+  }
 
   ngOnInit(): void {
     this.cargar();

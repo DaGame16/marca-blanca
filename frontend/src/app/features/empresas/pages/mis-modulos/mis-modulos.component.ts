@@ -7,6 +7,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MisModulosService } from './mis-modulos.service';
 import { ModuloDeEmpresa } from '../../../../core/admin/models';
+import { AuthService } from '../../../../core/auth/auth.service';
 
 // "usuarios" es un modulo base que toda empresa tiene por defecto (no se
 // vende ni se activa/desactiva) -- se excluye por nombre, no por una lista
@@ -33,18 +34,22 @@ const APARIENCIA_DEFECTO = { icono: 'extension', color: '#64748b' };
         <div class="apps-header-text">
           <h1>Mis módulos</h1>
           <p>Activa los módulos que quieras usar en tu empresa. Puedes desactivarlos cuando quieras.</p>
-          <a routerLink="/mi-marca" class="marca-link">
-            <mat-icon inline>palette</mat-icon>
-            Personalizar mi marca
-          </a>
-          <a routerLink="/tema-login" class="marca-link">
-            <mat-icon inline>login</mat-icon>
-            Diseño de inicio de sesión
-          </a>
-          <a routerLink="/usuarios" class="marca-link">
-            <mat-icon inline>group</mat-icon>
-            Gestionar usuarios
-          </a>
+          @if (authService.tienePermiso('marca:leer')) {
+            <a routerLink="/mi-marca" class="marca-link">
+              <mat-icon inline>palette</mat-icon>
+              Personalizar mi marca
+            </a>
+            <a routerLink="/tema-login" class="marca-link">
+              <mat-icon inline>login</mat-icon>
+              Diseño de inicio de sesión
+            </a>
+          }
+          @if (authService.tienePermiso('usuarios:leer')) {
+            <a routerLink="/usuarios" class="marca-link">
+              <mat-icon inline>group</mat-icon>
+              Gestionar usuarios
+            </a>
+          }
         </div>
 
         <div class="search-box">
@@ -98,7 +103,7 @@ const APARIENCIA_DEFECTO = { icono: 'extension', color: '#64748b' };
                   </a>
                   <button
                     class="btn-installed"
-                    [disabled]="procesando() === modulo.codigo"
+                    [disabled]="procesando() === modulo.codigo || !authService.tienePermiso('modulos:desactivar')"
                     (click)="alternar(modulo)"
                   >
                     @if (procesando() === modulo.codigo) {
@@ -116,7 +121,7 @@ const APARIENCIA_DEFECTO = { icono: 'extension', color: '#64748b' };
                   <button
                     class="btn-install"
                     [style.--accent]="colorAcento(modulo.codigo)"
-                    [disabled]="procesando() === modulo.codigo"
+                    [disabled]="procesando() === modulo.codigo || !authService.tienePermiso('modulos:activar')"
                     (click)="alternar(modulo)"
                   >
                     @if (procesando() === modulo.codigo) {
@@ -388,6 +393,7 @@ const APARIENCIA_DEFECTO = { icono: 'extension', color: '#64748b' };
   `],
 })
 export class MisModulosComponent implements OnInit {
+  protected readonly authService = inject(AuthService);
   private readonly misModulosService = inject(MisModulosService);
   private readonly snackBar = inject(MatSnackBar);
 

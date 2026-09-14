@@ -9,6 +9,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MarcaService } from '../../../../core/identidad-visual/marca.service';
 import { MarcaDeEmpresa } from '../../../../core/identidad-visual/models';
+import { AuthService } from '../../../../core/auth/auth.service';
 
 const FORMATO_HEX = /^#[0-9A-Fa-f]{6}$/;
 // El backend todavia no tiene subida real de logos -- solo guarda una URL
@@ -103,13 +104,15 @@ function noEsDataUrlValidator(control: AbstractControl): ValidationErrors | null
               <mat-icon matPrefix>public</mat-icon>
             </mat-form-field>
 
-            <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || guardando()">
-              @if (guardando()) {
-                <mat-spinner diameter="18"></mat-spinner>
-              } @else {
-                <span>Guardar cambios</span>
-              }
-            </button>
+            @if (authService.tienePermiso('marca:editar')) {
+              <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || guardando()">
+                @if (guardando()) {
+                  <mat-spinner diameter="18"></mat-spinner>
+                } @else {
+                  <span>Guardar cambios</span>
+                }
+              </button>
+            }
           </form>
 
           <aside class="marca-preview" [style.--color-primario]="previewPrimario()" [style.--color-secundario]="previewSecundario()">
@@ -278,6 +281,7 @@ function noEsDataUrlValidator(control: AbstractControl): ValidationErrors | null
   `],
 })
 export class MiMarcaComponent implements OnInit {
+  protected readonly authService = inject(AuthService);
   private readonly marcaService = inject(MarcaService);
   private readonly fb = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);

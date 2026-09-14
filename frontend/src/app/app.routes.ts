@@ -41,10 +41,10 @@ export const routes: Routes = [
     component: ShellComponent,
     canActivate: [authGuard],
     children: [
-      { path: 'mis-modulos', component: MisModulosComponent },
-      { path: 'mi-marca', component: MiMarcaComponent },
-      { path: 'tema-login', component: SelectorTemaLoginComponent },
-      { path: 'usuarios', component: ListaUsuariosComponent },
+      { path: 'mis-modulos', component: MisModulosComponent, canActivate: [permisoGuard('modulos:leer')] },
+      { path: 'mi-marca', component: MiMarcaComponent, canActivate: [permisoGuard('marca:leer')] },
+      { path: 'tema-login', component: SelectorTemaLoginComponent, canActivate: [permisoGuard('marca:leer')] },
+      { path: 'usuarios', component: ListaUsuariosComponent, canActivate: [permisoGuard('usuarios:leer')] },
       {
         path: 'roles',
         loadComponent: () =>
@@ -60,14 +60,14 @@ export const routes: Routes = [
         path: 'panel/omnicanal/liwa',
         loadComponent: () =>
           import('./features/omnicanal-liwa/pages/panel/omnicanal-liwa-panel.component').then((m) => m.OmnicanalLiwaPanelComponent),
-        canActivate: [moduloActivoGuard('omnicanal')],
+        canActivate: [moduloActivoGuard('omnicanal'), permisoGuard('omnicanal:leer')],
       },
       { path: 'panel/pbx-3cx', component: Pbx3cxPanelComponent },
       {
         path: 'panel/omnicanal/liwa/config',
         loadComponent: () =>
           import('./features/omnicanal-liwa/pages/config/omnicanal-liwa-config-page.component').then((m) => m.OmnicanalLiwaConfigPageComponent),
-        canActivate: [moduloActivoGuard('omnicanal')],
+        canActivate: [moduloActivoGuard('omnicanal'), permisoGuard('omnicanal:configurar')],
       },
     ],
   },
